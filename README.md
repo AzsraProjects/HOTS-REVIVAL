@@ -3,7 +3,7 @@
 > **Conçue par des joueurs, pour des joueurs.**
 > Une intelligence artificielle qui vous accompagne avant, pendant et après chaque partie de *Heroes of the Storm*.
 
-HOTS REVIVAL vise à devenir le « Porofessor » de Heroes of the Storm : profil joueur, Draft Assistant, overlay passif en jeu, rapport post-partie, **HEROS SCORE** et coach personnel propulsé par Claude.
+HOTS REVIVAL vise à devenir le « Porofessor » de Heroes of the Storm : profil joueur, Draft Assistant, overlay passif en jeu, rapport post-partie, **HEROS SCORE** et coach personnel propulsé par l'IA de votre choix (Claude, Gemini, ChatGPT, Mistral, Ollama en local…).
 
 **Conforme aux conditions d'utilisation Blizzard par conception :** aucune lecture ou écriture mémoire, aucune injection, aucune macro ni automatisation, aucune information cachée. Seuls les fichiers que le jeu écrit sur le disque (replays, fichier de lobby), les informations publiques et vos propres saisies sont utilisés. → [docs/02-conformite-blizzard.md](docs/02-conformite-blizzard.md)
 
@@ -22,7 +22,7 @@ HOTS REVIVAL vise à devenir le « Porofessor » de Heroes of the Storm : profil
 | 1. Profil joueur | Winrates global / rôle / héros, tendances, progression, meilleur / pire héros, rôles, héros à éviter | `analytics/profile_stats.py`, page Tableau de bord |
 | 2. Draft Assistant | Forces, faiblesses, synergies, menaces (ex. combo E.T.C. + Jaina), counters, win conditions, early/mid/late, picks recommandés | `draft/engine.py`, page Draft |
 | 3. Overlay temps réel | Horloge, prochain objectif et priorité, camps, powerspikes, build de talents, conseils | `live/`, fenêtre overlay Electron |
-| 4. Coach IA | Chat Claude en streaming qui connaît votre historique | `coach/`, page Coach IA |
+| 4. Coach IA | Chat IA en streaming (Claude, Gemini, ChatGPT, Mistral, OpenRouter, Ollama…) qui connaît votre historique | `coach/`, page Coach IA |
 | 5. Analyse de replays | Surveillance du dossier, parsing (heroprotocol officiel), base de données | `replay/` |
 | 6. Post Game Report | Résumé, points forts / faibles, moments clés, erreurs, actions excellentes, plan d'amélioration | `analytics/report.py`, page Rapport |
 | 7. HEROS SCORE | Placement, Macro, Teamfight, Objectifs, Survie, Draft → note /100 | `analytics/heros_score.py` |
@@ -38,7 +38,7 @@ HOTS REVIVAL vise à devenir le « Porofessor » de Heroes of the Storm : profil
 C'est tout : aucune commande, aucune base de données à installer, aucun fichier à modifier.
 Les versions suivantes s'installent depuis l'application (bouton **Mettre à jour**).
 - Le dossier de replays (`Documents\Heroes of the Storm\Accounts\…\Replays\Multiplayer`) et votre compte sont **détectés automatiquement** ; vos anciens replays sont importés au premier lancement, puis chaque nouvelle partie est analysée dès sa fin.
-- Pour activer le coach IA, collez votre clé Claude dans **Paramètres** (optionnel).
+- Pour activer le coach IA, choisissez votre IA et collez sa clé dans **Paramètres → Coach IA** (optionnel). Ollama fonctionne en local, sans clé.
 - Lancez Heroes of the Storm en **plein écran fenêtré** pour voir l'overlay.
 - Données et journal : `%APPDATA%\HOTS REVIVAL\`.
 
@@ -68,7 +68,7 @@ Par défaut la base est un fichier SQLite dans le dossier de données ; `HOTS_DA
 L'overlay est automatique : il apparaît au chargement d'une partie (carte détectée), se vide à la fin et disparaît quand le jeu est fermé. Avec la lecture d'écran activée (Paramètres), l'horloge et les niveaux d'équipe sont lus tout seuls.
 
 ## Stack
-React · TypeScript · Tailwind · Electron · Python · FastAPI · PostgreSQL · Claude API (SDK Anthropic) · Sentry · PostHog
+React · TypeScript · Tailwind · Electron · Python · FastAPI · PostgreSQL · Claude API (SDK Anthropic) ou toute API compatible OpenAI · Sentry · PostHog
 
 ## Documentation
 | # | Livrable |

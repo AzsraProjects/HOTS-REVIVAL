@@ -50,7 +50,8 @@ export const api = {
   analyzeDraft: (body: { allies: string[]; enemies: string[]; bans: string[]; map_id: string | null }) =>
     post<DraftResult>("/draft/analyze", body),
   settings: () => request<AppSettings>("/settings"),
-  saveSettings: (body: Partial<{ replay_dir: string; player_battletag: string; anthropic_api_key: string; claude_model: string }>) =>
+  saveSettings: (body: Partial<{ replay_dir: string; player_battletag: string; ai_provider: string; ai_api_key: string;
+    ai_model: string; ai_base_url: string }>) =>
     request<AppSettings>("/settings", { method: "PUT", body: JSON.stringify(body) }),
   tierLists: () => request<TierListData[]>("/meta/tierlists"),
   combos: () => request<Combo[]>("/meta/combos"),

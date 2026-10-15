@@ -86,7 +86,8 @@ export function MatchReport() {
             <Link className="btn-ghost" to={`/coach?match=${id}`}>Poser une question au coach</Link>
             {report.data?.model && (
               <span className="text-xs text-slate-500">
-                Analyse : {report.data.model === "deterministic" ? "sans IA (règles)" : `Claude · ${report.data.model}`}
+                Analyse : {report.data.model === "deterministic" ? "sans IA (règles)"
+                  : report.data.model.includes(" · ") ? report.data.model : `Claude · ${report.data.model}`}
               </span>
             )}
           </div>

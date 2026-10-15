@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from app.coach.client import CoachUnavailable, coach_available, deterministic_summary, generate_game_summary
+from app.coach.client import CoachError, coach_available, deterministic_summary, generate_game_summary, model_label
 from app.coach.context import player_context
 from app.config import Settings, app_settings
 from app.db import get_db
@@ -12,6 +14,8 @@ from app.models import Match, MatchPlayer, Replay, Report
 from app.observability import track
 from app.safekeeping import archive_summary
 from app.schemas import MatchDetailOut, MatchPlayerOut, MatchSummaryOut, ReportOut
+
+log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/matches", tags=["parties"])
 
@@ -79,8 +83,9 @@ async def generate_report(
     if coach_available(settings):
         try:
             summary = await generate_game_summary(settings, r.facts, player_context(db, match_id))
-            model = settings.claude_model
-        except CoachUnavailable:
+            model = model_label(settings)
+        except CoachError as exc:  # IA injoignable : on retombe sur le rapport sans IA
+            log.warning("Rapport IA indisponible : %s", exc)
             summary = None
     if summary is None:
         summary, model = deterministic_summary(r.facts), "deterministic"

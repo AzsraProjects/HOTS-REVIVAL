@@ -3,6 +3,7 @@ import { Card, ErrorBox, List, Loading } from "../components/ui";
 import { useAsync } from "../hooks/useAsync";
 import { api } from "../lib/api";
 import { bridge } from "../lib/bridge";
+import { AiSettings } from "../components/AiSettings";
 import { OverlaySettings } from "../components/OverlaySettings";
 import { RankCard } from "../components/RankCard";
 import { ScreenCalibration } from "../components/ScreenCalibration";
@@ -15,7 +16,6 @@ export function Settings() {
   const compliance = useAsync(api.compliance);
   const [replayDir, setReplayDir] = useState("");
   const [battletag, setBattletag] = useState("");
-  const [apiKey, setApiKey] = useState("");
   const [saved, setSaved] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
@@ -35,9 +35,7 @@ export function Settings() {
     try {
       const body: Record<string, string> = { player_battletag: battletag };
       if (replayDir && replayDir !== settings.data?.replay_dir_detected) body.replay_dir = replayDir;
-      if (apiKey) body.anthropic_api_key = apiKey;
       settings.setData(await api.saveSettings(body));
-      setApiKey("");
       setSaved("Paramètres enregistrés.");
       status.reload();
     } catch (err) {
@@ -84,20 +82,13 @@ export function Settings() {
               <span className="text-slate-300">BattleTag</span>
               <input value={battletag} onChange={(e) => setBattletag(e.target.value)} placeholder="Pseudo#1234" />
             </label>
-            <label className="grid gap-1 text-sm">
-              <span className="text-slate-300">Clé Claude (coach IA)</span>
-              <input type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)}
-                placeholder={s.has_api_key ? "•••••••• (clé enregistrée — laisser vide pour la conserver)" : "sk-ant-…"} autoComplete="off" />
-              <span className="text-xs text-slate-500">
-                {s.has_api_key ? "✔ Coach IA actif" : "Optionnel : sans clé, les rapports restent disponibles (version sans IA)."}{" "}
-                Clé à créer sur console.anthropic.com. Elle reste sur votre PC.
-              </span>
-            </label>
             {saved && <div className="text-sm text-emerald-300">{saved}</div>}
             {saveError && <div className="text-sm text-rose-300">{saveError}</div>}
           </div>
         </Card>
       </form>
+
+      <AiSettings settings={s} onSaved={settings.setData} />
 
       <RankCard />
 

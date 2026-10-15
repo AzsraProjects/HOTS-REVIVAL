@@ -235,9 +235,24 @@ export interface AppSettings {
   replay_dir_exists: boolean;
   player_battletag: string;
   player_toon_handle: string | null;
-  claude_model: string;
+  ai_provider: string;
+  ai_model: string;
+  ai_models: Record<string, string>;
+  ai_base_url: string;
+  ai_ready: boolean;
   has_api_key: boolean;
+  ai_keys_set: string[];
+  providers: AiProvider[];
   data_dir: string;
+}
+
+export interface AiProvider {
+  id: string;
+  label: string;
+  base_url: string;
+  default_model: string;
+  key_url: string;
+  needs_key: boolean;
 }
 
 export interface TierEntry {

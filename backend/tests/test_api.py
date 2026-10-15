@@ -57,7 +57,7 @@ def test_draft_endpoint(client):
 def test_coach_without_key_streams_fallback(client):
     with client.stream("POST", "/api/coach/chat", json={"message": "Pourquoi ai-je perdu ?"}) as r:
         body = "".join(r.iter_text())
-    assert "event: start" in body and "ANTHROPIC_API_KEY" in body and "event: done" in body
+    assert "event: start" in body and "pas encore configur" in body and "event: done" in body
 
 
 def test_live_endpoints(client):

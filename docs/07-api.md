@@ -37,7 +37,7 @@ Base : `http://127.0.0.1:8765`. Documentation interactive OpenAPI générée par
 | GET | `/api/matches?limit=20&offset=0&hero_id=` | Liste `MatchSummary` (avec `me`) |
 | GET | `/api/matches/{id}` | `MatchDetail` : 10 joueurs + scores + évènements |
 | GET | `/api/matches/{id}/report` | `{match_id, facts, ai_summary, model}` |
-| POST | `/api/matches/{id}/report/ai` | Génère le résumé Claude (sortie structurée) ; repli déterministe sans clé |
+| POST | `/api/matches/{id}/report/ai` | Génère le résumé IA (sortie structurée, fournisseur choisi dans Paramètres) ; repli déterministe sans IA ou en cas d'erreur |
 
 `ai_summary` (validé par Pydantic côté serveur) :
 ```json
@@ -79,7 +79,7 @@ Les héros acceptent l'id (`etc`), le nom (`E.T.C.`) ou l'identifiant interne du
 ## 7.6 Coach (Server-Sent Events)
 | Méthode | Route | Description |
 |---|---|---|
-| GET | `/api/coach/status` | `{available, model}` |
+| GET | `/api/coach/status` | `{available, model}` (`model` = « fournisseur · modèle ») |
 | POST | `/api/coach/chat` | Corps `{message, conversation_id?, match_id?}` → flux SSE |
 | GET | `/api/coach/conversations/{id}` | Historique |
 
@@ -113,11 +113,17 @@ event: done    data: {"conversation_id": 12}
                 "priority": "Regroupement pour l'objectif", "tips": ["…"]},
   "camps": [{"camp": "siege", "side": "ally", "respawn_in_s": 178}],
   "talents": [{"level": 1, "recommended": {"talent": "…", "winrate": 0.58, "popularity": 0.4}, "alternatives": []}],
-  "alerts": [{"id": "enemy-adv-4", "text": "L'équipe adverse possède un avantage de talent.", "level": "danger"}],
+  "alerts": [{"id": "talent-disadvantage", "text": "Désavantage de talent : évitez les combats.", "level": "danger",
+              "voice": true, "voice_key": "talent-disadvantage"}],
   "tips": ["Ne forcez pas un combat en infériorité de talent.", "Restez groupés."],
+  "tip_items": [{"text": "Ne forcez pas un combat en infériorité de talent.", "voice_key": "tip-no-fight"},
+                {"text": "Restez groupés.", "voice_key": "tip-stay-grouped"}],
   "sources": ["user_input", "battlelobby_file", "static_data", "own_history"]
 }
 ```
+
+`voice_key` : clé stable de la phrase (catalogue `apps/desktop/src/lib/voicePhrases.ts`) ; le guide vocal joue
+l'enregistrement du profil de voix choisi s'il existe, sinon la synthèse Windows lit `text`.
 
 ## 7.8 Erreurs
 Format FastAPI standard : `{"detail": "message"}` avec 400 (chemin invalide), 404 (ressource absente), 422 (validation Pydantic).

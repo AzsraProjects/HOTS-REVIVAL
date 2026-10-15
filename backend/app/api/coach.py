@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import json
 
-import anthropic
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session, selectinload
 
-from app.coach.client import coach_available, stream_coach_reply
+from app.coach.client import CoachError, coach_available, model_label, stream_coach_reply
 from app.coach.context import player_context
 from app.config import Settings, app_settings
 from app.db import SessionLocal, get_db
@@ -25,7 +24,7 @@ def _sse(event: str, data: dict) -> str:
 
 @router.get("/status")
 def status(settings: Settings = Depends(app_settings)) -> dict:
-    return {"available": coach_available(settings), "model": settings.claude_model}
+    return {"available": coach_available(settings), "model": model_label(settings)}
 
 
 @router.get("/conversations/{conversation_id}")
@@ -64,8 +63,8 @@ async def chat(
         yield _sse("start", {"conversation_id": conversation_id})
         parts: list[str] = []
         if not coach_available(settings):
-            text = ("Le coach IA n'est pas encore configuré : ajoutez votre clé `ANTHROPIC_API_KEY` dans "
-                    "les paramètres. En attendant, consultez le rapport de partie et votre HEROS SCORE.")
+            text = ("Le coach IA n'est pas encore configuré : choisissez une IA et sa clé dans les paramètres. "
+                    "En attendant, consultez le rapport de partie et votre HEROS SCORE.")
             parts.append(text)
             yield _sse("delta", {"text": text})
         else:
@@ -73,12 +72,8 @@ async def chat(
                 async for chunk in stream_coach_reply(settings, context, history):
                     parts.append(chunk)
                     yield _sse("delta", {"text": chunk})
-            except anthropic.RateLimitError:
-                yield _sse("error", {"message": "Limite de requêtes atteinte, réessayez dans un instant."})
-            except anthropic.APIStatusError as exc:
-                yield _sse("error", {"message": f"Erreur de l'API Claude ({exc.status_code})."})
-            except anthropic.APIConnectionError:
-                yield _sse("error", {"message": "Impossible de joindre l'API Claude."})
+            except CoachError as exc:
+                yield _sse("error", {"message": str(exc)})
         if parts:
             with SessionLocal() as s:
                 s.add(CoachMessage(conversation_id=conversation_id, role="assistant", content="".join(parts)))

@@ -1,4 +1,4 @@
-"""Intégration Claude (SDK officiel Anthropic)."""
+"""Coach IA : Claude (SDK officiel Anthropic) ou tout fournisseur compatible OpenAI (voir providers.py)."""
 from __future__ import annotations
 
 import json
@@ -7,9 +7,11 @@ from collections.abc import AsyncIterator
 
 import anthropic
 from anthropic.types.beta import BetaMessageParam
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
+from app.coach import providers
 from app.coach.prompts import COACH_SYSTEM, SUMMARY_INSTRUCTIONS
+from app.coach.providers import CoachError
 from app.coach.roles import role_context
 from app.config import Settings
 
@@ -33,18 +35,37 @@ class GameSummary(BaseModel):
     )
 
 
-class CoachUnavailable(RuntimeError):
+class CoachUnavailable(CoachError):
     pass
 
 
 def coach_available(settings: Settings) -> bool:
-    return bool(settings.anthropic_api_key)
+    return providers.is_ready(settings)
+
+
+def model_label(settings: Settings) -> str:
+    """Fournisseur et modèle utilisés, tels qu'affichés au joueur (« Gemini (Google) · gemini-… »)."""
+    p = providers.current(settings)
+    return f"{p.label} · {providers.model(settings, p)}"
+
+
+def _uses_claude(settings: Settings) -> bool:
+    return providers.current(settings).id == "anthropic"
 
 
 def _client(settings: Settings) -> anthropic.AsyncAnthropic:
-    if not settings.anthropic_api_key:
+    key = providers.api_key(settings, providers.PROVIDERS["anthropic"])
+    if not key:
         raise CoachUnavailable("ANTHROPIC_API_KEY n'est pas configurée.")
-    return anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
+    return anthropic.AsyncAnthropic(api_key=key)
+
+
+def _claude_error(exc: anthropic.APIError) -> CoachError:
+    if isinstance(exc, anthropic.RateLimitError):
+        return CoachError("Limite de requêtes atteinte, réessayez dans un instant.")
+    if isinstance(exc, anthropic.APIStatusError):
+        return CoachError(f"Erreur de l'API Claude ({exc.status_code}).")
+    return CoachError("Impossible de joindre l'API Claude.")
 
 
 def _system(context: str) -> list[dict]:
@@ -58,8 +79,20 @@ def _system(context: str) -> list[dict]:
 async def stream_coach_reply(
     settings: Settings, context: str, messages: list[BetaMessageParam]
 ) -> AsyncIterator[str]:
+    if not _uses_claude(settings):
+        async for text in providers.stream_chat(settings, f"{COACH_SYSTEM}\n\n{context}", messages):
+            yield text
+        return
+    try:
+        async for text in _stream_claude(settings, context, messages):
+            yield text
+    except anthropic.APIError as exc:
+        raise _claude_error(exc) from exc
+
+
+async def _stream_claude(settings: Settings, context: str, messages: list[BetaMessageParam]) -> AsyncIterator[str]:
     async with _client(settings).beta.messages.stream(
-        model=settings.claude_model,
+        model=providers.model(settings, providers.PROVIDERS["anthropic"]),
         max_tokens=16000,
         thinking={"type": "adaptive"},
         output_config={"effort": settings.claude_effort},
@@ -78,8 +111,29 @@ async def stream_coach_reply(
 
 
 async def generate_game_summary(settings: Settings, facts: dict, context: str) -> GameSummary | None:
+    if not _uses_claude(settings):
+        return await _summary_compatible(settings, facts, context)
+    try:
+        return await _summary_claude(settings, facts, context)
+    except anthropic.APIError as exc:
+        raise _claude_error(exc) from exc
+
+
+async def _summary_compatible(settings: Settings, facts: dict, context: str) -> GameSummary | None:
+    schema = json.dumps(GameSummary.model_json_schema(), ensure_ascii=False)
+    prompt = (f"{SUMMARY_INSTRUCTIONS}\n\nRéponds UNIQUEMENT par un objet JSON conforme à ce schéma :\n{schema}"
+              f"\n\n```json\n{json.dumps(facts, ensure_ascii=False)}\n```")
+    text = await providers.complete_json(settings, f"{COACH_SYSTEM}\n\n{context}", prompt)
+    try:
+        return GameSummary.model_validate_json(providers.extract_json(text))
+    except ValidationError:
+        log.warning("Résumé IA illisible (%s)", model_label(settings))
+        return None
+
+
+async def _summary_claude(settings: Settings, facts: dict, context: str) -> GameSummary | None:
     response = await _client(settings).beta.messages.parse(
-        model=settings.claude_model,
+        model=providers.model(settings, providers.PROVIDERS["anthropic"]),
         max_tokens=16000,
         thinking={"type": "adaptive"},
         output_config={"effort": settings.claude_effort},

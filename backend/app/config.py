@@ -26,7 +26,8 @@ from pydantic_settings import (
 TOON_HANDLE_RE = re.compile(r"\d+-Hero-\d+-\d+")
 
 # Réglages modifiables depuis l'écran Paramètres (persistés dans settings.json).
-USER_EDITABLE = ("replay_dir", "player_battletag", "player_toon_handle", "anthropic_api_key", "claude_model")
+USER_EDITABLE = ("replay_dir", "player_battletag", "player_toon_handle", "anthropic_api_key", "claude_model",
+                 "ai_provider", "ai_api_keys", "ai_models", "ai_base_url")
 
 
 def data_dir() -> Path:
@@ -64,6 +65,11 @@ class Settings(BaseSettings):
     )
     claude_model: str = "claude-opus-5-5"
     claude_effort: str = "medium"
+    # Coach IA au choix (voir app/coach/providers.py) : clés et modèles enregistrés par fournisseur.
+    ai_provider: str = "anthropic"
+    ai_api_keys: dict[str, str] = {}
+    ai_models: dict[str, str] = {}
+    ai_base_url: str = ""  # fournisseur « custom » uniquement
 
     sentry_dsn: str = ""
     posthog_key: str = ""

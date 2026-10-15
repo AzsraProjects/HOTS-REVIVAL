@@ -143,7 +143,7 @@ sequenceDiagram
 | API locale | FastAPI + Uvicorn | Async natif (SSE, WebSocket), typage Pydantic, OpenAPI auto (`/docs`). |
 | ORM | SQLAlchemy 2 | PostgreSQL en production (JSONB), SQLite pour les tests. |
 | Surveillance fichiers | watchdog | API identique Windows (ReadDirectoryChangesW) / macOS / Linux. |
-| IA | SDK officiel `anthropic`, modèle configurable (`claude-opus-5-5` par défaut), pensée adaptative, `effort` configurable, `fallbacks: "default"` | Streaming pour le chat, `messages.parse` + Pydantic pour un rapport structuré, cache du prompt système. |
+| IA | Fournisseur au choix (`coach/providers.py`) : SDK officiel `anthropic` (`claude-opus-5-5` par défaut, pensée adaptative, `effort` configurable, `fallbacks: "default"`) ou toute API compatible OpenAI via `httpx` (Gemini, OpenAI, Mistral, OpenRouter, Ollama, URL libre) | Streaming pour le chat ; rapport structuré via `messages.parse` (Claude) ou JSON validé par Pydantic (autres) ; repli sans IA en cas d'erreur. |
 | UI | React 18 + Tailwind 3 + Vite 5 | Écosystème, rapidité de build, thème sombre via tokens Tailwind. |
 | Desktop | Electron 33 | Fenêtres transparentes always-on-top, raccourcis globaux, packaging NSIS. |
 | Observabilité | Sentry (main + backend), PostHog (évènements produit, sans données de jeu brutes) | Opt-in par variable d'environnement. |
