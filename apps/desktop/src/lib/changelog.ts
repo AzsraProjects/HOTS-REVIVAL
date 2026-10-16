@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.0.7",
+    date: "2026-10-16",
+    fr: ["Guide vocal plus calme en infériorité de talent : une seule annonce « Désavantage de talent : évitez les combats ! » au lieu de trois phrases à la suite."],
+    en: ["Calmer voice guide when behind in talents: a single “Talent disadvantage: avoid fights!” call instead of three lines in a row."],
+  },
+  {
     version: "1.0.6",
     date: "2026-10-16",
     fr: [
