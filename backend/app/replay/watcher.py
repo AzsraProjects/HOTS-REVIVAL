@@ -7,11 +7,13 @@ import time
 from collections.abc import Callable
 from pathlib import Path
 
+from sqlalchemy import select
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
 from app.db import SessionLocal
-from app.replay.importer import ImportResult, import_replay_file
+from app.models import Replay
+from app.replay.importer import ImportResult, import_replay_file, reanalyze_replay
 
 log = logging.getLogger(__name__)
 REPLAY_SUFFIX = ".StormReplay"
@@ -53,8 +55,15 @@ class ReplayImporter:
             self.on_result(path, result)
         return result
 
+    def reanalyze(self, replay_id: int) -> bool:
+        with self._lock, SessionLocal() as db:
+            replay = db.get(Replay, replay_id)
+            return bool(replay) and reanalyze_replay(db, replay, self.me_toons)
+
     def scan(self) -> list[ImportResult]:
-        files = [f for d in self.folders if d.is_dir() for f in d.glob(f"*{REPLAY_SUFFIX}")]
+        with SessionLocal() as db:  # déjà en base : inutile de relire le fichier (les replays ne changent pas)
+            known = set(db.scalars(select(Replay.file_path)))
+        files = [f for d in self.folders if d.is_dir() for f in d.glob(f"*{REPLAY_SUFFIX}") if str(f) not in known]
         files.sort(key=lambda p: p.stat().st_mtime)
         return [self.import_path(p) for p in files]
 

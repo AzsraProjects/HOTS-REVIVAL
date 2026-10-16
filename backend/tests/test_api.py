@@ -111,6 +111,20 @@ def test_reanalyze_keeps_ai_summaries(client):
     assert client.get(f"/api/matches/{new_id}/report").json()["ai_summary"]["summary"]
 
 
+def test_reanalyze_in_place_keeps_match_and_links(client, db):
+    from app.models import CoachConversation, Match
+
+    client.post("/api/replays/import", json={})
+    match_id = client.get("/api/matches").json()[0]["id"]
+    db.add(CoachConversation(match_id=match_id, title="Ma partie"))
+    db.commit()
+    assert client.post("/api/replays/reanalyze").json()["reanalyzed"] == 1
+    db.expire_all()
+    assert [m.id for m in db.query(Match).all()] == [match_id]  # même partie, pas de réimport
+    assert db.query(CoachConversation).one().match_id == match_id
+    assert client.post("/api/replays/import", json={}).json()["imported"] == 0  # déjà connue
+
+
 def test_ai_summary_survives_lost_match_and_rank_kept(client, db):
     from app.models import Match, Replay, Report
 

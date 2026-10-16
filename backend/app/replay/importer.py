@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.analytics.heros_score import compute_heros_score
 from app.analytics.report import build_facts
 from app.draft.engine import analyze_draft
-from app.models import HerosScore, Match, MatchEvent, MatchPlayer, Player, Replay, Report
+from app.models import CoachConversation, HerosScore, Match, MatchEvent, MatchPlayer, Player, Replay, Report
 from app.replay.extractor import ParsedMatch, extract_match
 from app.replay.parser import file_sha256, read_replay
 from app.safekeeping import restore_summary
@@ -52,6 +52,35 @@ def import_replay_file(db: Session, path: Path, me_toons: Collection[str] | str 
     return ImportResult("imported", replay.id, match.id)
 
 
+def reanalyze_replay(db: Session, replay: Replay, me_toons: Collection[str] | str | None) -> bool:
+    """Réanalyse une partie sur place : l'ancienne reste visible jusqu'au remplacement, qui garde le
+    même identifiant (liens, conversations du coach). En cas d'échec, l'ancienne analyse est conservée."""
+    path = Path(replay.file_path)
+    if not path.is_file():
+        return False
+    try:
+        parsed = extract_match(read_replay(path))
+    except Exception:
+        log.exception("Réanalyse impossible de %s : ancienne analyse conservée", path)
+        return False
+
+    old = replay.match
+    match_id = old.id if old else None
+    conversations = []
+    if old:
+        conversations = list(db.scalars(select(CoachConversation).where(CoachConversation.match_id == old.id)))
+        db.query(Report).filter(Report.match_id == old.id).delete()
+        db.delete(old)
+        db.flush()
+        db.expire(replay, ["match"])
+    persist_match(db, replay, parsed, me_toons, match_id=match_id)
+    for conv in conversations:
+        conv.match_id = match_id
+    replay.status, replay.error = "parsed", None
+    db.commit()
+    return True
+
+
 def _upsert_player(db: Session, toon: str | None, name: str, is_me: bool) -> Player | None:
     if not toon:
         return None
@@ -67,11 +96,13 @@ def _upsert_player(db: Session, toon: str | None, name: str, is_me: bool) -> Pla
     return player
 
 
-def persist_match(db: Session, replay: Replay, parsed: ParsedMatch, me_toons: Collection[str] | str | None) -> Match:
+def persist_match(db: Session, replay: Replay, parsed: ParsedMatch, me_toons: Collection[str] | str | None,
+                  match_id: int | None = None) -> Match:
     if isinstance(me_toons, str):
         me_toons = {me_toons}
     me_set = set(me_toons or ())
     match = Match(
+        id=match_id,
         replay_id=replay.id,
         map_id=parsed.map_id,
         map_name=parsed.map_name,

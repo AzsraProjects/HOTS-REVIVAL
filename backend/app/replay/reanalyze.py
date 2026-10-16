@@ -1,7 +1,8 @@
 """Réanalyse de l'historique quand l'analyseur évolue (ex. nouveaux évènements de carte).
 
-Les résumés IA déjà générés sont archivés en base (app/safekeeping.py) et rattachés
-automatiquement à la partie réimportée : aucun appel à Claude n'est repayé.
+Sur place et en arrière-plan : aucune partie n'est effacée, chacune est remplacée par sa nouvelle analyse
+(même identifiant), des plus récentes aux plus anciennes. Une mise à jour ne vide donc jamais l'historique.
+Les résumés IA déjà générés sont conservés (app/safekeeping.py) : aucun appel à Claude n'est repayé.
 """
 from __future__ import annotations
 
@@ -12,7 +13,7 @@ from sqlalchemy import select
 
 from app.config import data_dir
 from app.db import SessionLocal
-from app.models import Match, Replay, Report
+from app.models import Match, Replay
 from app.safekeeping import archive_existing
 
 log = logging.getLogger(__name__)
@@ -38,21 +39,15 @@ def mark_done() -> None:
 
 def reanalyze_all(importer) -> dict:  # importer: ReplayImporter
     with SessionLocal() as db:
-        kept = archive_existing(db)  # en base avant tout effacement : survit à un plantage
+        kept = archive_existing(db)  # filet de sécurité avant toute réécriture
         db.commit()
-        files = [Path(p) for p in db.scalars(select(Replay.file_path))]
-        for match in db.scalars(select(Match)):
-            db.query(Report).filter(Report.match_id == match.id).delete()
-            db.delete(match)
-        db.query(Replay).delete()
-        db.commit()
+        ids = list(db.scalars(
+            select(Replay.id).outerjoin(Match).order_by(Match.played_at.desc().nulls_last(), Replay.id.desc())
+        ))
 
-    imported = 0
-    for path in files:
-        if path.is_file() and importer.import_path(path).status == "imported":
-            imported += 1
-    importer.scan()  # nouveaux replays éventuels
+    importer.scan()  # nouveaux replays d'abord : déjà analysés avec la nouvelle version
+    reanalyzed = sum(1 for replay_id in ids if importer.reanalyze(replay_id))
 
     mark_done()
-    log.info("Réanalyse terminée : %s parties", imported)
-    return {"reanalyzed": imported, "kept_ai_summaries": kept}
+    log.info("Réanalyse terminée : %s parties", reanalyzed)
+    return {"reanalyzed": reanalyzed, "kept_ai_summaries": kept}
