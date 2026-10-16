@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.0.5",
+    date: "2026-10-16",
+    fr: ["Nouvelle voix officielle pour le guide vocal : « Insupp ». À écouter et choisir dans les réglages des profils de voix."],
+    en: ["New official voice for the voice guide: “Insupp”. Listen to it and pick it in the voice profile settings."],
+  },
+  {
     version: "1.0.4",
     date: "2026-10-16",
     fr: ["Nouvelle voix officielle pour le guide vocal : « Mega Chad ». Écoutez-la dans les réglages des profils de voix, puis choisissez-la comme voix du guide. D'autres voix arrivent."],
