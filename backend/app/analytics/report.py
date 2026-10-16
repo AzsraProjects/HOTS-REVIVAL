@@ -5,6 +5,7 @@ factuel à Claude, qui ne doit rien inventer au-delà.
 """
 from __future__ import annotations
 
+from app.i18n import language
 from app.coach.roles import role_context
 from app.models import Match, MatchPlayer
 
@@ -117,6 +118,7 @@ def build_facts(match: Match, me: MatchPlayer) -> dict:
 
     role = role_context(me.role)
     return {
+        "lang": language(),  # rapport recalculé si la langue de l'interface change (api/matches.py)
         "headline": headline,
         "role_context": {"role": me.role, "label": role["label"], "focus": role["focus"], "normal": role["normal"]},
         "result": "win" if me.is_winner else "loss",

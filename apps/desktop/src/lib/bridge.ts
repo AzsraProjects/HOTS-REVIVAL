@@ -33,6 +33,9 @@ export interface VoiceImportResult { imported: string[]; unmatched: { path: stri
 export interface HotsBridge {
   apiBase: string;
   platform: string;
+  language: () => Promise<"fr" | "en">;
+  setLanguage: (lang: "fr" | "en") => Promise<"fr" | "en">;
+  onLanguage: (cb: (lang: "fr" | "en") => void) => () => void;
   toggleOverlay: () => Promise<boolean>;
   setOverlayInteractive: (value: boolean) => Promise<void>;
   shortcuts: () => Promise<Record<string, string>>;

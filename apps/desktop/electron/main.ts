@@ -1,4 +1,5 @@
 import { app, BrowserWindow, dialog, ipcMain, screen, shell } from "electron";
+import { getLanguage, initLanguage, setLanguage, type Lang } from "./i18n";
 import * as Sentry from "@sentry/electron/main";
 import os from "node:os";
 import path from "node:path";
@@ -99,6 +100,7 @@ if (!app.requestSingleInstanceLock()) {
       app.exit(0);
       return;
     }
+    initLanguage(); // avant le backend et les fenêtres : ils lisent la même langue
     mainWindow = createMainWindow();
     mainWindow.on("closed", () => app.quit());
 
@@ -173,6 +175,8 @@ if (!app.requestSingleInstanceLock()) {
     );
     ipcMain.handle("voices:open", (_e, profile: string) => openProfileFolder(profile));
     ipcMain.handle("app:version", () => app.getVersion());
+    ipcMain.handle("app:language", () => getLanguage());
+    ipcMain.handle("app:set-language", (_e, lang: Lang) => setLanguage(lang));
     ipcMain.handle("updater:status", () => getUpdateStatus());
     ipcMain.handle("updater:check", () => checkForUpdates());
     ipcMain.handle("updater:download", () => downloadUpdate());

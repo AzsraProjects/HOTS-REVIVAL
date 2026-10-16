@@ -244,6 +244,7 @@ export interface AppSettings {
   ai_keys_set: string[];
   providers: AiProvider[];
   data_dir: string;
+  language: "fr" | "en";
 }
 
 export interface CommunityStatus {

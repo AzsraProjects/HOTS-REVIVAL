@@ -17,6 +17,7 @@ from app.config import Settings, get_settings
 from app.db import SessionLocal, create_schema, init_engine
 from app.safekeeping import archive_existing, backup_database
 from app.events import hub
+from app.i18n import set_language
 from app.live.battlelobby import LobbyInfo, LobbyWatcher, learn_map
 from app.live.game_process import GameProcessMonitor
 from app.live.session import live_session
@@ -107,6 +108,7 @@ def stop_replay_watching(app: FastAPI) -> None:
 
 def create_app(settings: Settings | None = None, start_watchers: bool = True) -> FastAPI:
     settings = settings or get_settings()
+    set_language(settings.language)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):

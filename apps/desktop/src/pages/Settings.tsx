@@ -5,6 +5,7 @@ import { api } from "../lib/api";
 import { bridge } from "../lib/bridge";
 import { AiSettings } from "../components/AiSettings";
 import { CommunitySettings } from "../components/CommunitySettings";
+import { LangSwitch } from "../lib/i18n";
 import { OverlaySettings } from "../components/OverlaySettings";
 import { RankCard } from "../components/RankCard";
 import { ScreenCalibration } from "../components/ScreenCalibration";
@@ -79,6 +80,10 @@ export function Settings() {
                 {s.player_toon_handle && <> · compte détecté <code>{s.player_toon_handle}</code></>}
               </span>
             </label>
+            <div className="grid gap-1 text-sm">
+              <span className="text-slate-300">Langue / Language</span>
+              <div><LangSwitch /></div>
+            </div>
             <label className="grid gap-1 text-sm">
               <span className="text-slate-300">BattleTag</span>
               <input value={battletag} onChange={(e) => setBattletag(e.target.value)} placeholder="Pseudo#1234" />

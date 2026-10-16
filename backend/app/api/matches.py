@@ -6,10 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app.analytics.report import build_facts
 from app.coach.client import CoachError, coach_available, deterministic_summary, generate_game_summary, model_label
 from app.coach.context import player_context
 from app.config import Settings, app_settings
 from app.db import get_db
+from app.i18n import language
 from app.models import Match, MatchPlayer, Replay, Report
 from app.observability import track
 from app.safekeeping import archive_summary
@@ -63,6 +65,12 @@ def get_match(match_id: int, db: Session = Depends(get_db)) -> MatchDetailOut:
 
 def _report(db: Session, match_id: int) -> Report:
     report = db.scalar(select(Report).where(Report.match_id == match_id))
+    if report and report.facts.get("lang", "fr") != language():
+        # rapport calculé dans l'autre langue : on le régénère (le résumé IA, lui, est conservé)
+        match, me = db.get(Match, report.match_id), db.get(MatchPlayer, report.match_player_id)
+        if match and me:
+            report.facts = build_facts(match, me)
+            db.commit()
     if not report:
         raise HTTPException(404, "Aucun rapport : le joueur local n'a pas été identifié dans cette partie.")
     return report

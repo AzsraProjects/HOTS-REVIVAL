@@ -58,6 +58,13 @@ const api = {
     },
   },
   version: (): Promise<string> => ipcRenderer.invoke("app:version"),
+  language: (): Promise<"fr" | "en"> => ipcRenderer.invoke("app:language"),
+  setLanguage: (lang: "fr" | "en"): Promise<"fr" | "en"> => ipcRenderer.invoke("app:set-language", lang),
+  onLanguage: (cb: (lang: "fr" | "en") => void): (() => void) => {
+    const listener = (_e: IpcRendererEvent, lang: "fr" | "en") => cb(lang);
+    ipcRenderer.on("app:language", listener);
+    return () => ipcRenderer.removeListener("app:language", listener);
+  },
   updater: {
     status: (): Promise<UpdateStatus> => ipcRenderer.invoke("updater:status"),
     check: (): Promise<UpdateStatus> => ipcRenderer.invoke("updater:check"),

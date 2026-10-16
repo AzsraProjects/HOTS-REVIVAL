@@ -4,10 +4,13 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from app.coach import providers
 from app.config import Settings, app_settings, data_dir, get_settings, write_user_settings
+from app.i18n import set_language
 
 router = APIRouter(prefix="/settings", tags=["paramètres"])
 
@@ -27,10 +30,12 @@ class SettingsOut(BaseModel):
     ai_keys_set: list[str]  # fournisseurs ayant une clé (jamais la clé elle-même)
     providers: list[dict]
     data_dir: str
+    language: str
 
 
 class SettingsUpdate(BaseModel):
     replay_dir: str | None = None
+    language: Literal["fr", "en"] | None = None
     player_battletag: str | None = Field(None, max_length=80)
     ai_provider: str | None = Field(None, max_length=32)
     ai_api_key: str | None = Field(None, max_length=300)  # clé du fournisseur choisi
@@ -58,6 +63,7 @@ def _out(s: Settings) -> SettingsOut:
         ai_keys_set=[p.id for p in providers.PROVIDERS.values() if providers.api_key(s, p)],
         providers=providers.describe(s),
         data_dir=str(data_dir()),
+        language=s.language or "fr",
     )
 
 
@@ -86,6 +92,7 @@ def update(body: SettingsUpdate, request: Request) -> SettingsOut:
 
     new = old.model_copy(update=values)
     request.app.state.settings = new
+    set_language(new.language)
     if new.resolved_replay_dirs() != old.resolved_replay_dirs() or new.resolved_toon_handles() != old.resolved_toon_handles():
         from app.main import start_replay_watching
 
