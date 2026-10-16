@@ -72,3 +72,23 @@ Les replays contiennent l'horloge exacte des évènements de carte (noms vérifi
 - L'overlay n'est visible qu'en **plein écran fenêtré** (une fenêtre ne peut pas se superposer à un mode exclusif sans hook DirectX — interdit).
 - Sans saisie des niveaux (MVP), les alertes de powerspike ne se déclenchent pas : l'overlay l'indique.
 - Les timers d'objectifs sont des estimations tant que les timings ne sont pas calibrés.
+
+## Timers d'objectif : début fixe, durée variable, délai fixe après la fin
+
+Un objectif de carte suit un cycle **préavis → début → fin**. Le premier début est à heure fixe ;
+la **durée dépend des joueurs** (convoi poussé, temple tenu, prisonniers libérés…) ; le **délai entre la
+fin et le début suivant est fixe** pour une carte (ex. Temple céleste 2:01, Site des ogives 2:35).
+
+- **Extraction** (`app/replay/objectives.py`) : le jeu n'enregistre pas toujours un évènement nommé, mais
+  il enregistre l'apparition, la mort et le changement d'état de chaque unité. Règles par carte (vérifiées
+  sur replays réels), stockées en `MatchEvent(kind="objective_cycle", payload={"phase"})`. Exemples :
+  Hanamura `Payload_Neutral_Warning` / `Payload_Neutral` / mort du convoi ; Alterac `CapturedSoldier` /
+  cavalerie ; Site des ogives : le préavis du lot suivant apparaît dès que le lot en cours est épuisé.
+  Braxis, Comté du Dragon, Tombe, Tours, Baie : seule la fin est enregistrée (délai de fin à fin).
+- **Calibration** (`app/analytics/timings.py`) : premier objectif, durée médiane et fourchette
+  (quartiles), délai fin → début, mesurés sur les replays du joueur ; valeurs par défaut de `maps.json`
+  mesurées sur 129 parties réelles.
+- **En direct** (`app/live/session.py`) : premier début exact → objectif « en cours » avec fin estimée →
+  fin **confirmée** (raccourci Ctrl+Shift+J ou bouton « Objectif terminé ») : prochain début exact ;
+  sinon, fourchette haute dépassée : fin supposée à la durée habituelle et prochain début marqué « ≈ ».
+  Les objectifs suivants ne sont plus projetés à heure fixe (ils dépendent des durées).

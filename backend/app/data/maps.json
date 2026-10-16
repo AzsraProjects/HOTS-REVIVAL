@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "description": "Cartes Ranked/QM. first_objective_s = horloge de jeu (depuis l'ouverture des portes) du premier objectif ; objective_interval_s = délai jusqu'au suivant après la fin de l'objectif précédent. verified=true : valeur mesurée sur replays réels. Les valeurs sont ensuite recalibrées automatiquement sur les replays du joueur (voir analytics/timings.py).",
+    "description": "Cartes Ranked/QM. first_objective_s = horloge de jeu (depuis l'ouverture des portes) du premier objectif ; objective_interval_s = délai entre la FIN d'un objectif et le début du suivant (fixe) ; objective_duration_s = durée médiane d'un objectif (variable, dépend des joueurs). verified=true : valeur mesurée sur replays réels. Les valeurs sont ensuite recalibrées automatiquement sur les replays du joueur (voir analytics/timings.py).",
     "camp_respawn_s": {
       "siege": 180,
       "bruiser": 240,
@@ -20,12 +20,13 @@
       ],
       "objective": "Prisonniers / Cavalerie",
       "first_objective_s": 180,
-      "objective_interval_s": 180,
-      "verified": false,
+      "objective_interval_s": 175,
+      "verified": true,
       "tips": [
         "Les campements de prisonniers s'ouvrent au même moment : préparez la vision et la composition du groupe 20 s avant.",
         "Tuer un ennemi interrompt la capture : ne capturez pas en infériorité numérique."
-      ]
+      ],
+      "objective_duration_s": 117
     },
     {
       "id": "battlefield_of_eternity",
@@ -36,12 +37,13 @@
       ],
       "objective": "Immortels",
       "first_objective_s": 150,
-      "objective_interval_s": 125,
+      "objective_interval_s": 130,
       "verified": true,
       "tips": [
         "La course aux dégâts sur l'Immortel favorise les compositions à dégâts soutenus.",
         "Défendre l'Immortel adverse rapporte souvent plus que de forcer le combat."
-      ]
+      ],
+      "objective_duration_s": 113
     },
     {
       "id": "blackhearts_bay",
@@ -51,7 +53,7 @@
         "Baie de Coeur-Noir"
       ],
       "objective": "Doublons",
-      "first_objective_s": 60,
+      "first_objective_s": 90,
       "objective_interval_s": 120,
       "verified": false,
       "tips": [
@@ -69,7 +71,7 @@
         "Le laboratoire de Braxis"
       ],
       "objective": "Balises / Zergs",
-      "first_objective_s": 90,
+      "first_objective_s": 105,
       "objective_interval_s": 150,
       "verified": false,
       "tips": [
@@ -85,13 +87,14 @@
         "Le Val Maudit"
       ],
       "objective": "Tributs",
-      "first_objective_s": 105,
-      "objective_interval_s": 180,
-      "verified": false,
+      "first_objective_s": 152,
+      "objective_interval_s": 48,
+      "verified": true,
       "tips": [
         "Les tributs apparaissent par paire de positions possibles : positionnez-vous avant l'annonce.",
         "Au 2e tribut adverse, la priorité devient le contrôle de la carte."
-      ]
+      ],
+      "objective_duration_s": 54
     },
     {
       "id": "dragon_shire",
@@ -101,7 +104,7 @@
         "Comte du Dragon"
       ],
       "objective": "Sanctuaires / Chevalier-dragon",
-      "first_objective_s": 75,
+      "first_objective_s": 90,
       "objective_interval_s": 180,
       "verified": false,
       "tips": [
@@ -117,13 +120,14 @@
         "Jardin de terreur"
       ],
       "objective": "Graines / Horreur",
-      "first_objective_s": 90,
-      "objective_interval_s": 180,
-      "verified": false,
+      "first_objective_s": 150,
+      "objective_interval_s": 69,
+      "verified": true,
       "tips": [
         "La nuit, les camps de jardin donnent les graines : groupez-vous.",
         "L'horreur doit cibler les forts déjà endommagés."
-      ]
+      ],
+      "objective_duration_s": 38
     },
     {
       "id": "hanamura_temple",
@@ -133,13 +137,14 @@
         "Temple de Hanamura"
       ],
       "objective": "Convois",
-      "first_objective_s": 90,
-      "objective_interval_s": 150,
-      "verified": false,
+      "first_objective_s": 180,
+      "objective_interval_s": 179,
+      "verified": true,
       "tips": [
         "Pousser votre convoi ou bloquer l'adverse : choisissez un seul plan.",
         "Les camps de soutien sont précieux pour la pression sur les structures."
-      ]
+      ],
+      "objective_duration_s": 109
     },
     {
       "id": "infernal_shrines",
@@ -149,13 +154,14 @@
         "Sanctuaires Infernaux"
       ],
       "objective": "Sanctuaires / Punisseur",
-      "first_objective_s": 90,
-      "objective_interval_s": 120,
-      "verified": false,
+      "first_objective_s": 188,
+      "objective_interval_s": 193,
+      "verified": true,
       "tips": [
         "Le clear des gardiens est décisif : les compositions à zone gagnent la course.",
         "Utilisez un camp siège juste avant le sanctuaire pour mettre la pression."
-      ]
+      ],
+      "objective_duration_s": 102
     },
     {
       "id": "sky_temple",
@@ -165,13 +171,14 @@
         "Temple Celeste"
       ],
       "objective": "Temples",
-      "first_objective_s": 90,
-      "objective_interval_s": 120,
-      "verified": false,
+      "first_objective_s": 180,
+      "objective_interval_s": 121,
+      "verified": true,
       "tips": [
         "Contrôler le temple central rapporte le plus lorsque l'équipe est complète.",
         "Les gardiens de temple frappent fort : ne tankez pas sans soutien."
-      ]
+      ],
+      "objective_duration_s": 75
     },
     {
       "id": "tomb_of_the_spider_queen",
@@ -197,8 +204,8 @@
         "Tours du destin"
       ],
       "objective": "Autels",
-      "first_objective_s": 150,
-      "objective_interval_s": 105,
+      "first_objective_s": 180,
+      "objective_interval_s": 120,
       "verified": false,
       "tips": [
         "Les autels ne se capturent qu'avec de la présence : rotation complète d'équipe.",
@@ -214,12 +221,13 @@
       ],
       "objective": "Protecteur Triglav",
       "first_objective_s": 150,
-      "objective_interval_s": 210,
-      "verified": false,
+      "objective_interval_s": 208,
+      "verified": true,
       "tips": [
         "La capture se gagne au contrôle de zone : privilégiez CC et sustain.",
         "Le second pilote (canon) est souvent le plus impactant."
-      ]
+      ],
+      "objective_duration_s": 127
     },
     {
       "id": "warhead_junction",
@@ -231,12 +239,13 @@
       ],
       "objective": "Ogives nucléaires",
       "first_objective_s": 180,
-      "objective_interval_s": 210,
+      "objective_interval_s": 155,
       "verified": true,
       "tips": [
         "Les ogives se gagnent aux rotations : pensez vision et mobilité.",
         "Une ogive se lance sur une cible immobile ou contrôlée."
-      ]
+      ],
+      "objective_duration_s": 75
     },
     {
       "id": "haunted_mines",
@@ -247,13 +256,14 @@
         "HauntedMines"
       ],
       "objective": "Mines / Golems",
-      "first_objective_s": 120,
+      "first_objective_s": 180,
       "objective_interval_s": 180,
-      "verified": false,
+      "verified": true,
       "tips": [
         "Les mines s'ouvrent pour les deux équipes : y entrer à 5 évite de donner les crânes gratuitement.",
         "Le golem pousse longtemps : défendez-le ou contrez-le en groupe."
-      ]
+      ],
+      "objective_duration_s": 141
     }
   ],
   "aram_maps": [

@@ -51,6 +51,7 @@ class MapInfo:
     objective_interval_s: int
     verified: bool
     tips: tuple[str, ...] = field(default_factory=tuple)
+    objective_duration_s: int | None = None  # durée médiane (variable : dépend des joueurs)
 
 
 class _Registry:
@@ -82,6 +83,7 @@ class _Registry:
             info = MapInfo(
                 m["id"], m["name"], m["objective"], m["first_objective_s"],
                 m["objective_interval_s"], m["verified"], tuple(m.get("tips", [])),
+                m.get("objective_duration_s"),
             )
             self.maps[info.id] = info
             for alias in [m["id"], m["name"], *m.get("aliases", [])]:

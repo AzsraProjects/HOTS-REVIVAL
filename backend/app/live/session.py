@@ -53,7 +53,9 @@ class LiveSession:
     clock_anchor: float | None = None  # time.monotonic() correspondant à 0:00
     clock_source: str | None = None
     timings: dict = field(default_factory=dict)
-    next_objective_at: float | None = None
+    next_objective_at: float | None = None  # début du prochain objectif (horloge de jeu)
+    objective_started_at: float | None = None  # objectif en cours depuis… (None = en attente)
+    objective_estimated: bool = False  # prochain début déduit d'une fin estimée (pas confirmée)
     ally_level: int = 1
     enemy_level: int = 1
     level_source: str | None = None  # None = inconnu (rien d'affiché) | manuel | écran
@@ -108,10 +110,13 @@ class LiveSession:
         if first_sync or self.next_objective_at is None:
             first = self.timings.get("first_objective_s")
             if first:
+                # premier objectif : heure fixe. Partie rejointe en cours : on projette des cycles
+                # complets (durée habituelle + délai), forcément estimés.
                 self.next_objective_at = float(first)
-                interval = self.timings.get("objective_interval_s") or 0
-                while interval and self.next_objective_at < clock_s - 60:
-                    self.next_objective_at += interval
+                cycle = (self.timings.get("objective_duration_s") or 0) + (self.timings.get("objective_interval_s") or 0)
+                while cycle and self.next_objective_at < clock_s - 60:
+                    self.next_objective_at += cycle
+                    self.objective_estimated = True
 
     def sync_clock(self, clock_s: float, source: str = "manuel") -> None:
         with self._lock:
@@ -193,11 +198,14 @@ class LiveSession:
                 self.composition.setdefault(key, entry)
 
     def objective_done(self) -> None:
+        """Fin d'objectif signalée par le joueur : le prochain début est alors connu (délai fixe)."""
         with self._lock:
             now = self.clock()
             interval = self.timings.get("objective_interval_s")
             if interval and now is not None:
                 self.next_objective_at = now + interval
+                self.objective_started_at = None
+                self.objective_estimated = False
 
     def camp_taken(self, camp_type: str, side: str) -> None:
         with self._lock:
@@ -240,17 +248,41 @@ class LiveSession:
             return compute_overlay(self)
 
 
-def _upcoming(s: LiveSession, clock: float | None, count: int = 3) -> list[float]:
-    """Heures d'horloge projetées des prochains objectifs (estimation)."""
-    if clock is None or s.next_objective_at is None:
+def _advance_objective(s: LiveSession, clock: float) -> None:
+    """Fait avancer le cycle de l'objectif : en attente → en cours → (fin estimée) → en attente.
+
+    Le début est connu (heure fixe, ou fin + délai fixe). La fin dépend des joueurs : sans
+    confirmation (raccourci « Objectif terminé »), on la suppose à la durée habituelle une fois
+    la fourchette haute dépassée, et le prochain début est marqué comme estimé.
+    """
+    t = s.timings
+    interval = t.get("objective_interval_s") or 0
+    duration = t.get("objective_duration_s")
+    if s.next_objective_at is None:
+        return
+    if s.objective_started_at is None and clock >= s.next_objective_at:
+        s.objective_started_at = s.next_objective_at
+    if s.objective_started_at is None:
+        return
+    if duration:
+        high = t.get("duration_high_s") or round(duration * 1.4)
+        if clock > s.objective_started_at + high + 15 and interval:
+            s.next_objective_at = s.objective_started_at + duration + interval
+            s.objective_started_at = None
+            s.objective_estimated = True
+    elif interval and clock > s.objective_started_at + 90:
+        # carte sans durée connue (seule la fin est enregistrée) : délai de fin à fin
+        s.next_objective_at = s.objective_started_at + interval
+        s.objective_started_at = None
+        s.objective_estimated = True
+
+
+def _upcoming(s: LiveSession, clock: float | None) -> list[float]:
+    """Prochain début d'objectif s'il est connu. Les suivants dépendent de la durée des objectifs
+    (donc des joueurs) : on ne les affiche pas."""
+    if clock is None or s.next_objective_at is None or s.objective_started_at is not None:
         return []
-    interval = s.timings.get("objective_interval_s") or 0
-    out, t = [], s.next_objective_at
-    while len(out) < count and interval:
-        if t >= clock - 30:
-            out.append(round(t))
-        t += interval
-    return out or [round(s.next_objective_at)]
+    return [round(s.next_objective_at)]
 
 
 def compute_overlay(s: LiveSession) -> dict[str, Any]:
@@ -263,12 +295,16 @@ def compute_overlay(s: LiveSession) -> dict[str, Any]:
     objective = None
     if info:
         remaining = None
-        if clock is not None and s.next_objective_at is not None:
-            remaining = s.next_objective_at - clock
-            interval = s.timings.get("objective_interval_s")
-            if remaining < -90 and interval:  # pas de « objectif terminé » : on projette le suivant
-                s.next_objective_at += interval
-                remaining += interval
+        ends_in = None
+        if clock is not None:
+            _advance_objective(s, clock)
+            if s.objective_started_at is not None:
+                remaining = s.objective_started_at - clock  # ≤ 0 : en cours
+                duration = s.timings.get("objective_duration_s")
+                if duration:
+                    ends_in = s.objective_started_at + duration - clock
+            elif s.next_objective_at is not None:
+                remaining = s.next_objective_at - clock
         priority = tr("Farm, soak d'XP et camps")
         if remaining is not None and remaining <= OBJECTIVE_WARNING_S:
             priority = tr("Regroupement pour l'objectif")
@@ -278,6 +314,9 @@ def compute_overlay(s: LiveSession) -> dict[str, Any]:
                                "voice_key": "objective-soon"})
         objective = {
             "name": tr(info.objective), "map": info.name, "next_in_s": remaining,
+            "phase": "active" if s.objective_started_at is not None else "waiting",
+            "ends_in_s": ends_in,  # fin estimée (durée habituelle), None si inconnue
+            "estimated": s.objective_estimated,  # prochain début déduit d'une fin non confirmée
             "source": s.timings.get("source", "estimation"), "samples": s.timings.get("samples", 0),
             "priority": priority, "tips": [tr(tip) for tip in info.tips],
         }

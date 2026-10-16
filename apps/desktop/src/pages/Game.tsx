@@ -258,10 +258,25 @@ export function Game() {
         <Card title={o ? t("Objectif : {name}", { name: o.name }) : t("Objectif")}>
           {o ? (
             <>
-              <div className="font-mono text-5xl text-gold-400">{o.next_in_s !== null && o.next_in_s > 0 ? clock(o.next_in_s) : s.status === "in_game" ? t("en cours") : "–:––"}</div>
+              {o.phase === "active" ? (
+                <>
+                  <div className="font-mono text-5xl text-gold-400">{t("en cours")}</div>
+                  {o.ends_in_s != null && (
+                    <div className="mt-1 text-sm text-slate-300">
+                      {o.ends_in_s > 0 ? t("Fin estimée dans ~{t}", { t: clock(o.ends_in_s) }) : t("Fin estimée imminente")}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="font-mono text-5xl text-gold-400">
+                  {o.next_in_s !== null && o.next_in_s > 0 ? `${o.estimated ? "≈ " : ""}${clock(o.next_in_s)}` : s.status === "in_game" ? t("en cours") : "–:––"}
+                </div>
+              )}
               <div className="mt-1 text-sm">{t("Priorité :")} <b className="text-white">{o.priority}</b></div>
-              {!!s.upcoming_objectives?.length && (
-                <div className="mt-2 text-xs text-slate-400">{t("Prochains : {times}", { times: s.upcoming_objectives.map((x) => clock(x)).join(" · ") })}</div>
+              {(o.phase === "active" || o.estimated) && (
+                <p className="mt-2 text-xs text-slate-400">
+                  {t("La durée d'un objectif dépend des joueurs : signalez sa fin (bouton ou Ctrl+Shift+J) pour un prochain timer exact.")}
+                </p>
               )}
               <div className="mt-1 text-[11px] text-slate-500">{t("Timers : {source}", { source: SOURCE_LABEL[o.source] ? t(SOURCE_LABEL[o.source]) : o.source })}{o.samples ? ` ${t("({n} parties)", { n: o.samples })}` : ""}</div>
               <button className="btn-ghost mt-3 w-full justify-center py-1" onClick={() => act(api.live.objectiveDone())}>{t("Objectif terminé")}</button>

@@ -105,6 +105,8 @@ def persist_match(db: Session, replay: Replay, parsed: ParsedMatch, me_toons: Co
 
     for e in parsed.events:
         db.add(MatchEvent(match_id=match.id, t_s=e.t_s, kind=e.kind, team=e.team, slot=e.slot, payload=e.payload))
+    for c in parsed.objective_cycles:
+        db.add(MatchEvent(match_id=match.id, t_s=c["t_s"], kind="objective_cycle", payload={"phase": c["phase"]}))
     db.flush()
 
     # HEROS SCORE pour les 10 joueurs (sert aussi de référentiel comparatif)

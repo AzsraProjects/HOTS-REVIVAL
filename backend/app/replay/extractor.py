@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from app.reference import normalize, registry
+from app.replay.objectives import extract_cycles
 from app.replay.parser import RawReplay
 
 GAMELOOPS_PER_SECOND = 16
@@ -98,6 +99,8 @@ class ParsedMatch:
     players: list[ParsedPlayer]
     events: list[ParsedEvent]
     team_levels: dict[int, int]
+    # préavis / début / fin de chaque objectif de carte (voir app/replay/objectives.py)
+    objective_cycles: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _s(value: Any) -> str:
@@ -277,9 +280,10 @@ def extract_match(raw: RawReplay) -> ParsedMatch:
             p.stats["deaths"] = sum(1 for e in events if e.kind == "death" and e.slot == p.slot)
 
     events.sort(key=lambda e: e.t_s)
+    map_id = map_info.id if map_info else normalize(map_raw)
     return ParsedMatch(
         map_raw=map_raw,
-        map_id=map_info.id if map_info else normalize(map_raw),
+        map_id=map_id,
         map_name=map_info.name if map_info else map_raw,
         game_mode=_game_mode(raw.initdata),
         game_version=game_version,
@@ -289,4 +293,5 @@ def extract_match(raw: RawReplay) -> ParsedMatch:
         players=players,
         events=events,
         team_levels=team_levels,
+        objective_cycles=extract_cycles(map_id, raw.tracker_events, lambda loop: loop_to_seconds(loop, start_loop)),
     )

@@ -89,7 +89,13 @@ export function OverlayPanel({ state, interactive, heroes, maps, onState, previe
             <div className={`${box} flex justify-between`}>
               <span className="text-storm-300">{s.objective.name}</span>
               <span className="font-mono font-bold text-gold-400">
-                {s.objective.next_in_s !== null && s.objective.next_in_s > 0 ? clock(s.objective.next_in_s) : t("en cours")}
+                {s.objective.phase === "active"
+                  ? s.objective.ends_in_s != null && s.objective.ends_in_s > 0
+                    ? t("en cours · fin ~{t}", { t: clock(s.objective.ends_in_s) })
+                    : t("en cours")
+                  : s.objective.next_in_s !== null && s.objective.next_in_s > 0
+                    ? `${s.objective.estimated ? "≈ " : ""}${clock(s.objective.next_in_s)}`
+                    : t("en cours")}
               </span>
             </div>
           )}

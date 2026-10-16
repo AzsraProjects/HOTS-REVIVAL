@@ -7,7 +7,7 @@ délai médian entre deux objectifs, qui remplacent les valeurs par défaut de m
 from __future__ import annotations
 
 from collections import defaultdict
-from statistics import median
+from statistics import median, quantiles
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -63,8 +63,69 @@ def _events_by_match(db: Session, map_id: str) -> dict[int, list[tuple[float, st
     return out
 
 
+def _cycles_by_match(db: Session, map_id: str) -> dict[int, list[tuple[float, str]]]:
+    rows = db.execute(
+        select(MatchEvent.match_id, MatchEvent.t_s, MatchEvent.payload)
+        .join(Match)
+        .where(Match.map_id == map_id, MatchEvent.kind == "objective_cycle", Match.game_mode.in_(CLASSIC_MODES))
+        .order_by(MatchEvent.match_id, MatchEvent.t_s)
+    )
+    out: dict[int, list[tuple[float, str]]] = defaultdict(list)
+    for match_id, t_s, payload in rows:
+        out[match_id].append((t_s, (payload or {}).get("phase", "")))
+    return out
+
+
+def _quartiles(values: list[float]) -> tuple[int, int, int]:
+    """(bas, médiane, haut) : 1er quartile, médiane, 3e quartile."""
+    ordered = sorted(values)
+    q = quantiles(ordered, n=4) if len(ordered) >= 4 else [ordered[0], median(ordered), ordered[-1]]
+    return round(q[0]), round(median(ordered)), round(q[-1])
+
+
+def calibrate_cycles(db: Session, map_id: str) -> dict | None:
+    """Timers mesurés sur les cycles d'objectif des replays (préavis / début / fin).
+
+    - premier objectif : heure fixe (identique d'une partie à l'autre) ;
+    - durée : variable, elle dépend des joueurs (médiane + fourchette) ;
+    - délai entre la fin d'un objectif et le début du suivant : fixe pour une carte.
+    Cartes dont seule la fin est enregistrée : délai de fin à fin.
+    """
+    matches = _cycles_by_match(db, map_id)
+    if len(matches) < MIN_SAMPLES:
+        return None
+    firsts: list[float] = []
+    durations: list[float] = []
+    respawns: list[float] = []
+    periods: list[float] = []
+    for phases in matches.values():
+        starts = [t for t, p in phases if p == "start"]
+        ends = [t for t, p in phases if p == "end"]
+        if starts:
+            firsts.append(starts[0])
+            durations += [e - s for s in starts if (e := next((e for e in ends if e > s), None)) is not None]
+            respawns += [n - e for e in ends if (n := next((s for s in starts if s > e), None)) is not None]
+        else:
+            periods += [b - a for a, b in zip(ends, ends[1:])]
+    out: dict = {"samples": len(matches)}
+    if len(firsts) >= MIN_SAMPLES:
+        out["first_objective_s"] = round(median(firsts))
+    if len(durations) >= MIN_SAMPLES:
+        low, mid, high = _quartiles(durations)
+        out.update(objective_duration_s=mid, duration_low_s=low, duration_high_s=high)
+    if len(respawns) >= MIN_SAMPLES:
+        out["objective_interval_s"] = round(median(respawns))
+    elif len(periods) >= MIN_SAMPLES:
+        out["objective_interval_s"] = round(median(periods))
+    return out if len(out) > 1 else None
+
+
 def calibrate_map(db: Session, map_id: str) -> dict | None:
     """Timer calibré d'une carte, ou None si moins de MIN_SAMPLES parties exploitables."""
+    cycles = calibrate_cycles(db, map_id)
+    if cycles:
+        return cycles
+    # Replays importés avant les cycles d'objectif : ancienne méthode (évènements nommés).
     matches = _events_by_match(db, map_id)
     starts = OBJECTIVE_START_EVENTS.get(map_id, ())
     ends = OBJECTIVE_END_EVENTS.get(map_id, ())
@@ -123,11 +184,19 @@ def level_curve(db: Session | None) -> dict[int, int]:
 
 
 def map_timings(db: Session | None, map_id: str) -> dict:
-    """Timers à utiliser pour l'overlay : calibrés si possible, sinon valeurs de référence."""
+    """Timers à utiliser pour l'overlay : calibrés si possible, sinon valeurs de référence.
+
+    objective_interval_s : délai entre la FIN d'un objectif et le début du suivant.
+    objective_duration_s : durée habituelle d'un objectif (fourchette duration_low_s / duration_high_s).
+    """
     info = registry().maps.get(map_id)
+    duration = info.objective_duration_s if info else None
     base = {
         "first_objective_s": info.first_objective_s if info else None,
         "objective_interval_s": info.objective_interval_s if info else None,
+        "objective_duration_s": duration,
+        "duration_low_s": round(duration * 0.75) if duration else None,
+        "duration_high_s": round(duration * 1.4) if duration else None,
         "source": "mesuré" if info and info.verified else "estimation",
         "samples": 0,
         "level_curve": level_curve(db),
@@ -136,8 +205,8 @@ def map_timings(db: Session | None, map_id: str) -> dict:
         return base
     calibrated = calibrate_map(db, map_id)
     if calibrated:
-        for key in ("first_objective_s", "objective_interval_s"):
-            if calibrated[key]:
+        for key in ("first_objective_s", "objective_interval_s", "objective_duration_s", "duration_low_s", "duration_high_s"):
+            if calibrated.get(key):
                 base[key] = calibrated[key]
         base["source"] = "vos replays"
         base["samples"] = calibrated["samples"]

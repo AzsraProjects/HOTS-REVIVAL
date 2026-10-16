@@ -257,4 +257,5 @@ export const EN_COMPONENTS: Record<string, string> = {
   "Site communautaire ↗": "Community website ↗",
   "Voir mon profil sur le site ↗": "View my profile on the website ↗",
   "Voir les statistiques de la communauté ↗": "View community stats ↗",
+  "en cours · fin ~{t}": "in progress · ends ~{t}",
 };

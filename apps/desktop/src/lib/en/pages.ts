@@ -245,4 +245,7 @@ export const EN_PAGES: Record<string, string> = {
   "Sources utilisées": "Sources used",
   "Jamais": "Never",
   "Données stockées dans {path}": "Data stored in {path}",
+  "Fin estimée dans ~{t}": "Estimated end in ~{t}",
+  "Fin estimée imminente": "Estimated end imminent",
+  "La durée d'un objectif dépend des joueurs : signalez sa fin (bouton ou Ctrl+Shift+J) pour un prochain timer exact.": "An objective's duration depends on the players: report when it ends (button or Ctrl+Shift+J) to get an exact timer for the next one.",
 };

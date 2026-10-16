@@ -200,6 +200,9 @@ export interface OverlayState {
   objective: {
     name: string; map: string; next_in_s: number | null; source: string; samples: number;
     priority: string; tips: string[];
+    phase?: "waiting" | "active"; // en attente du prochain début | objectif en cours
+    ends_in_s?: number | null; // fin estimée (durée habituelle sur cette carte)
+    estimated?: boolean; // prochain début déduit d'une fin non confirmée
   } | null;
   camps: { camp: string; side: "ally" | "enemy"; respawn_in_s: number | null }[];
   talents: OverlayTalent[];
