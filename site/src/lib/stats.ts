@@ -1,3 +1,5 @@
+import { lang, locale, t } from "./i18n";
+
 // Statistiques lisibles malgré les petits échantillons : le classement utilise un winrate
 // « lissé » vers 50 % (moyenne bayésienne), affiché brut à côté.
 
@@ -27,17 +29,19 @@ export const TIER_STYLE: Record<Tier | "?", string> = {
   D: "from-slate-600 to-slate-800 text-slate-200",
 };
 
-export const pct = (v: number, digits = 1) => `${(v * 100).toFixed(digits).replace(".", ",")} %`;
-export const num = (v: number) => v.toLocaleString("fr-FR");
+const dec = (s: string) => (lang() === "fr" ? s.replace(".", ",") : s);
+export const pct = (v: number, digits = 1) => `${dec((v * 100).toFixed(digits))}${lang() === "fr" ? " %" : "%"}`;
+export const num = (v: number) => v.toLocaleString(locale());
+export const ratio = (v: number) => dec(v.toFixed(1));
 export const compact = (v: number) =>
-  v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1).replace(".", ",")} M` : v >= 10_000 ? `${Math.round(v / 1000)} k` : num(v);
+  v >= 1_000_000 ? `${dec((v / 1_000_000).toFixed(1))} M` : v >= 10_000 ? `${Math.round(v / 1000)} k` : num(v);
 
 export function since(unix: number): string {
   const s = Math.max(0, Date.now() / 1000 - unix);
-  if (s < 3600) return `il y a ${Math.max(1, Math.round(s / 60))} min`;
-  if (s < 86_400) return `il y a ${Math.round(s / 3600)} h`;
+  if (s < 3600) return t("il y a {n} min", { n: Math.max(1, Math.round(s / 60)) });
+  if (s < 86_400) return t("il y a {n} h", { n: Math.round(s / 3600) });
   const d = Math.round(s / 86_400);
-  return d < 30 ? `il y a ${d} j` : new Date(unix * 1000).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+  return d < 30 ? t("il y a {n} j", { n: d }) : new Date(unix * 1000).toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric" });
 }
 
 export const duration = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;

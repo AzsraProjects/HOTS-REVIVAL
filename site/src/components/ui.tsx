@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import type { Overview } from "../lib/api";
 import { hero as heroOf, portraitUrl, role as roleOf, type Hero, type Role } from "../lib/game";
-import { TIER_STYLE, type Tier } from "../lib/stats";
+import { t } from "../lib/i18n";
+import { num, TIER_STYLE, type Tier } from "../lib/stats";
+import { DOWNLOAD_URL } from "./links";
 
 /** Portrait hexagonal entouré d'un liseré à la couleur du rôle. */
 export function HeroPortrait({ id, size = 48, className = "" }: { id: string; size?: number; className?: string }) {
@@ -48,7 +51,7 @@ export function TierBadge({ tier, size = "md" }: { tier: Tier | undefined; size?
   const dim = { sm: "h-6 w-6 text-xs", md: "h-8 w-8 text-sm", lg: "h-12 w-12 text-xl" }[size];
   return (
     <span className={`hex inline-flex shrink-0 items-center justify-center bg-gradient-to-b font-display font-extrabold ${TIER_STYLE[tier ?? "?"]} ${dim}`}
-      title={tier ? `Tier ${tier}` : "Pas encore assez de parties"} aria-label={tier ? `Tier ${tier}` : "Tier à confirmer : pas encore assez de parties"}>
+      title={tier ? `Tier ${tier}` : t("Pas encore assez de parties")} aria-label={tier ? `Tier ${tier}` : t("Tier à confirmer : pas encore assez de parties")}>
       {tier ?? "?"}
     </span>
   );
@@ -114,11 +117,11 @@ export function HeroLink({ id, children, className = "" }: { id: string; childre
   return <Link to={`/heros/${id}`} className={className}>{children}</Link>;
 }
 
-export function Loading({ label = "Chargement…" }: { label?: string }) {
+export function Loading({ label }: { label?: string }) {
   return (
     <div className="flex items-center justify-center gap-3 py-16 text-sm text-slate-400">
       <span className="hex h-5 w-5 animate-spin bg-gradient-to-br from-nexus-400 to-storm-400" />
-      {label}
+      {label ?? t("Chargement…")}
     </div>
   );
 }
@@ -129,6 +132,35 @@ export function Notice({ title, children, tone = "info" }: { title: string; chil
       <span className={`hex h-10 w-10 bg-gradient-to-br ${tone === "error" ? "from-rose-400 to-rose-700" : "from-nexus-400 to-storm-600"} opacity-80`} />
       <div className="title text-lg">{title}</div>
       {children && <div className="max-w-md text-sm text-slate-400">{children}</div>}
+    </div>
+  );
+}
+
+/** Seuils sous lesquels les statistiques sont signalées comme « encore limitées ». */
+export const LIMITED_MATCHES = 1000;
+export const LIMITED_CONTRIBUTORS = 20;
+
+/** Origine des statistiques : « line » = mention discrète, « banner » = bandeau tant que l'échantillon est faible. */
+export function DataSource({ overview, matches, variant = "line" }: { overview?: Overview; matches?: number; variant?: "line" | "banner" }) {
+  if (!overview) return null;
+  const limited = overview.matches < LIMITED_MATCHES || overview.contributors < LIMITED_CONTRIBUTORS;
+  const vars = { matches: num(Math.round(matches ?? overview.matches)), players: num(overview.contributors) };
+  const source = overview.contributors === 1
+    ? t("Basée sur {matches} parties partagées par {players} joueur.", vars)
+    : t("Basée sur {matches} parties partagées par {players} joueurs.", vars);
+  if (variant === "line") return <p className="text-xs text-slate-400">{source}</p>;
+  if (!limited) return null;
+  return (
+    <div className="flex gap-3 rounded-xl border border-gold-500/30 bg-gold-500/[0.06] px-4 py-3 text-sm">
+      <span className="hex mt-0.5 h-5 w-[18px] shrink-0 bg-gradient-to-b from-gold-300 to-gold-600" aria-hidden />
+      <div>
+        <div className="font-semibold text-gold-300">{t("Données encore limitées")}</div>
+        <p className="text-slate-300">{source}</p>
+        <p className="mt-1 text-xs text-slate-400">
+          {t("Avec si peu de contributeurs, les statistiques reflètent surtout leurs parties : un héros souvent dans leur équipe suit leur taux de victoire. Elles se stabiliseront avec plus de joueurs.")}{" "}
+          <a href={DOWNLOAD_URL} target="_blank" rel="noreferrer" className="text-storm-300 hover:text-white">{t("Partagez vos parties")} →</a>
+        </p>
+      </div>
     </div>
   );
 }

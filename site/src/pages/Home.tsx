@@ -1,3 +1,4 @@
+import { t } from "../lib/i18n";
 import { Link } from "react-router-dom";
 import { DOWNLOAD_URL } from "../components/Layout";
 import { HeroLink, HeroPortrait, Section, TierBadge, WinBar } from "../components/ui";
@@ -23,25 +24,25 @@ export function Home() {
       {/* Accroche */}
       <section className="relative pt-4 text-center sm:pt-10">
         <HexWall ids={(popular.length >= 12 ? [...rows].sort((a, b) => b.games - a.games).map((r) => r.hero_id) : []).concat(HEROES.map((h) => h.id))} />
-        <div className="eyebrow mb-4">Statistiques communautaires Heroes of the Storm</div>
+        <div className="eyebrow mb-4">{t("Statistiques communautaires Heroes of the Storm")}</div>
         <h1 className="mx-auto max-w-3xl font-display text-4xl font-extrabold leading-tight text-white sm:text-6xl">
-          Le Nexus <span className="text-gradient">continue</span>.
+          {t("Le Nexus")} <span className="text-gradient">{t("continue")}</span>.
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-base text-slate-400 sm:text-lg">
-          Tier list, talents, synergies et profils, calculés à partir des vraies parties des joueurs HOTS REVIVAL.
+          {t("Tier list, talents, synergies et profils, calculés à partir des vraies parties des joueurs HOTS REVIVAL.")}
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link to="/heros" className="btn-primary px-6 py-3 text-base">Voir la tier list</Link>
+          <Link to="/heros" className="btn-primary px-6 py-3 text-base">{t("Voir la tier list")}</Link>
           <a href={DOWNLOAD_URL} target="_blank" rel="noreferrer" className="btn-ghost px-6 py-3 text-base">
-            Partager mes parties
+            {t("Partager mes parties")}
           </a>
         </div>
 
         <div className="mx-auto mt-12 grid max-w-3xl grid-cols-3 gap-3">
           {[
-            ["Parties analysées", o ? compact(o.matches) : "—"],
-            ["Héros joués", heroes.data ? num(rows.length) : "—"],
-            ["Profils publics", o ? num(o.public_profiles) : "—"],
+            [t("Parties analysées"), o ? compact(o.matches) : "—"],
+            [t("Héros joués"), heroes.data ? num(rows.length) : "—"],
+            [t("Profils publics"), o ? num(o.public_profiles) : "—"],
           ].map(([label, value]) => (
             <div key={label} className="panel px-3 py-4">
               <div className="font-display text-2xl font-bold text-white sm:text-3xl">{value}</div>
@@ -49,13 +50,13 @@ export function Home() {
             </div>
           ))}
         </div>
-        {o?.aggregated_at && <p className="mt-3 text-xs text-slate-500">Statistiques mises à jour {since(o.aggregated_at)}</p>}
+        {o?.aggregated_at && <p className="mt-3 text-xs text-slate-500">{t("Statistiques mises à jour {when}", { when: since(o.aggregated_at) })}</p>}
       </section>
 
       {/* Héros du moment */}
       {best.length > 0 && (
-        <Section eyebrow="Au sommet" title="Les héros du moment"
-          action={<Link to="/heros" className="text-sm text-storm-300 hover:text-white">Tier list complète →</Link>}>
+        <Section eyebrow={t("Au sommet")} title={t("Les héros du moment")}
+          action={<Link to="/heros" className="text-sm text-storm-300 hover:text-white">{t("Tier list complète →")}</Link>}>
           <div className="grid gap-4 sm:grid-cols-3">
             {best.map((r, i) => {
               const h = hero(r.hero_id);
@@ -72,7 +73,7 @@ export function Home() {
                       <TierBadge tier={tiers.get(r.hero_id)} size="sm" />
                     </div>
                     <div className="text-xs" style={{ color: role(h.role).color }}>{role(h.role).label}</div>
-                    <div className={`mt-2 text-sm font-semibold ${wrTone(wr)}`}>{pct(wr)} <span className="font-normal text-slate-400">· {num(r.games)} parties</span></div>
+                    <div className={`mt-2 text-sm font-semibold ${wrTone(wr)}`}>{pct(wr)} <span className="font-normal text-slate-400">· {t("{n} parties", { n: num(r.games) })}</span></div>
                   </div>
                 </HeroLink>
               );
@@ -83,10 +84,10 @@ export function Home() {
 
       <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr]">
         {/* Les plus joués */}
-        <Section eyebrow="Popularité" title="Les plus joués">
+        <Section eyebrow={t("Popularité")} title={t("Les plus joués")}>
           <div className="panel divide-y divide-white/[0.05]">
-            {heroes.loading && !rows.length && <div className="p-6 text-sm text-slate-400">Chargement…</div>}
-            {heroes.error && <div className="p-6 text-sm text-rose-300">Statistiques indisponibles : {heroes.error.message}</div>}
+            {heroes.loading && !rows.length && <div className="p-6 text-sm text-slate-400">{t("Chargement…")}</div>}
+            {heroes.error && <div className="p-6 text-sm text-rose-300">{t("Statistiques indisponibles : {e}", { e: heroes.error.message })}</div>}
             {popular.map((r) => {
               const h = hero(r.hero_id);
               const wr = winrate(r.wins, r.games);
@@ -97,7 +98,7 @@ export function Home() {
                   <div className="w-32 truncate font-medium text-white">{h.name}</div>
                   <div className="hidden flex-1 sm:block"><WinBar value={wr} /></div>
                   <div className={`w-16 text-right text-sm font-semibold ${wrTone(wr)}`}>{pct(wr, 0)}</div>
-                  <div className="w-20 text-right text-xs text-slate-400">{pct(r.games / total, 0)} joué</div>
+                  <div className="w-20 text-right text-xs text-slate-400">{t("{p} joué", { p: pct(r.games / total, 0) })}</div>
                 </HeroLink>
               );
             })}
@@ -105,35 +106,35 @@ export function Home() {
         </Section>
 
         {/* Communauté */}
-        <Section eyebrow="Communauté" title="Les joueurs">
+        <Section eyebrow={t("Communauté")} title={t("Les joueurs")}>
           <div className="panel space-y-4 p-5">
             <PlayerSearch />
             <div className="space-y-1">
               {(players.data?.players ?? []).slice(0, 5).map((p) => (
                 <Link key={p.slug} to={`/joueurs/${p.slug}`} className="flex items-center justify-between rounded-lg px-3 py-2 transition hover:bg-white/[0.04]">
                   <span className="font-medium text-white">{p.name.split("#")[0]}{p.name.includes("#") && <span className="text-slate-400">#{p.name.split("#")[1]}</span>}</span>
-                  {!!p.games && <span className="text-xs text-slate-400">{num(p.games)} parties · {pct(winrate(p.wins ?? 0, p.games), 0)}</span>}
+                  {!!p.games && <span className="text-xs text-slate-400">{t("{n} parties", { n: num(p.games) })} · {pct(winrate(p.wins ?? 0, p.games), 0)}</span>}
                 </Link>
               ))}
-              {players.data && !players.data.players.length && <p className="text-sm text-slate-400">Aucun profil public pour l'instant.</p>}
-              {players.error && <p className="text-sm text-rose-300">Profils indisponibles pour le moment.</p>}
+              {players.data && !players.data.players.length && <p className="text-sm text-slate-400">{t("Aucun profil public pour l'instant.")}</p>}
+              {players.error && <p className="text-sm text-rose-300">{t("Profils indisponibles pour le moment.")}</p>}
             </div>
-            <Link to="/joueurs" className="block text-sm text-storm-300 hover:text-white">Tous les joueurs →</Link>
+            <Link to="/joueurs" className="block text-sm text-storm-300 hover:text-white">{t("Tous les joueurs →")}</Link>
           </div>
         </Section>
       </div>
 
       {/* Comment ça marche */}
-      <Section eyebrow="Rejoindre le mouvement" title="Comment ça marche">
+      <Section eyebrow={t("Rejoindre le mouvement")} title={t("Comment ça marche")}>
         <div className="grid gap-4 sm:grid-cols-3">
           {[
-            ["1", "Installez l'appli", "HOTS REVIVAL analyse vos replays sur votre PC : profil, rapport de partie, coach IA."],
-            ["2", "Partagez vos parties", "Une case à cocher. Seul un résumé est envoyé, comptes pseudonymisés : ni replay, ni chat, ni pseudo."],
-            ["3", "Le Nexus en profite", "Chaque partie enrichit la tier list, les talents et les synergies pour toute la communauté."],
-          ].map(([n, t, d]) => (
+            ["1", t("Installez l'appli"), t("HOTS REVIVAL analyse vos replays sur votre PC : profil, rapport de partie, coach IA.")],
+            ["2", t("Partagez vos parties"), t("Une case à cocher. Seul un résumé est envoyé, comptes pseudonymisés : ni replay, ni chat, ni pseudo.")],
+            ["3", t("Le Nexus en profite"), t("Chaque partie enrichit la tier list, les talents et les synergies pour toute la communauté.")],
+          ].map(([n, title, d]) => (
             <div key={n} className="panel p-5">
               <div className="hex mb-3 flex h-10 w-9 items-center justify-center bg-gradient-to-br from-nexus-500 to-storm-600 font-display font-bold text-white">{n}</div>
-              <div className="font-semibold text-white">{t}</div>
+              <div className="font-semibold text-white">{title}</div>
               <p className="mt-1 text-sm text-slate-400">{d}</p>
             </div>
           ))}

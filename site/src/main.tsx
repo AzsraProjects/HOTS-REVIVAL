@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, Link, RouterProvider } from "react-router-dom";
 import { Layout } from "./components/Layout";
+import { LangProvider, t } from "./lib/i18n";
 import { Notice } from "./components/ui";
 // Polices servies par le site lui-même (aucune requête vers Google Fonts).
 import "@fontsource/cinzel/latin-600.css";
@@ -32,8 +33,8 @@ const router = createBrowserRouter([
       {
         path: "*",
         element: (
-          <Notice title="Page introuvable">
-            Cette page s'est perdue dans le Nexus. <Link to="/" className="text-storm-300 hover:text-white">Retour à l'accueil</Link>
+          <Notice title={t("Page introuvable")}>
+            {t("Cette page s'est perdue dans le Nexus.")} <Link to="/" className="text-storm-300 hover:text-white">{t("Retour à l'accueil")}</Link>
           </Notice>
         ),
       },
@@ -43,6 +44,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <LangProvider>
+      <RouterProvider router={router} />
+    </LangProvider>
   </StrictMode>,
 );

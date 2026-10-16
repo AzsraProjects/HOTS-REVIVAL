@@ -1,10 +1,12 @@
 // Client de l'API communautaire (server/src/index.ts).
 import { useEffect, useState } from "react";
+import { t } from "./i18n";
 
 export const API_BASE = import.meta.env.VITE_API_BASE ?? "https://hots-revival-community.hots-revival.workers.dev";
 
 export interface Overview {
   matches: number;
+  contributors: number;
   public_profiles: number;
   first: number | null;
   last: number | null;
@@ -86,10 +88,10 @@ export function get<T>(path: string): Promise<T> {
     try {
       return await r.json();
     } catch {
-      throw new ApiError(r.status, "Réponse illisible.");
+      throw new ApiError(r.status, t("Réponse illisible."));
     }
   }, () => {
-    throw new ApiError(0, "Le serveur communautaire est injoignable.");
+    throw new ApiError(0, t("Le serveur communautaire est injoignable."));
   });
   promise.catch(() => cache.delete(url));
   cache.set(url, { at: Date.now(), promise });

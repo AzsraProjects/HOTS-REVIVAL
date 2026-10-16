@@ -7,10 +7,11 @@
   "scripts": {
     "dev": "vite",
     "data": "node scripts/build-data.mjs",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && node scripts/check-i18n.mjs && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name hots-revival --branch main"
+    "deploy": "npm run build && wrangler pages deploy dist --project-name hots-revival --branch main",
+    "i18n:check": "node scripts/check-i18n.mjs"
   },
   "dependencies": {
     "@fontsource/cinzel": "^5.1.0",

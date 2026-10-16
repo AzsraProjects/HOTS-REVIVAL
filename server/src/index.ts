@@ -205,15 +205,17 @@ function modeFilter(url: URL): string | null {
 const cached = (body: unknown) => json(body, 200, { "Cache-Control": "public, max-age=300" });
 
 async function overview(env: Env): Promise<Response> {
-  const [totals, state, players] = await env.DB.batch([
+  const [totals, state, players, contributors] = await env.DB.batch([
     env.DB.prepare("SELECT COUNT(*) AS matches, MIN(played_at) AS first, MAX(played_at) AS last FROM matches"),
     env.DB.prepare("SELECT key, value FROM agg_state"),
     env.DB.prepare("SELECT COUNT(*) AS public_profiles FROM profiles WHERE is_public = 1"),
+    env.DB.prepare("SELECT COUNT(DISTINCT install_id) AS contributors FROM uploads"),
   ]);
   const st = Object.fromEntries((state.results as { key: string; value: string }[]).map((r) => [r.key, r.value]));
   return cached({
     ...(totals.results[0] as object),
     ...(players.results[0] as object),
+    ...(contributors.results[0] as object),
     aggregated_at: st.aggregated_at ? Number(st.aggregated_at) : null,
     modes: MODES,
   });
