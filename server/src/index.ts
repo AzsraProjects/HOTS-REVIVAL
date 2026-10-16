@@ -19,7 +19,9 @@ export interface Env {
 }
 
 const MAX_BATCH = 25;
-const DAILY_UPLOADS = 3000; // par installation (import de l'historique compris)
+// Plan gratuit D1 : 100 000 lignes écrites par jour, index compris (≈ 50 par partie envoyée, plus l'agrégation).
+const DAILY_UPLOADS = 200; // par installation : un gros historique s'étale sur plusieurs jours
+const GLOBAL_DAILY_UPLOADS = 600; // toutes installations confondues, avant que D1 ne bloque les écritures
 const DAILY_INSTALLS_PER_IP = 5;
 const MIN_OWNED_GAMES = 3; // parties envoyées en tant que « moi » pour revendiquer un compte
 const PROFILE_NAME_RE = /^[\p{L}\p{N}_ .-]{2,24}(#\d{3,7})?$/u;
@@ -35,6 +37,12 @@ function json(body: unknown, status = 200, headers: Record<string, string> = {})
 
 const error = (status: number, detail: string, headers?: Record<string, string>) => json({ detail }, status, headers);
 const today = () => new Date().toISOString().slice(0, 10);
+/** Secondes jusqu'à minuit UTC (remise à zéro des quotas), étalées sur 15 min pour que tout le monde ne revienne pas en même temps. */
+function untilTomorrow(): string {
+  const now = new Date();
+  const midnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+  return String(Math.ceil((midnight - now.getTime()) / 1000) + Math.floor(Math.random() * 900));
+}
 const nowS = () => Math.floor(Date.now() / 1000);
 
 async function readJson(req: Request): Promise<unknown> {
@@ -80,7 +88,16 @@ async function uploadMatches(req: Request, env: Env, installId: string): Promise
   const used = await env.DB.prepare("SELECT COUNT(*) AS n FROM uploads WHERE install_id = ? AND day = ?")
     .bind(installId, day).first<{ n: number }>();
   if ((used?.n ?? 0) + body.matches.length > DAILY_UPLOADS) {
-    return error(429, "Quota journalier atteint, la suite partira demain.", { "Retry-After": "3600" });
+    return error(429, "Quota journalier atteint, la suite partira demain.", { "Retry-After": untilTomorrow() });
+  }
+  // Compteur global du jour (une ligne, réservée avant le traitement) : la plateforme se met en pause proprement
+  // au lieu de laisser D1 refuser toutes les écritures jusqu'à minuit.
+  const reserved = await env.DB.prepare(`
+    INSERT INTO agg_state (key, value) VALUES (?1, ?2)
+    ON CONFLICT DO UPDATE SET value = CAST(value AS INTEGER) + ?2 WHERE CAST(value AS INTEGER) + ?2 <= ?3
+    RETURNING value`).bind(`uploads:${day}`, body.matches.length, GLOBAL_DAILY_UPLOADS).first<{ value: string }>();
+  if (!reserved) {
+    return error(429, "Plateforme communautaire pleine pour aujourd'hui, la suite partira demain.", { "Retry-After": untilTomorrow() });
   }
 
   const results: { status: UploadStatus; detail?: string }[] = [];
@@ -387,6 +404,8 @@ export default {
 
   async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil((async () => {
+      // compteurs d'envoi des jours passés
+      await env.DB.prepare("DELETE FROM agg_state WHERE key LIKE 'uploads:%' AND key <> ?").bind(`uploads:${today()}`).run();
       const r = await aggregate(env.DB);
       const n = await aggregateObjectives(env.DB);
       console.log(`agrégation ${r.from} -> ${r.to}, horaires d'objectifs : ${n} partie(s)`);

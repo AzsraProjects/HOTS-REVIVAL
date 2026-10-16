@@ -1,4 +1,4 @@
-// Lance tout de suite l'agrégation (normalement horaire) sur la base D1 distante.
+// Lance tout de suite l'agrégation (normalement quotidienne) sur la base D1 distante.
 // Usage : npm run aggregate   (ou `npm run aggregate -- --local` pour la base locale)
 // Rejoue les requêtes de src/aggregate.ts via `wrangler d1 execute`.
 import { execFileSync } from "node:child_process";
