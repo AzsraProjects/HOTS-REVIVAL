@@ -6,7 +6,7 @@ import { SITE_URL } from "../lib/links";
 import type { CommunityStatus } from "../lib/types";
 import { Card } from "./ui";
 
-/** Plateforme communautaire : partage volontaire des parties et profil public. */
+/** Plateforme communautaire : partage des parties (actif par défaut, désactivable) et profil public. */
 export function CommunitySettings() {
   const status = useAsync(api.community.status);
   const [message, setMessage] = useState<string | null>(null);
@@ -45,7 +45,7 @@ export function CommunitySettings() {
             <span>
               {t("Partager mes parties pour alimenter les statistiques communautaires")}
               <span className="block text-xs text-slate-500">
-                {t("Seul un résumé est envoyé (héros, carte, résultat, talents, statistiques de fin de partie). Ni replay, ni chat, ni pseudo : les comptes des 10 joueurs sont pseudonymisés par le serveur. Vos parties déjà importées sont envoyées aussi.")}
+                {t("Seul un résumé est envoyé (héros, carte, résultat, talents, statistiques de fin de partie). Ni replay, ni chat, ni pseudo : les comptes des 10 joueurs sont pseudonymisés par le serveur. Vos parties déjà importées sont envoyées aussi. Activé par défaut, désactivable à tout moment.")}
               </span>
             </span>
           </label>

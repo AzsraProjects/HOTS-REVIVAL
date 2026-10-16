@@ -5,6 +5,7 @@ import { useLive } from "../hooks/useLive";
 import { useVoiceGuide } from "../hooks/useVoiceGuide";
 import { bridge } from "../lib/bridge";
 import { UpdateBanner, UpdateButton } from "./UpdateButton";
+import { CommunityNotice } from "./CommunityNotice";
 import { t } from "../lib/i18n";
 import { SITE_URL } from "../lib/links";
 
@@ -80,6 +81,7 @@ export function Layout() {
       </aside>
       <main className="flex-1 overflow-y-auto p-6">
         <UpdateBanner />
+        <CommunityNotice />
         <Outlet />
       </main>
       {toast && (

@@ -8,7 +8,7 @@ const COPY = {
   fr: {
     eyebrow: "À propos",
     title: "Un site fait par la communauté",
-    intro: "HOTS REVIVAL est une application gratuite et open source qui accompagne les joueurs de Heroes of the Storm avant, pendant et après leurs parties. Ce site rassemble les parties que ses utilisateurs choisissent de partager, pour que tout le monde profite de statistiques à jour, sans dépendre d'un site tiers.",
+    intro: "HOTS REVIVAL est une application gratuite et open source qui accompagne les joueurs de Heroes of the Storm avant, pendant et après leurs parties. Ce site rassemble les parties partagées par ses utilisateurs, pour que tout le monde profite de statistiques à jour, sans dépendre d'un site tiers.",
     download: "Télécharger l'appli",
     source: "Code source",
     howTitle: "Comment sont calculées les statistiques ?",
@@ -20,7 +20,7 @@ const COPY = {
       "Le classement tient compte du nombre de parties : un héros peu joué est ramené vers 50 % tant que l'échantillon est faible. Les tiers sont relatifs : S pour les 10 % de héros les plus performants, puis A (20 %), B (40 %), C (20 %) et D (10 %). Les héros joués moins de 10 fois sont signalés « à confirmer ».",
     ],
     privacyTitle: "Confidentialité",
-    privacyIntro: "Rien n'est envoyé sans votre accord : le partage est désactivé par défaut dans l'application, et se coupe à tout moment depuis les Paramètres. En l'activant, vos parties déjà importées sont envoyées elles aussi, puis chaque nouvelle partie dès sa fin.",
+    privacyIntro: "Le partage des parties est activé par défaut dans l'application : c'est ce qui fait vivre ces statistiques. Un bandeau vous en informe au premier lancement, avant tout envoi, et vous pouvez le désactiver d'un clic, à ce moment-là ou plus tard depuis les Paramètres. Une fois actif, vos parties déjà importées sont envoyées elles aussi, puis chaque nouvelle partie dès sa fin. Le profil public, lui, reste désactivé tant que vous ne l'activez pas.",
     sentTitle: "Ce qui est envoyé",
     sent: [
       "Héros, carte, mode, durée et résultat de la partie",
@@ -50,7 +50,7 @@ const COPY = {
   en: {
     eyebrow: "About",
     title: "A site built by the community",
-    intro: "HOTS REVIVAL is a free, open-source app that helps Heroes of the Storm players before, during and after their games. This site gathers the games its users choose to share, so everyone gets up-to-date stats without relying on a third-party site.",
+    intro: "HOTS REVIVAL is a free, open-source app that helps Heroes of the Storm players before, during and after their games. This site gathers the games shared by its users, so everyone gets up-to-date stats without relying on a third-party site.",
     download: "Download the app",
     source: "Source code",
     howTitle: "How are the stats computed?",
@@ -62,7 +62,7 @@ const COPY = {
       "The ranking accounts for the number of games: a rarely played hero is pulled towards 50% while the sample is small. Tiers are relative: S for the top 10% of heroes, then A (20%), B (40%), C (20%) and D (10%). Heroes played fewer than 10 times are flagged as unconfirmed.",
     ],
     privacyTitle: "Privacy",
-    privacyIntro: "Nothing is sent without your consent: sharing is off by default in the app and can be turned off at any time in Settings. When you turn it on, your already imported games are sent too, then each new game as soon as it ends.",
+    privacyIntro: "Game sharing is on by default in the app: that's what keeps these stats alive. A banner tells you about it on first launch, before anything is sent, and you can turn it off in one click, right then or later in Settings. While it's on, your already imported games are sent too, then each new game as soon as it ends. The public profile stays off until you turn it on.",
     sentTitle: "What is sent",
     sent: [
       "Hero, map, mode, duration and result of the game",

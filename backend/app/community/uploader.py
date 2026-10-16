@@ -124,8 +124,8 @@ class CommunityUploader:
         settings = self._get_settings()
         if settings.community_url:
             refresh_if_stale(settings.community_url)  # timers communautaires (lecture publique)
-        if not (settings.share_matches and settings.community_url):
-            return IDLE_S
+        if not (settings.share_matches and settings.community_notice_seen and settings.community_url):
+            return IDLE_S  # partage coupé, ou joueur pas encore informé (bandeau de l'application)
         client = CommunityClient(settings.community_url)
         try:
             with SessionLocal() as db:

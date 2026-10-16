@@ -161,8 +161,11 @@ export const EN: Record<string, string> = {
   "Activez « Profil public » dans les Paramètres de l'application pour apparaître ici.":
     "Turn on “Public profile” in the app's Settings to appear here.",
   "Votre profil ici": "Your profile here",
-  "Installez HOTS REVIVAL, cochez « Partager mes parties » puis « Profil public ».":
-    "Install HOTS REVIVAL, tick “Share my games”, then “Public profile”.",
+  "Installez HOTS REVIVAL puis cochez « Profil public » dans les Paramètres.":
+    "Install HOTS REVIVAL, then tick “Public profile” in Settings.",
+  "Dans l'application, le partage est activé par défaut et se désactive d'un clic.":
+    "In the app, sharing is on by default and can be turned off in one click.",
+  "Ce qui est envoyé": "What is sent",
 
   // Profil
   "Profil introuvable": "Profile not found",

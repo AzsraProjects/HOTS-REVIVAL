@@ -27,7 +27,8 @@ TOON_HANDLE_RE = re.compile(r"\d+-Hero-\d+-\d+")
 
 # Réglages modifiables depuis l'écran Paramètres (persistés dans settings.json).
 USER_EDITABLE = ("replay_dir", "player_battletag", "player_toon_handle", "anthropic_api_key", "claude_model",
-                 "ai_provider", "ai_api_keys", "ai_models", "ai_base_url", "share_matches", "public_profile", "language")
+                 "ai_provider", "ai_api_keys", "ai_models", "ai_base_url", "share_matches", "public_profile", "community_notice_seen",
+                 "language")
 
 # Plateforme communautaire (server/, Cloudflare Worker). HOTS_COMMUNITY_URL pour une autre instance.
 COMMUNITY_URL = "https://hots-revival-community.hots-revival.workers.dev"
@@ -78,10 +79,13 @@ class Settings(BaseSettings):
     # Electron la renseigne au premier lancement (choix fait dans l'installeur, sinon langue du système).
     language: str = ""
 
-    # Plateforme communautaire : rien n'est envoyé sans accord explicite du joueur.
+    # Plateforme communautaire : partage actif par défaut (annoncé avant l'installation), mais rien ne part
+    # tant que le joueur n'a pas vu le bandeau d'information de l'application (community_notice_seen).
+    # Le profil public, lui, reste un choix explicite.
     community_url: str = COMMUNITY_URL
-    share_matches: bool = False
+    share_matches: bool = True
     public_profile: bool = False
+    community_notice_seen: bool = False
 
     sentry_dsn: str = ""
     posthog_key: str = ""

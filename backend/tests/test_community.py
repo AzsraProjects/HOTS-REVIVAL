@@ -105,11 +105,14 @@ def test_community_disabled_until_deployed(api):
         assert client.put("/api/community", json={"share_matches": True}).status_code == 409
 
 
-def test_opt_in_and_public_profile(api):
+def test_sharing_on_by_default_and_public_profile(api):
     client, fake = api("https://example.invalid")
     with client:
         r = client.get("/api/community").json()
-        assert r["share_matches"] is False and r["public_profile"] is False  # rien sans accord
+        # partage actif par défaut, mais en attente du bandeau d'information ; profil public sur demande seulement
+        assert r["share_matches"] is True and r["notice_seen"] is False and r["public_profile"] is False
+        assert client.put("/api/community", json={"community_notice_seen": True}).json()["notice_seen"] is True
+        client.put("/api/community", json={"share_matches": False})
         assert client.put("/api/community", json={"public_profile": True}).status_code == 400
         r = client.put("/api/community", json={"share_matches": True, "public_profile": True}).json()
         assert r["share_matches"] and r["public_profile"] and r["profile_slug"] == "joueur-abc123"
@@ -125,7 +128,9 @@ def test_uploader_cycle_sends_then_idles(db, imported, monkeypatch, tmp_path):
     monkeypatch.setattr(uploader_module, "CommunityClient", lambda url: fake)
     monkeypatch.setattr(client_module, "_credentials_path", lambda: tmp_path / "community.json")
     monkeypatch.setattr(uploader_module, "refresh_if_stale", lambda url: False)
-    settings = Settings(share_matches=True, community_url="https://example.invalid")
+    unseen = uploader_module.CommunityUploader(lambda: Settings(community_url="https://example.invalid"))
+    assert unseen.run_once() == uploader_module.IDLE_S and not fake.sent  # joueur pas encore informé : rien ne part
+    settings = Settings(share_matches=True, community_notice_seen=True, community_url="https://example.invalid")
     u = uploader_module.CommunityUploader(lambda: settings)
     assert u.run_once() == 2 and len(fake.sent) == 1  # lot envoyé : le suivant part vite
     assert u.run_once() == uploader_module.IDLE_S and u.last_error is None

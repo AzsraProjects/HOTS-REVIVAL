@@ -32,7 +32,7 @@ HOTS REVIVAL vise à devenir le « Porofessor » de Heroes of the Storm : profil
 ## Site communautaire
 
 Statistiques de la communauté (tier list, talents, synergies, profils publics) : **https://hots-revival.pages.dev**
-Alimenté par les joueurs qui activent « Partager mes parties » dans l'application → [docs/13-plateforme-communautaire.md](docs/13-plateforme-communautaire.md)
+Alimenté par les parties des joueurs de l'application : **le partage est activé par défaut** (un résumé pseudonymisé, jamais le replay ni les pseudos), annoncé par un bandeau au premier lancement avant tout envoi, et désactivable d'un clic (Paramètres → Communauté) → [docs/13-plateforme-communautaire.md](docs/13-plateforme-communautaire.md)
 
 ## Installation (joueurs)
 
@@ -45,6 +45,7 @@ Les versions suivantes s'installent depuis l'application (bouton **Mettre à jou
 - Le dossier de replays (`Documents\Heroes of the Storm\Accounts\…\Replays\Multiplayer`) et votre compte sont **détectés automatiquement** ; vos anciens replays sont importés au premier lancement, puis chaque nouvelle partie est analysée dès sa fin.
 - Pour activer le coach IA, choisissez votre IA et collez sa clé dans **Paramètres → Coach IA** (optionnel). Ollama fonctionne en local, sans clé.
 - Lancez Heroes of the Storm en **plein écran fenêtré** pour voir l'overlay.
+- **Statistiques communautaires** : par défaut, l'application partage un résumé de vos parties (héros, carte, résultat, talents, statistiques ; jamais le replay, le chat ni les pseudos) pour alimenter le site. Un bandeau vous prévient au premier lancement, avant tout envoi ; désactivable à tout moment dans **Paramètres → Communauté**. Le profil public reste désactivé tant que vous ne l'activez pas.
 - Données et journal : `%APPDATA%\HOTS REVIVAL\`.
 
 L'installeur est construit automatiquement sur un serveur Windows (GitHub Actions, `.github/workflows/windows-installer.yml`) à chaque mise à jour du code : tests, compilation du moteur d'analyse, vérification qu'il démarre, création de l'installeur, publication dans les Releases.

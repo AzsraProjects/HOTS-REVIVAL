@@ -254,6 +254,7 @@ export interface CommunityStatus {
   available: boolean;
   share_matches: boolean;
   public_profile: boolean;
+  notice_seen: boolean;
   profile_slug: string | null;
   registered: boolean;
   sent: number;

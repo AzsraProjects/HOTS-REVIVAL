@@ -131,3 +131,5 @@ jobs:
             Déjà installé ? Utilisez simplement le bouton « Mettre à jour » de l'application.
 
             Vos replays sont détectés et analysés automatiquement. Lancez Heroes of the Storm en **plein écran fenêtré** pour voir l'overlay.
+
+            **Statistiques communautaires** : par défaut, l'application partage un résumé de vos parties (héros, carte, résultat, talents, statistiques ; jamais le replay, le chat ni les pseudos) pour alimenter https://hots-revival.pages.dev. Un bandeau vous prévient au premier lancement, avant tout envoi, et vous pouvez le désactiver d'un clic (ou plus tard dans Paramètres → Communauté). Le profil public reste désactivé tant que vous ne l'activez pas.

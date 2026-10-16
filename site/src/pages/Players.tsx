@@ -51,7 +51,7 @@ export function Players() {
       <div className="panel flex flex-col items-start gap-3 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="title text-lg">{t("Votre profil ici")}</div>
-          <p className="text-sm text-slate-400">{t("Installez HOTS REVIVAL, cochez « Partager mes parties » puis « Profil public ».")}</p>
+          <p className="text-sm text-slate-400">{t("Installez HOTS REVIVAL puis cochez « Profil public » dans les Paramètres.")}</p>
         </div>
         <a href={DOWNLOAD_URL} target="_blank" rel="noreferrer" className="btn-primary">{t("Télécharger l'appli")}</a>
       </div>

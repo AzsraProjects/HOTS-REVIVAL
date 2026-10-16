@@ -62,7 +62,7 @@ export const api = {
   addRank: (league: string, division: number | null) => post<RankEntry>("/profile/ranks", { league, division }),
   community: {
     status: () => request<CommunityStatus>("/community"),
-    update: (body: { share_matches?: boolean; public_profile?: boolean }) =>
+    update: (body: { share_matches?: boolean; public_profile?: boolean; community_notice_seen?: boolean }) =>
       request<CommunityStatus>("/community", { method: "PUT", body: JSON.stringify(body) }),
     deleteMe: () => request<CommunityStatus>("/community/me", { method: "DELETE" }),
   },

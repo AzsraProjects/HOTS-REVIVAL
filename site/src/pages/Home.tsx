@@ -37,6 +37,10 @@ export function Home() {
             {t("Partager mes parties")}
           </a>
         </div>
+        <p className="mt-3 text-xs text-slate-500">
+          {t("Dans l'application, le partage est activé par défaut et se désactive d'un clic.")}{" "}
+          <Link to="/a-propos#confidentialite" className="underline hover:text-white">{t("Ce qui est envoyé")}</Link>
+        </p>
 
         <div className="mx-auto mt-12 grid max-w-3xl grid-cols-3 gap-3">
           {[

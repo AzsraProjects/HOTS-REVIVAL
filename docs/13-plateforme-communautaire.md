@@ -7,7 +7,7 @@ Objectif : mutualiser les parties des joueurs HOTS REVIVAL pour publier des stat
 ## 13.1 Architecture
 
 ```
-Application (opt-in)                Cloudflare Worker (server/)           Site web (à venir)
+Application (opt-out)               Cloudflare Worker (server/)           Site web (à venir)
 ────────────────────                ───────────────────────────           ──────────────────
 replay parsé en local
   └─ résumé ~3 Ko ──POST /v1/matches──► validation + pseudonymisation
@@ -34,7 +34,12 @@ replay parsé en local
 | Profil d'un utilisateur | BattleTag + parties de ses comptes | Public **uniquement sur opt-in** |
 | Chat, évènements, replays | Non envoyés | — |
 
-- Partage et profil public **désactivés par défaut** ; désactiver le partage retire le profil public.
+- **Partage actif par défaut (opt-out)**, annoncé avant l'installation (site, README, notes de version) puis
+  par un bandeau au premier lancement. **Rien ne part avant l'affichage de ce bandeau**
+  (`community_notice_seen`), qui propose de désactiver d'un clic. Base légale envisagée : intérêt légitime
+  (statistiques sur données pseudonymisées, droit d'opposition immédiat) — à valider à la relecture juridique.
+- Profil public **désactivé par défaut** (opt-in strict : il expose le BattleTag) ; désactiver le partage
+  retire le profil public.
 - **Suppression** depuis l'application (`DELETE /v1/me`) : profil, liens compte ↔ personne et installation
   sont effacés ; les parties restent dans les agrégats sous forme pseudonymisée.
 - Sur un profil public, les coéquipiers et adversaires n'apparaissent que par leur héros.

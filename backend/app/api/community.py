@@ -20,6 +20,7 @@ SENT = ("accepted", "confirmed", "conflict", "duplicate")
 class CommunityUpdate(BaseModel):
     share_matches: bool | None = None
     public_profile: bool | None = None
+    community_notice_seen: bool | None = None
 
 
 def profile_name(db: Session, settings: Settings) -> str:
@@ -35,6 +36,7 @@ def _status(request: Request, db: Session, settings: Settings) -> dict:
         "available": bool(settings.community_url),
         "share_matches": settings.share_matches,
         "public_profile": settings.public_profile,
+        "notice_seen": settings.community_notice_seen,
         "profile_slug": profile_slug() if settings.public_profile else None,
         "registered": load_credentials() is not None,
         "sent": sum(counts.get(s, 0) for s in SENT),
@@ -60,9 +62,9 @@ def status(request: Request, db: Session = Depends(get_db), settings: Settings =
 @router.put("")
 def update(body: CommunityUpdate, request: Request, db: Session = Depends(get_db),
            settings: Settings = Depends(app_settings)) -> dict:
-    if not settings.community_url:
-        raise HTTPException(409, tr("La plateforme communautaire n'est pas encore en ligne."))
     values = body.model_dump(exclude_none=True)
+    if not settings.community_url and set(values) - {"community_notice_seen"}:
+        raise HTTPException(409, tr("La plateforme communautaire n'est pas encore en ligne."))
     if values.get("public_profile") and not (values.get("share_matches", settings.share_matches)):
         raise HTTPException(400, tr("Le profil public nécessite le partage des parties."))
     if values.get("share_matches") is False:
