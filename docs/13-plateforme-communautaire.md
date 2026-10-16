@@ -92,8 +92,27 @@ Développement local : `npm run db:local`, créer `server/.dev.vars` avec `PID_S
   survivent à l'hébergeur.
 - L'application reste entièrement fonctionnelle sans la plateforme.
 
-## 13.7 Prochaines étapes
+## 13.7 Site web (`site/`)
 
-1. Site web public (Cloudflare Pages) : tier list communautaire, pages héros, recherche et profils.
-2. Statistiques communautaires dans le Draft Assistant et l'onglet Méta.
-3. Exports publics, page de confidentialité, signalement des profils.
+React + Vite + Tailwind (mêmes couleurs que l'application), hébergé gratuitement sur Cloudflare Pages.
+
+| Page | Contenu |
+|---|---|
+| `/` | Chiffres de la communauté, héros du moment, plus joués, derniers profils |
+| `/heros` | Tier list : filtres mode / carte / rôle, tri tier ou popularité (filtres dans l'URL) |
+| `/heros/:id` | Onglets Talents (build de la communauté), Cartes, Synergies |
+| `/joueurs`, `/joueurs/:slug` | Recherche, derniers profils publics, profil (héros favoris, dernières parties) |
+| `/a-propos` | Fonctionnement, confidentialité, crédits |
+
+- **Tiers relatifs** sur le winrate lissé (moyenne bayésienne, 20 parties fictives à 50 %) : S 10 %, A 20 %,
+  B 40 %, C 20 %, D 10 % des héros joués au moins 10 fois (`site/src/lib/stats.ts`).
+- **Données du jeu** : `npm run data` régénère `src/data/` et `public/data/talents/` depuis
+  `backend/app/data` ; portraits et icônes via heroes-talents (MIT, version figée) sur jsDelivr.
+- **Développement** : `cd site && npm install && npm run dev` (http://localhost:5180, API en ligne par défaut,
+  `VITE_API_BASE` pour une autre instance).
+- **Déploiement** : `npm run deploy` (Cloudflare Pages, projet `hots-revival`).
+
+## 13.8 Prochaines étapes
+
+1. Statistiques communautaires dans le Draft Assistant et l'onglet Méta de l'application.
+2. Exports publics réguliers, signalement des profils.

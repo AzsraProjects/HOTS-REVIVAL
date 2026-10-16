@@ -63,10 +63,10 @@
       "id": "braxis_holdout",
       "name": "Braxis Holdout",
       "aliases": [
+        "Laboratoire de Braxis",
         "Bastion de Braxis",
         "Fort de Braxis",
-        "Le laboratoire de Braxis",
-        "Laboratoire de Braxis"
+        "Le laboratoire de Braxis"
       ],
       "objective": "Balises / Zergs",
       "first_objective_s": 90,
@@ -225,9 +225,9 @@
       "id": "warhead_junction",
       "name": "Warhead Junction",
       "aliases": [
+        "Menace nucléaire",
         "Site des ogives",
-        "Croisement des ogives",
-        "Menace nucléaire"
+        "Croisement des ogives"
       ],
       "objective": "Ogives nucléaires",
       "first_objective_s": 180,

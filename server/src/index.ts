@@ -7,7 +7,7 @@
 //   DELETE /v1/me                 supprime l'installation et le profil
 // Lecture (site web, public) :
 //   GET /v1/stats/overview | /v1/stats/heroes | /v1/stats/heroes/:id
-//   GET /v1/players?q=     | /v1/players/:slug
+//   GET /v1/players?q=     | /v1/players/:slug   (sans q : derniers profils publics)
 
 import { aggregate } from "./aggregate";
 import { pseudonymize, randomToken, sameHash, sha256 } from "./crypto";
@@ -249,6 +249,13 @@ async function hero(env: Env, url: URL, heroId: string): Promise<Response> {
 
 async function searchPlayers(env: Env, url: URL): Promise<Response> {
   const q = (url.searchParams.get("q") ?? "").trim().slice(0, 24);
+  if (!q) {  // sans recherche : derniers profils rendus publics
+    const recent = await env.DB.prepare(`
+      SELECT pr.slug, pr.name, COUNT(p.match_id) AS games, SUM(p.win) AS wins
+      FROM profiles pr JOIN profile_pids pp ON pp.slug = pr.slug LEFT JOIN match_players p ON p.pid = pp.pid
+      WHERE pr.is_public = 1 GROUP BY pr.slug ORDER BY pr.updated_at DESC LIMIT 12`).all();
+    return cached({ players: recent.results });
+  }
   if (q.length < 2) return json({ players: [] });
   const rows = await env.DB.prepare(
     "SELECT slug, name FROM profiles WHERE is_public = 1 AND name LIKE ? ESCAPE '\\' ORDER BY name LIMIT 20",

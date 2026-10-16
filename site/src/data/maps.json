@@ -1,0 +1,128 @@
+[
+ {
+  "id": "alterac_pass",
+  "name": "Passe d'Alterac",
+  "en": "Alterac Pass",
+  "aram": false
+ },
+ {
+  "id": "battlefield_of_eternity",
+  "name": "Champs de l'Éternité",
+  "en": "Battlefield of Eternity",
+  "aram": false
+ },
+ {
+  "id": "blackhearts_bay",
+  "name": "Baie de Cœur-Noir",
+  "en": "Blackheart's Bay",
+  "aram": false
+ },
+ {
+  "id": "braxis_holdout",
+  "name": "Laboratoire de Braxis",
+  "en": "Braxis Holdout",
+  "aram": false
+ },
+ {
+  "id": "cursed_hollow",
+  "name": "Val Maudit",
+  "en": "Cursed Hollow",
+  "aram": false
+ },
+ {
+  "id": "dragon_shire",
+  "name": "Comté du Dragon",
+  "en": "Dragon Shire",
+  "aram": false
+ },
+ {
+  "id": "garden_of_terror",
+  "name": "Jardins de terreur",
+  "en": "Garden of Terror",
+  "aram": false
+ },
+ {
+  "id": "hanamura_temple",
+  "name": "Temple d'Hanamura",
+  "en": "Hanamura Temple",
+  "aram": false
+ },
+ {
+  "id": "infernal_shrines",
+  "name": "Sanctuaires infernaux",
+  "en": "Infernal Shrines",
+  "aram": false
+ },
+ {
+  "id": "sky_temple",
+  "name": "Temple céleste",
+  "en": "Sky Temple",
+  "aram": false
+ },
+ {
+  "id": "tomb_of_the_spider_queen",
+  "name": "Tombe de la Reine araignée",
+  "en": "Tomb of the Spider Queen",
+  "aram": false
+ },
+ {
+  "id": "towers_of_doom",
+  "name": "Tours du Destin",
+  "en": "Towers of Doom",
+  "aram": false
+ },
+ {
+  "id": "volskaya_foundry",
+  "name": "Fonderie Volskaya",
+  "en": "Volskaya Foundry",
+  "aram": false
+ },
+ {
+  "id": "warhead_junction",
+  "name": "Menace nucléaire",
+  "en": "Warhead Junction",
+  "aram": false
+ },
+ {
+  "id": "haunted_mines",
+  "name": "Mine hantée",
+  "en": "Haunted Mines",
+  "aram": false
+ },
+ {
+  "id": "braxis_outpost",
+  "name": "L'avant-poste de Braxis",
+  "en": "Braxis Outpost",
+  "aram": true
+ },
+ {
+  "id": "lost_cavern",
+  "name": "Le caveau perdu",
+  "en": "Lost Cavern",
+  "aram": true
+ },
+ {
+  "id": "industrial_district",
+  "name": "Quartier industriel",
+  "en": "Industrial District",
+  "aram": true
+ },
+ {
+  "id": "silver_city",
+  "name": "Cité d'argent",
+  "en": "Silver City",
+  "aram": true
+ },
+ {
+  "id": "checkpoint_hanamura",
+  "name": "Point de contrôle : Hanamura",
+  "en": "Checkpoint: Hanamura",
+  "aram": true
+ },
+ {
+  "id": "pull_party",
+  "name": "Pull Party",
+  "en": "Pull Party",
+  "aram": true
+ }
+]

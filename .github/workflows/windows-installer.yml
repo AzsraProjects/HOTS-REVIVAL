@@ -43,6 +43,11 @@ jobs:
           npm ci
           npm run typecheck
           npm test
+      - name: Site communautaire
+        working-directory: site
+        run: |
+          npm ci
+          npm run build
 
   windows:
     needs: tests

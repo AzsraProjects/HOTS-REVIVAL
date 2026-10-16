@@ -44,7 +44,7 @@ export function CommunitySettings() {
               Partager mes parties pour alimenter les statistiques communautaires
               <span className="block text-xs text-slate-500">
                 Seul un résumé est envoyé (héros, carte, résultat, talents, statistiques de fin de partie). Ni replay, ni chat,
-                ni pseudo : les comptes des 10 joueurs sont rendus anonymes par le serveur.
+                ni pseudo : les comptes des 10 joueurs sont pseudonymisés par le serveur. Vos parties déjà importées sont envoyées aussi.
               </span>
             </span>
           </label>

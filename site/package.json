@@ -1,0 +1,38 @@
+{
+  "name": "hots-revival-site",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Site communautaire HOTS REVIVAL (Cloudflare Pages)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "data": "node scripts/build-data.mjs",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name hots-revival --branch main"
+  },
+  "dependencies": {
+    "@fontsource/cinzel": "^5.1.0",
+    "@fontsource/inter": "^5.1.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.28.0"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@vitejs/plugin-react": "4.3.4",
+    "autoprefixer": "10.4.20",
+    "postcss": "8.4.49",
+    "tailwindcss": "3.4.17",
+    "typescript": "5.6.3",
+    "vite": "5.4.11",
+    "wrangler": "4.40.0"
+  },
+  "allowScripts": {
+    "esbuild@0.21.5": true,
+    "esbuild@0.25.4": true,
+    "workerd@1.20250924.0": true
+  }
+}
