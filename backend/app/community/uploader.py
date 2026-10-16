@@ -94,17 +94,6 @@ class CommunityUploader:
         settings = self._get_settings()
         if not (settings.share_matches and settings.community_url):
             return IDLE_S
-
-    def _publish_profile(self, client: CommunityClient, settings: Settings) -> None:
-        """Profil demandé avant que les parties soient envoyées : on le publie dès que possible."""
-        from app.api.community import profile_name
-
-        try:
-            with SessionLocal() as db:
-                client.set_profile(True, profile_name(db, settings), settings.resolved_toon_handles())
-        except CommunityError as exc:
-            if exc.status != 409:
-                log.warning("Profil public : %s", exc)
         client = CommunityClient(settings.community_url)
         try:
             with SessionLocal() as db:

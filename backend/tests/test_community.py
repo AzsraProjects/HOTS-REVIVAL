@@ -116,3 +116,17 @@ def test_opt_in_and_public_profile(api):
         assert fake.profiles == [(True, "Joueur#1234", ["2-Hero-1-1234567"])]
         r = client.put("/api/community", json={"share_matches": False}).json()
         assert r["public_profile"] is False and fake.profiles[-1][0] is False
+
+
+def test_uploader_cycle_sends_then_idles(db, imported, monkeypatch, tmp_path):
+    from app.community import uploader as uploader_module
+
+    fake = FakeClient()
+    monkeypatch.setattr(uploader_module, "CommunityClient", lambda url: fake)
+    monkeypatch.setattr(client_module, "_credentials_path", lambda: tmp_path / "community.json")
+    settings = Settings(share_matches=True, community_url="https://example.invalid")
+    u = uploader_module.CommunityUploader(lambda: settings)
+    assert u.run_once() == 2 and len(fake.sent) == 1  # lot envoyé : le suivant part vite
+    assert u.run_once() == uploader_module.IDLE_S and u.last_error is None
+    off = uploader_module.CommunityUploader(lambda: Settings(share_matches=False))
+    assert off.run_once() == uploader_module.IDLE_S
