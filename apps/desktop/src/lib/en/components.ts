@@ -94,6 +94,8 @@ export const EN_COMPONENTS: Record<string, string> = {
   "Vos parties alimentent les statistiques communautaires": "Your matches feed the community stats",
   "Pour faire vivre les tier lists du site, un résumé de chaque partie est partagé : héros, carte, résultat, talents, statistiques. Jamais le replay, le chat ni les pseudos. Le profil public reste désactivé.": "To keep the site's tier lists alive, a summary of each match is shared: heroes, map, result, talents, stats. Never the replay, the chat or player names. Your public profile stays off.",
   "C'est noté": "Got it",
+  "Nouveautés": "What's new",
+  "C'est parti": "Let's go",
   "Désactiver le partage": "Turn sharing off",
   "Partage désactivé. Vous pouvez le réactiver dans les Paramètres.": "Sharing turned off. You can turn it back on in Settings.",
   "Rendre mon profil public sur le site": "Make my profile public on the website",

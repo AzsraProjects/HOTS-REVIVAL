@@ -6,6 +6,7 @@ import { useVoiceGuide } from "../hooks/useVoiceGuide";
 import { bridge } from "../lib/bridge";
 import { UpdateBanner, UpdateButton } from "./UpdateButton";
 import { CommunityNotice } from "./CommunityNotice";
+import { WhatsNew } from "./WhatsNew";
 import { t } from "../lib/i18n";
 import { SITE_URL } from "../lib/links";
 
@@ -67,6 +68,7 @@ export function Layout() {
         </nav>
         <div className="mt-auto space-y-2 text-xs text-slate-500">
           <UpdateButton />
+          <WhatsNew />
           <a href={SITE_URL} target="_blank" rel="noreferrer" className="block text-storm-300 hover:text-white">
             {t("Site communautaire ↗")}
           </a>
