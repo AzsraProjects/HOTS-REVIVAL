@@ -18,7 +18,7 @@ from app.safekeeping import archive_existing
 log = logging.getLogger(__name__)
 
 # À incrémenter quand l'extraction change de manière significative.
-ANALYSIS_VERSION = 3  # 3 : nouveaux héros (Xal'atath)
+ANALYSIS_VERSION = 4  # 4 : cartes en français reconnues (articles, Haunted Mines, ARAM)
 
 
 def _marker() -> Path:

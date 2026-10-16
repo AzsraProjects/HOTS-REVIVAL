@@ -130,3 +130,9 @@ def test_uploader_cycle_sends_then_idles(db, imported, monkeypatch, tmp_path):
     assert u.run_once() == uploader_module.IDLE_S and u.last_error is None
     off = uploader_module.CommunityUploader(lambda: Settings(share_matches=False))
     assert off.run_once() == uploader_module.IDLE_S
+
+
+def test_map_id_is_language_independent(db, imported):
+    imported.map_id, imported.map_name = "lapassedalterac", "La passe d’Alterac"
+    db.commit()
+    assert build_summary(imported)["match"]["map_id"] == "alterac_pass"

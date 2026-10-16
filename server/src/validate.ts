@@ -7,6 +7,11 @@ export const SUMMARY_VERSION = 1;
 /** Modes comptés dans les statistiques publiques (parties contre de vrais joueurs). */
 export const MODES = ["Quick Match", "Storm League", "Unranked Draft", "ARAM", "Hero League", "Team League"] as const;
 
+/** Identifiants canoniques des cartes (backend/app/data/maps.json : maps + aram_maps). */
+export const MAPS = [
+  "alterac_pass", "battlefield_of_eternity", "blackhearts_bay", "braxis_holdout", "cursed_hollow", "dragon_shire", "garden_of_terror", "hanamura_temple", "infernal_shrines", "sky_temple", "tomb_of_the_spider_queen", "towers_of_doom", "volskaya_foundry", "warhead_junction", "haunted_mines", "braxis_outpost", "lost_cavern", "industrial_district", "silver_city", "checkpoint_hanamura", "pull_party",
+];
+
 export const TALENT_TIERS = 7;
 const ID_RE = /^[a-z0-9_]{1,48}$/;
 const TOON_RE = /^\d{1,3}-Hero-\d{1,3}-\d{1,12}$/;
@@ -66,6 +71,11 @@ function talents(value: unknown): string[] {
   });
 }
 
+function knownMap(value: unknown): string {
+  if (typeof value !== "string" || !MAPS.includes(value)) throw new Invalid("carte inconnue");
+  return value;
+}
+
 export function parseSummary(raw: unknown, now = Date.now() / 1000): MatchSummary {
   if (!raw || typeof raw !== "object") throw new Invalid("résumé absent");
   const r = raw as Record<string, unknown>;
@@ -112,7 +122,7 @@ export function parseSummary(raw: unknown, now = Date.now() / 1000): MatchSummar
   const me_slot = r.me_slot == null ? null : int(r.me_slot, "me_slot", 0, 9);
   return {
     me_slot,
-    map_id: str(m.map_id, "map_id", ID_RE),
+    map_id: knownMap(m.map_id),
     mode,
     version: str(m.version, "version", VERSION_RE),
     played_at,

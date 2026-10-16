@@ -8,6 +8,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from app.models import Match
+from app.reference import registry
 from app.replay.extractor import TALENT_TIERS
 
 SUMMARY_VERSION = 1
@@ -42,6 +43,12 @@ def _unix(dt: datetime) -> int:
     return int((dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)).timestamp())
 
 
+def canonical_map_id(match: Match) -> str:
+    """Identifiant de carte indépendant de la langue du jeu (« lapassedalterac » -> « alterac_pass »)."""
+    info = registry().resolve_map(match.map_id) or registry().resolve_map(match.map_name or "")
+    return info.id if info else match.map_id
+
+
 def build_summary(match: Match) -> dict:
     me = next((p for p in match.players if p.is_me), None)
     levels = match.team_levels or {}
@@ -49,7 +56,7 @@ def build_summary(match: Match) -> dict:
         "v": SUMMARY_VERSION,
         "me_slot": me.slot if me else None,
         "match": {
-            "map_id": match.map_id,
+            "map_id": canonical_map_id(match),
             "mode": match.game_mode,
             "version": match.game_version,
             "played_at": _unix(match.played_at),

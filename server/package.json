@@ -10,7 +10,8 @@
     "db:remote": "wrangler d1 migrations apply hots-community --remote",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "aggregate": "node scripts/aggregate-now.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "4.20250927.0",

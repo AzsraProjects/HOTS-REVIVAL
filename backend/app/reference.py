@@ -86,14 +86,25 @@ class _Registry:
             self.maps[info.id] = info
             for alias in [m["id"], m["name"], *m.get("aliases", [])]:
                 self._map_alias[normalize(alias)] = info.id
+        # Cartes ARAM : reconnues dans les replays, mais hors des listes de cartes (pas d'objectif).
+        self.aram_maps: dict[str, MapInfo] = {}
+        for m in maps_raw.get("aram_maps", []):
+            info = MapInfo(m["id"], m["name"], "", 0, 0, False)
+            self.aram_maps[info.id] = info
+            for alias in [m["id"], m["name"], *m.get("aliases", [])]:
+                self._map_alias[normalize(alias)] = info.id
 
     def resolve_hero(self, raw: str) -> Hero | None:
         hero_id = self._hero_alias.get(normalize(raw))
         return self.heroes.get(hero_id) if hero_id else None
 
     def resolve_map(self, raw: str) -> MapInfo | None:
-        map_id = self._map_alias.get(normalize(raw))
-        return self.maps.get(map_id) if map_id else None
+        text = normalize(raw)
+        map_id = self._map_alias.get(text)
+        if not map_id:  # titres français avec article : « Les tours du destin », « La passe d'Alterac »
+            map_id = next((self._map_alias[text[len(a):]] for a in ("les", "le", "la", "l")
+                           if text.startswith(a) and text[len(a):] in self._map_alias), None)
+        return (self.maps.get(map_id) or self.aram_maps.get(map_id)) if map_id else None
 
     def guess_map(self, raw: str) -> MapInfo | None:
         """Résolution tolérante (identifiants internes type « TowersOfDoom », titres partiels)."""

@@ -8,7 +8,8 @@
       "support": 180,
       "other": 180
     },
-    "camps_first_spawn_s": 60
+    "camps_first_spawn_s": 60,
+    "aram_maps": "Cartes ARAM : résolution des noms uniquement (pas d'objectif ni de timings)."
   },
   "maps": [
     {
@@ -63,7 +64,9 @@
       "name": "Braxis Holdout",
       "aliases": [
         "Bastion de Braxis",
-        "Fort de Braxis"
+        "Fort de Braxis",
+        "Le laboratoire de Braxis",
+        "Laboratoire de Braxis"
       ],
       "objective": "Balises / Zergs",
       "first_objective_s": 90,
@@ -223,7 +226,8 @@
       "name": "Warhead Junction",
       "aliases": [
         "Site des ogives",
-        "Croisement des ogives"
+        "Croisement des ogives",
+        "Menace nucléaire"
       ],
       "objective": "Ogives nucléaires",
       "first_objective_s": 180,
@@ -233,6 +237,70 @@
         "Les ogives se gagnent aux rotations : pensez vision et mobilité.",
         "Une ogive se lance sur une cible immobile ou contrôlée."
       ]
+    },
+    {
+      "id": "haunted_mines",
+      "name": "Haunted Mines",
+      "aliases": [
+        "Mine hantée",
+        "La mine hantée",
+        "HauntedMines"
+      ],
+      "objective": "Mines / Golems",
+      "first_objective_s": 120,
+      "objective_interval_s": 180,
+      "verified": false,
+      "tips": [
+        "Les mines s'ouvrent pour les deux équipes : y entrer à 5 évite de donner les crânes gratuitement.",
+        "Le golem pousse longtemps : défendez-le ou contrez-le en groupe."
+      ]
+    }
+  ],
+  "aram_maps": [
+    {
+      "id": "braxis_outpost",
+      "name": "Braxis Outpost",
+      "aliases": [
+        "L'avant-poste de Braxis",
+        "Avant-poste de Braxis"
+      ]
+    },
+    {
+      "id": "lost_cavern",
+      "name": "Lost Cavern",
+      "aliases": [
+        "Le caveau perdu",
+        "Caveau perdu"
+      ]
+    },
+    {
+      "id": "industrial_district",
+      "name": "Industrial District",
+      "aliases": [
+        "Quartier industriel",
+        "Le quartier industriel"
+      ]
+    },
+    {
+      "id": "silver_city",
+      "name": "Silver City",
+      "aliases": [
+        "Cité d'argent",
+        "La cité d'argent"
+      ]
+    },
+    {
+      "id": "checkpoint_hanamura",
+      "name": "Checkpoint: Hanamura",
+      "aliases": [
+        "Point de contrôle : Hanamura",
+        "Hanamura (ARAM)"
+      ]
+    },
+    {
+      "id": "pull_party",
+      "name": "Pull Party",
+      "aliases": []
     }
   ]
 }

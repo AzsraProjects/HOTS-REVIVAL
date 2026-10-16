@@ -35,6 +35,7 @@ describe("parseSummary", () => {
     ["10 joueurs attendus", (s: any) => { s.players.pop(); }],
     ["talents invalides", (s: any) => { s.players[0].talents = ["A"]; }],
     ["played_at invalide", (s: any) => { s.match.played_at = 2_000_000_000; }],
+    ["carte inconnue", (s: any) => { s.match.map_id = "lapassedalterac"; }],
     ["toon_handle invalide", (s: any) => { s.players[0].toon_handle = "Bob#1234"; }],
   ])("refuse : %s", (message, mutate) => {
     const s = sample();
