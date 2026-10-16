@@ -184,6 +184,16 @@ class CommunityUpload(Base):
     sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class CommunityObjectiveUpload(Base):
+    """Partie dont les horaires d'objectifs ont été envoyés (renvoi de l'historique partagé
+    avant que les résumés ne les contiennent)."""
+
+    __tablename__ = "community_objective_uploads"
+
+    file_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class Draft(Base):
     __tablename__ = "drafts"
 

@@ -12,10 +12,13 @@ from statistics import median, quantiles
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.community.timings import community_timings
 from app.models import Match, MatchEvent
 from app.reference import registry
 
 MIN_SAMPLES = 3
+MIN_OWN_SAMPLES = 8  # parties du joueur sur la carte pour préférer ses timers à ceux de la communauté
+MIN_COMMUNITY_SAMPLES = 20
 MIN_LEVEL_SAMPLES = 5
 CLASSIC_MODES = ("Storm League", "Quick Match", "Unranked Draft", "Hero League", "Team League", "Versus AI", "Custom")
 
@@ -83,6 +86,21 @@ def _quartiles(values: list[float]) -> tuple[int, int, int]:
     return round(q[0]), round(median(ordered)), round(q[-1])
 
 
+def cycle_metrics(phases: list[tuple[float, str]]) -> dict:
+    """Mesures d'une partie à partir de ses phases d'objectif [(horloge, phase), …] :
+    premier début, durées (début → fin), délais (fin → début suivant) et, pour les cartes
+    dont seule la fin est enregistrée, délais de fin à fin."""
+    starts = [t for t, p in phases if p == "start"]
+    ends = [t for t, p in phases if p == "end"]
+    out: dict = {"first_start": round(starts[0]) if starts else None, "durations": [], "respawns": [], "periods": []}
+    if starts:
+        out["durations"] = [round(e - s) for s in starts if (e := next((e for e in ends if e > s), None)) is not None]
+        out["respawns"] = [round(n - e) for e in ends if (n := next((s for s in starts if s > e), None)) is not None]
+    else:
+        out["periods"] = [round(b - a) for a, b in zip(ends, ends[1:])]
+    return out
+
+
 def calibrate_cycles(db: Session, map_id: str) -> dict | None:
     """Timers mesurés sur les cycles d'objectif des replays (préavis / début / fin).
 
@@ -99,15 +117,18 @@ def calibrate_cycles(db: Session, map_id: str) -> dict | None:
     respawns: list[float] = []
     periods: list[float] = []
     for phases in matches.values():
-        starts = [t for t, p in phases if p == "start"]
-        ends = [t for t, p in phases if p == "end"]
-        if starts:
-            firsts.append(starts[0])
-            durations += [e - s for s in starts if (e := next((e for e in ends if e > s), None)) is not None]
-            respawns += [n - e for e in ends if (n := next((s for s in starts if s > e), None)) is not None]
-        else:
-            periods += [b - a for a, b in zip(ends, ends[1:])]
-    out: dict = {"samples": len(matches)}
+        m = cycle_metrics(phases)
+        if m["first_start"] is not None:
+            firsts.append(m["first_start"])
+        durations += m["durations"]
+        respawns += m["respawns"]
+        periods += m["periods"]
+    return summarize_metrics(len(matches), firsts, durations, respawns, periods)
+
+
+def summarize_metrics(samples: int, firsts: list[float], durations: list[float], respawns: list[float],
+                      periods: list[float]) -> dict | None:
+    out: dict = {"samples": samples}
     if len(firsts) >= MIN_SAMPLES:
         out["first_objective_s"] = round(median(firsts))
     if len(durations) >= MIN_SAMPLES:
@@ -204,10 +225,20 @@ def map_timings(db: Session | None, map_id: str) -> dict:
     if db is None or info is None:
         return base
     calibrated = calibrate_map(db, map_id)
-    if calibrated:
-        for key in ("first_objective_s", "objective_interval_s", "objective_duration_s", "duration_low_s", "duration_high_s"):
-            if calibrated.get(key):
-                base[key] = calibrated[key]
-        base["source"] = "vos replays"
-        base["samples"] = calibrated["samples"]
+    community = community_timings(map_id)
+    # Vos replays priment dès qu'ils sont assez nombreux ; sinon les timers de la communauté
+    # (beaucoup plus de parties) ; à défaut vos quelques replays, puis les valeurs de référence.
+    if calibrated and calibrated["samples"] >= MIN_OWN_SAMPLES:
+        chosen, source = calibrated, "vos replays"
+    elif community and community.get("samples", 0) >= MIN_COMMUNITY_SAMPLES:
+        chosen, source = community, "communauté"
+    elif calibrated:
+        chosen, source = calibrated, "vos replays"
+    else:
+        return base
+    for key in ("first_objective_s", "objective_interval_s", "objective_duration_s", "duration_low_s", "duration_high_s"):
+        if chosen.get(key):
+            base[key] = chosen[key]
+    base["source"] = source
+    base["samples"] = chosen["samples"]
     return base

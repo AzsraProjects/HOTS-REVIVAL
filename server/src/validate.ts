@@ -37,8 +37,16 @@ export interface PlayerSummary {
   stats: Record<string, number>;
 }
 
+export interface ObjectiveTimings {
+  first_start: number | null;
+  durations: number[];
+  respawns: number[];
+  periods: number[];
+}
+
 export interface MatchSummary {
   me_slot: number | null;
+  objectives: ObjectiveTimings | null;
   map_id: string;
   mode: string;
   version: string;
@@ -69,6 +77,26 @@ function talents(value: unknown): string[] {
     if (typeof t !== "string" || t.length > 80) throw new Invalid("talent invalide");
     return t;
   });
+}
+
+const MAX_OBJECTIVE_VALUES = 40;
+
+/** Horaires d'objectifs (facultatifs) : listes bornées de secondes entières. */
+function objectiveTimings(raw: unknown, duration_s: number): ObjectiveTimings | null {
+  if (raw == null) return null;
+  if (typeof raw !== "object") throw new Invalid("objectives invalides");
+  const o = raw as Record<string, unknown>;
+  const list = (v: unknown, field: string): number[] => {
+    if (v == null) return [];
+    if (!Array.isArray(v) || v.length > MAX_OBJECTIVE_VALUES) throw new Invalid(`${field} invalides`);
+    return v.map((x) => int(x, field, 1, duration_s));
+  };
+  return {
+    first_start: o.first_start == null ? null : int(o.first_start, "first_start", 0, Math.min(duration_s, 900)),
+    durations: list(o.durations, "durations"),
+    respawns: list(o.respawns, "respawns"),
+    periods: list(o.periods, "periods"),
+  };
 }
 
 function knownMap(value: unknown): string {
@@ -122,6 +150,7 @@ export function parseSummary(raw: unknown, now = Date.now() / 1000): MatchSummar
   const me_slot = r.me_slot == null ? null : int(r.me_slot, "me_slot", 0, 9);
   return {
     me_slot,
+    objectives: objectiveTimings(r.objectives, duration_s),
     map_id: knownMap(m.map_id),
     mode,
     version: str(m.version, "version", VERSION_RE),

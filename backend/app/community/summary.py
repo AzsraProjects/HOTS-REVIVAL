@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from app.analytics.timings import cycle_metrics
 from app.models import Match
 from app.reference import registry
 from app.replay.extractor import TALENT_TIERS
@@ -49,12 +50,30 @@ def canonical_map_id(match: Match) -> str:
     return info.id if info else match.map_id
 
 
+MAX_OBJECTIVE_VALUES = 40  # aligné avec server/src/validate.ts
+
+
+def objective_timings(match: Match) -> dict | None:
+    """Horaires d'objectifs de la partie (premier début, durées, délais) : mis en commun pour que
+    tous les joueurs aient des timers fiables, même sur une carte qu'ils jouent peu."""
+    phases = [(e.t_s, (e.payload or {}).get("phase", "")) for e in match.events if e.kind == "objective_cycle"]
+    if not phases:
+        return None
+    m = cycle_metrics(sorted(phases))
+    limit = min(match.duration_s, 3600)
+    clean = lambda values: [v for v in values if 1 <= v <= limit][:MAX_OBJECTIVE_VALUES]  # noqa: E731
+    first = m["first_start"] if m["first_start"] is not None and 0 <= m["first_start"] <= min(limit, 900) else None
+    return {"first_start": first, "durations": clean(m["durations"]), "respawns": clean(m["respawns"]),
+            "periods": clean(m["periods"])}
+
+
 def build_summary(match: Match) -> dict:
     me = next((p for p in match.players if p.is_me), None)
     levels = match.team_levels or {}
     return {
         "v": SUMMARY_VERSION,
         "me_slot": me.slot if me else None,
+        "objectives": objective_timings(match),
         "match": {
             "map_id": canonical_map_id(match),
             "mode": match.game_mode,

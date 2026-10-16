@@ -43,6 +43,15 @@ describe("parseSummary", () => {
     expect(() => parseSummary(s, 1_760_100_000)).toThrow(new Invalid(message));
   });
 
+  it("horaires d'objectifs facultatifs, bornés par la durée de la partie", () => {
+    const s = sample();
+    expect(parseSummary(s, 1_760_100_000).objectives).toBeNull();
+    s.objectives = { first_start: 180, durations: [75, 90], respawns: [121], periods: [] };
+    expect(parseSummary(s, 1_760_100_000).objectives).toEqual({ first_start: 180, durations: [75, 90], respawns: [121], periods: [] });
+    s.objectives = { first_start: 180, durations: [5000] };
+    expect(() => parseSummary(s, 1_760_100_000)).toThrow(new Invalid("durations invalide"));
+  });
+
   it("deux envois identiques ont la même forme canonique, quel que soit l'envoyeur", () => {
     const a = sample();
     const b = sample();

@@ -37,3 +37,17 @@ for (;;) {
   console.log(`${n} partie(s) agrégée(s)`);
 }
 console.log(total ? `terminé : ${total} nouvelle(s) partie(s)` : "rien de nouveau à agréger");
+
+// Horaires d'objectifs (aggregateObjectives) : parties pas encore comptées.
+const pending = /const pending = "([^"]+)"/.exec(src)[1];
+const objectiveSql = [...src.matchAll(/db\.prepare\((`[\s\S]*?`|"[^"]*objectives_aggregated = 1[^"]*")\)/g)]
+  .map((m) => m[1].slice(1, -1)).filter((q) => /objective_hist|objectives_aggregated = 1/.test(q));
+for (;;) {
+  const top = query("SELECT MAX(id) AS id, COUNT(*) AS n FROM (SELECT id FROM matches WHERE objectives IS NOT NULL AND objectives_aggregated = 0 ORDER BY id LIMIT 2000)")[0];
+  if (!top.id) break;
+  const sql = objectiveSql.map((q) => q.replace("${pending}", pending).replace(/\?1/g, String(top.id))).join(";\n") + ";";
+  const file = join(mkdtempSync(join(tmpdir(), "hots-agg-")), "objectives.sql");
+  writeFileSync(file, sql);
+  d1(["--file", file]);
+  console.log(`${top.n} partie(s) : horaires d'objectifs agrégés`);
+}

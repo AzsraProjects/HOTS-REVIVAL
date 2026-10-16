@@ -64,6 +64,18 @@ le premier profil l'emporte. À renforcer (signalement, modération) avant une o
 
 Au-delà, l'API répond `503` + `Retry-After` et l'application réessaie plus tard (rien n'est perdu).
 
+## 13.4 bis Timers d'objectif mis en commun
+
+Chaque résumé partagé contient les horaires d'objectifs de la partie (`objectives` : premier début,
+durées début → fin, délais fin → début suivant, ou délais de fin à fin), calculés depuis les cycles
+extraits du replay (voir docs/03, « Timers d'objectif »). Le serveur les agrège en histogrammes à la
+seconde par carte (`objective_hist`) et les expose sur `GET /v1/stats/objectives` (médianes, quartiles).
+
+- Les parties déjà partagées avant cette version sont complétées une fois (renvoi de l'historique :
+  le serveur ajoute les horaires à la partie existante, sans doublon).
+- L'application télécharge ces timers toutes les 12 h (lecture publique, même sans partager) et les
+  utilise tant que le joueur a moins de 8 parties sur la carte ; au-delà, ses propres replays priment.
+
 ## 13.5 Déploiement (à faire hors stream : identifiants personnels)
 
 ```bash

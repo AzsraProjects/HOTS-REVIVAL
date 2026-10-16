@@ -3,6 +3,35 @@
 
 const BATCH = 2000; // parties traitées par passage (limite de lectures/écritures D1)
 
+/** Horaires d'objectifs : parties non encore comptées (y compris celles complétées après coup). */
+export async function aggregateObjectives(db: D1Database): Promise<number> {
+  const top = await db.prepare(`SELECT MAX(id) AS id, COUNT(*) AS n FROM (SELECT id FROM matches
+    WHERE objectives IS NOT NULL AND objectives_aggregated = 0 ORDER BY id LIMIT ${BATCH})`).first<{ id: number | null; n: number }>();
+  if (!top?.id) return 0;
+  const pending = "SELECT id, map_id, objectives FROM matches WHERE objectives IS NOT NULL AND objectives_aggregated = 0 AND id <= ?1";
+  await db.batch([
+    db.prepare(`
+      INSERT INTO objective_hist (map_id, metric, bucket, n)
+      SELECT m.map_id, k.metric, CAST(j.value AS INTEGER), COUNT(*)
+      FROM (${pending}) m
+      JOIN (SELECT 'duration' AS metric, '$.durations' AS path UNION ALL SELECT 'respawn', '$.respawns'
+            UNION ALL SELECT 'period', '$.periods') k
+      JOIN json_each(m.objectives, k.path) j
+      GROUP BY 1, 2, 3
+      ON CONFLICT DO UPDATE SET n = n + excluded.n`).bind(top.id),
+    db.prepare(`
+      INSERT INTO objective_hist (map_id, metric, bucket, n)
+      SELECT m.map_id, 'first_start', CAST(json_extract(m.objectives, '$.first_start') AS INTEGER), COUNT(*)
+      FROM (${pending}) m
+      WHERE json_extract(m.objectives, '$.first_start') IS NOT NULL
+      GROUP BY 1, 2, 3
+      ON CONFLICT DO UPDATE SET n = n + excluded.n`).bind(top.id),
+    db.prepare("UPDATE matches SET objectives_aggregated = 1 WHERE objectives IS NOT NULL AND objectives_aggregated = 0 AND id <= ?1")
+      .bind(top.id),
+  ]);
+  return top.n;
+}
+
 export async function aggregate(db: D1Database): Promise<{ from: number; to: number }> {
   const state = await db.prepare("SELECT value FROM agg_state WHERE key = 'last_match_id'").first<{ value: string }>();
   const from = Number(state?.value ?? 0);

@@ -25,7 +25,8 @@ const CAMPS = [
   { id: "support", label: "Soutien" },
 ];
 const SOURCE_LABEL: Record<string, string> = {
-  "vos replays": "calibré sur vos replays", mesuré: "mesuré sur replays réels", estimation: "valeurs de référence",
+  "vos replays": "calibré sur vos replays", communauté: "mesuré sur les parties de la communauté",
+  mesuré: "mesuré sur replays réels", estimation: "valeurs de référence",
 };
 
 function Levels({ s, act }: { s: OverlayState; act: (p: Promise<OverlayState>) => void }) {

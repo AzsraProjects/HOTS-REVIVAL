@@ -124,6 +124,7 @@ def test_uploader_cycle_sends_then_idles(db, imported, monkeypatch, tmp_path):
     fake = FakeClient()
     monkeypatch.setattr(uploader_module, "CommunityClient", lambda url: fake)
     monkeypatch.setattr(client_module, "_credentials_path", lambda: tmp_path / "community.json")
+    monkeypatch.setattr(uploader_module, "refresh_if_stale", lambda url: False)
     settings = Settings(share_matches=True, community_url="https://example.invalid")
     u = uploader_module.CommunityUploader(lambda: settings)
     assert u.run_once() == 2 and len(fake.sent) == 1  # lot envoyé : le suivant part vite
@@ -136,3 +137,41 @@ def test_map_id_is_language_independent(db, imported):
     imported.map_id, imported.map_name = "lapassedalterac", "La passe d’Alterac"
     db.commit()
     assert build_summary(imported)["match"]["map_id"] == "alterac_pass"
+
+
+def _with_cycles(db, match, phases):
+    from app.models import MatchEvent
+    for t, phase in phases:
+        db.add(MatchEvent(match_id=match.id, t_s=t, kind="objective_cycle", payload={"phase": phase}))
+    db.commit()
+    db.refresh(match)
+
+
+def test_summary_includes_objective_timings(db, imported):
+    _with_cycles(db, imported, [(180, "start"), (255, "end"), (376, "start"), (466, "end")])
+    o = build_summary(imported)["objectives"]
+    assert o == {"first_start": 180, "durations": [75, 90], "respawns": [121], "periods": []}
+
+
+def test_already_shared_matches_get_their_timings_once(db, imported, monkeypatch):
+    from app.community import uploader as up
+    fake = FakeClient()
+    assert upload_batch(db, fake) == 1 and fake.sent[0][0]["objectives"] is None  # partagée sans horaires
+    _with_cycles(db, imported, [(180, "start"), (255, "end")])  # réanalyse : horaires disponibles
+    assert up.objective_backfill_batch(db, fake) == 1
+    assert fake.sent[1][0]["objectives"]["durations"] == [75]
+    assert up.objective_backfill_batch(db, fake) == 0  # une seule fois
+
+
+def test_timer_source_priority(db, tmp_path, monkeypatch):
+    from app.analytics import timings
+    from app.community import timings as community
+    monkeypatch.setattr(community, "_path", lambda: tmp_path / "community_timings.json")
+    (tmp_path / "community_timings.json").write_text(json.dumps({"maps": {"sky_temple": {
+        "samples": 250, "first_objective_s": 180, "objective_duration_s": 70, "objective_interval_s": 121}}}))
+    t = timings.map_timings(db, "sky_temple")
+    assert t["source"] == "communauté" and t["objective_duration_s"] == 70 and t["samples"] == 250
+    monkeypatch.setattr(timings, "calibrate_map", lambda db, m: {"samples": 12, "objective_duration_s": 95})
+    assert timings.map_timings(db, "sky_temple")["source"] == "vos replays"  # assez de parties : les vôtres
+    monkeypatch.setattr(timings, "calibrate_map", lambda db, m: {"samples": 3, "objective_duration_s": 95})
+    assert timings.map_timings(db, "sky_temple")["source"] == "communauté"  # trop peu : la communauté

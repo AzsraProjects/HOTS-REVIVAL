@@ -15,7 +15,8 @@ from app.community.summary import SHARED_MODES, build_summary, is_shareable
 from app.config import Settings
 from app.db import SessionLocal
 from app.i18n import tr
-from app.models import CommunityUpload, Match, MatchPlayer, Replay
+from app.community.timings import refresh_if_stale
+from app.models import CommunityObjectiveUpload, CommunityUpload, Match, MatchEvent, MatchPlayer, Replay
 
 log = logging.getLogger(__name__)
 BATCH = 25
@@ -29,7 +30,7 @@ def pending_matches(db: Session, limit: int = BATCH) -> list[tuple[str, Match]]:
         select(Replay.file_hash, Match)
         .join(Match, Match.replay_id == Replay.id)
         .where(Replay.status == "parsed", Match.game_mode.in_(SHARED_MODES), Replay.file_hash.not_in(sent))
-        .options(selectinload(Match.players).selectinload(MatchPlayer.score))
+        .options(selectinload(Match.players).selectinload(MatchPlayer.score), selectinload(Match.events))
         .order_by(Match.played_at.desc().nullslast(), Match.id.desc())
         .limit(limit * 4)
     ).all()
@@ -56,11 +57,39 @@ def upload_batch(db: Session, client: CommunityClient) -> int:
     batch = pending_matches(db)
     if not batch:
         return 0
-    results = client.upload([build_summary(m) for _, m in batch])
-    for (file_hash, _), res in zip(batch, results):
+    summaries = [build_summary(m) for _, m in batch]
+    results = client.upload(summaries)
+    for (file_hash, _), summary, res in zip(batch, summaries, results):
         db.merge(CommunityUpload(file_hash=file_hash, status=res.get("status", "rejected"), detail=res.get("detail")))
+        if summary.get("objectives"):
+            db.merge(CommunityObjectiveUpload(file_hash=file_hash))
     db.commit()
     return len(batch)
+
+
+SENT_STATUSES = ("accepted", "confirmed", "conflict", "duplicate")
+
+
+def objective_backfill_batch(db: Session, client: CommunityClient) -> int:
+    """Renvoie une fois les parties déjà partagées sans horaires d'objectifs : le serveur
+    complète la partie existante (aucun doublon). Renvoie le nombre de parties traitées."""
+    done = select(CommunityObjectiveUpload.file_hash)
+    has_cycles = select(MatchEvent.match_id).where(MatchEvent.kind == "objective_cycle")
+    rows = db.execute(
+        select(Replay.file_hash, Match)
+        .join(Match, Match.replay_id == Replay.id)
+        .join(CommunityUpload, CommunityUpload.file_hash == Replay.file_hash)
+        .where(CommunityUpload.status.in_(SENT_STATUSES), Replay.file_hash.not_in(done), Match.id.in_(has_cycles))
+        .options(selectinload(Match.players).selectinload(MatchPlayer.score), selectinload(Match.events))
+        .limit(BATCH)
+    ).all()
+    batch = [(h, m) for h, m in rows if is_shareable(m)]
+    if batch:
+        client.upload([build_summary(m) for _, m in batch])
+    for file_hash, _ in rows:
+        db.merge(CommunityObjectiveUpload(file_hash=file_hash))
+    db.commit()
+    return len(rows)
 
 
 class CommunityUploader:
@@ -93,12 +122,14 @@ class CommunityUploader:
     def run_once(self) -> float:
         """Un cycle d'envoi ; renvoie le délai avant le prochain."""
         settings = self._get_settings()
+        if settings.community_url:
+            refresh_if_stale(settings.community_url)  # timers communautaires (lecture publique)
         if not (settings.share_matches and settings.community_url):
             return IDLE_S
         client = CommunityClient(settings.community_url)
         try:
             with SessionLocal() as db:
-                sent = upload_batch(db, client)
+                sent = upload_batch(db, client) or objective_backfill_batch(db, client)
         except CommunityError as exc:
             self.last_error = str(exc)
             wait = exc.retry_after or 600

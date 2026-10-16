@@ -6,10 +6,10 @@
 //   PUT    /v1/me/profile         active / désactive le profil public
 //   DELETE /v1/me                 supprime l'installation et le profil
 // Lecture (site web, public) :
-//   GET /v1/stats/overview | /v1/stats/heroes | /v1/stats/heroes/:id
+//   GET /v1/stats/overview | /v1/stats/heroes | /v1/stats/heroes/:id | /v1/stats/objectives
 //   GET /v1/players?q=     | /v1/players/:slug   (sans q : derniers profils publics)
 
-import { aggregate } from "./aggregate";
+import { aggregate, aggregateObjectives } from "./aggregate";
 import { pseudonymize, randomToken, sameHash, sha256 } from "./crypto";
 import { canonical, Invalid, MODES, parseSummary } from "./validate";
 
@@ -100,7 +100,13 @@ async function uploadMatches(req: Request, env: Env, installId: string): Promise
 
     const existing = await env.DB.prepare("SELECT id, summary_hash FROM matches WHERE fingerprint = ?")
       .bind(fingerprint).first<{ id: number; summary_hash: string }>();
+    const objectivesJson = summary.objectives ? JSON.stringify(summary.objectives) : null;
     if (existing) {
+      if (objectivesJson) {
+        // partie déjà connue sans horaires d'objectifs (envoyée par une ancienne version) : on complète
+        await env.DB.prepare("UPDATE matches SET objectives = ? WHERE id = ? AND objectives IS NULL")
+          .bind(objectivesJson, existing.id).run();
+      }
       const inserted = await env.DB.prepare(
         "INSERT OR IGNORE INTO uploads (install_id, match_id, me_pid, day) VALUES (?, ?, ?, ?)",
       ).bind(installId, existing.id, mePid, day).run();
@@ -117,10 +123,10 @@ async function uploadMatches(req: Request, env: Env, installId: string): Promise
 
     const match = await env.DB.prepare(`
       INSERT INTO matches (fingerprint, summary_hash, map_id, mode, version, played_at, duration_s, winner_team,
-                           level_0, level_1, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`)
+                           level_0, level_1, objectives, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`)
       .bind(fingerprint, summaryHash, summary.map_id, summary.mode, summary.version, summary.played_at,
-        summary.duration_s, summary.winner_team, summary.levels[0], summary.levels[1], nowS())
+        summary.duration_s, summary.winner_team, summary.levels[0], summary.levels[1], objectivesJson, nowS())
       .first<{ id: number }>();
     const matchId = match!.id;
     const insertPlayer = env.DB.prepare(`
@@ -249,6 +255,48 @@ async function hero(env: Env, url: URL, heroId: string): Promise<Response> {
   return cached({ hero_id: heroId, maps: maps.results, pairs: pairs.results, talents: talents.results });
 }
 
+/** Quantile d'un histogramme à la seconde [(valeur, effectif)]. */
+function histQuantile(rows: { bucket: number; n: number }[], q: number): number {
+  const total = rows.reduce((s, r) => s + r.n, 0);
+  let seen = 0;
+  for (const r of rows) {
+    seen += r.n;
+    if (seen >= q * total) return r.bucket;
+  }
+  return rows[rows.length - 1].bucket;
+}
+
+const MIN_OBJECTIVE_SAMPLES = 3;
+
+/** Timers d'objectif mis en commun, par carte : premier début, durée (quartiles), délai après la fin. */
+async function objectives(env: Env): Promise<Response> {
+  const rows = (await env.DB.prepare("SELECT map_id, metric, bucket, n FROM objective_hist ORDER BY map_id, metric, bucket")
+    .all<{ map_id: string; metric: string; bucket: number; n: number }>()).results;
+  const byMap = new Map<string, Map<string, { bucket: number; n: number }[]>>();
+  for (const r of rows) {
+    const metrics = byMap.get(r.map_id) ?? new Map<string, { bucket: number; n: number }[]>();
+    metrics.set(r.metric, [...(metrics.get(r.metric) ?? []), { bucket: r.bucket, n: r.n }]);
+    byMap.set(r.map_id, metrics);
+  }
+  const maps: Record<string, Record<string, number>> = {};
+  for (const [mapId, metrics] of byMap) {
+    const get = (m: string) => metrics.get(m) ?? [];
+    const count = (m: string) => get(m).reduce((s, r) => s + r.n, 0);
+    const out: Record<string, number> = { samples: count("first_start") || count("period") };
+    if (count("first_start") >= MIN_OBJECTIVE_SAMPLES) out.first_objective_s = histQuantile(get("first_start"), 0.5);
+    if (count("duration") >= MIN_OBJECTIVE_SAMPLES) {
+      const d = get("duration");
+      out.objective_duration_s = histQuantile(d, 0.5);
+      out.duration_low_s = histQuantile(d, 0.25);
+      out.duration_high_s = histQuantile(d, 0.75);
+    }
+    if (count("respawn") >= MIN_OBJECTIVE_SAMPLES) out.objective_interval_s = histQuantile(get("respawn"), 0.5);
+    else if (count("period") >= MIN_OBJECTIVE_SAMPLES) out.objective_interval_s = histQuantile(get("period"), 0.5);
+    maps[mapId] = out;
+  }
+  return cached({ maps });
+}
+
 async function searchPlayers(env: Env, url: URL): Promise<Response> {
   const q = (url.searchParams.get("q") ?? "").trim().slice(0, 24);
   if (!q) {  // sans recherche : derniers profils rendus publics
@@ -307,6 +355,7 @@ async function route(req: Request, env: Env): Promise<Response> {
   if (req.method === "GET") {
     if (path === "/v1/stats/overview") return overview(env);
     if (path === "/v1/stats/heroes") return heroes(env, url);
+    if (path === "/v1/stats/objectives") return objectives(env);
     let m = /^\/v1\/stats\/heroes\/([a-z0-9_]{1,48})$/.exec(path);
     if (m) return hero(env, url, m[1]);
     if (path === "/v1/players") return searchPlayers(env, url);
@@ -337,6 +386,10 @@ export default {
   },
 
   async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    ctx.waitUntil(aggregate(env.DB).then((r) => console.log(`agrégation ${r.from} -> ${r.to}`)));
+    ctx.waitUntil((async () => {
+      const r = await aggregate(env.DB);
+      const n = await aggregateObjectives(env.DB);
+      console.log(`agrégation ${r.from} -> ${r.to}, horaires d'objectifs : ${n} partie(s)`);
+    })());
   },
 } satisfies ExportedHandler<Env>;
