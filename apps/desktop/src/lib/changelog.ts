@@ -10,6 +10,18 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.0.9",
+    date: "2026-10-16",
+    fr: [
+      "Nouveau lien « ♥ Soutenir le projet » en bas du menu : le serveur de la plateforme communautaire est payé par la communauté, un café aide à le garder en ligne.",
+      "Statistiques communautaires : votre historique est partagé petit à petit (200 parties par jour au plus, les plus récentes d'abord) et les statistiques du site sont recalculées une fois par jour.",
+    ],
+    en: [
+      "New “♥ Support the project” link at the bottom of the menu: the community platform server is paid for by the community, a coffee helps keep it online.",
+      "Community stats: your history is shared gradually (at most 200 games a day, most recent first) and the website stats are recomputed once a day.",
+    ],
+  },
+  {
     version: "1.0.8",
     date: "2026-10-16",
     fr: ["Guide vocal : si votre PC n'arrive pas à lire une voix HOTS REVIVAL (Mega Chad, Insupp…), la voix Windows prend le relais au lieu du silence, et « Tester la voix » affiche la cause du problème."],
