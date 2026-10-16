@@ -48,10 +48,9 @@ stateDiagram-v2
 | Déclencheur | Message |
 |---|---|
 | Objectif dans ≤ 45 s | « Le prochain objectif arrive dans N secondes. » + « Restez groupés. » + priorité « Regroupement » |
-| Palier de talent adverse > allié | Alerte « L'équipe adverse possède un avantage de talent. » + « Ne forcez pas un combat en infériorité de talent. » |
+| Palier de talent adverse > allié | Alerte « Désavantage de talent : évitez les combats. » (une seule phrase, sans conseil en plus) |
 | Palier allié > adverse | « Votre équipe possède un avantage niveau N : forcez l'objectif ou un combat. » |
 | Niveau allié 10/16/20 | « Niveau 10 atteint. » (une fois) |
-| Niveau allié 9/15/19 | « Niveau N imminent : attendez le talent avant d'engager. » |
 | Camp allié dispo dans ≤ 20 s | « Camp X disponible dans N s. » |
 
 Les alertes portent un identifiant stable : l'overlay ne les affiche qu'une fois (8 s).

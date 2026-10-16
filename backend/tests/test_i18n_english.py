@@ -78,8 +78,7 @@ def test_live_tips_in_english(english):
     texts = [a["text"] for a in snap["alerts"]]
     assert "Talent disadvantage: avoid fights." in texts
     assert "The enemy team reaches level 10." in texts
-    assert "Don't force a fight while behind in talents." in snap["tips"]
-    assert snap["tip_items"][0]["voice_key"] == "tip-no-fight"  # clés vocales inchangées
+    assert snap["tips"] == ["Stay grouped."]  # plus de conseil « behind in talents »
     assert snap["objective"]["name"] == "Altars" and snap["map_name"] == "Towers of Doom"
 
 

@@ -100,8 +100,8 @@ Propulsé par Claude
 │ BUILD RECOMMANDÉ                  │
 │ 1  Hot Pursuit       58 % · 40 %  │
 │ 4  Arsenal           55 % · 62 %  │
-│ ✦ Ne forcez pas un combat en      │
-│   infériorité de talent.          │
+│ ✦ Restez groupés.                 │
+│                                   │
 └───────────────────────────────────┘
 Mode interactif (Ctrl+Shift+I) : [Allié +1][Allié −1][Adv. +1][Adv. −1]
                                  [Siège][Combattant][Boss][Soutien]

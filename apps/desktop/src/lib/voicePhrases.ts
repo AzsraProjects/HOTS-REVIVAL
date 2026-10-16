@@ -38,9 +38,7 @@ export const VOICE_PHRASES: VoicePhrase[] = [
   phrase("talent-disadvantage", "Adversaires", () => t("Désavantage de talent : évitez les combats !")),
   phrase("objective-soon", "Objectifs & camps", () => t("L'objectif arrive, regroupez-vous !")),
   ...CAMPS.map(([type, text]) => phrase(`camp-${type}`, "Objectifs & camps", text)),
-  phrase("tip-no-fight", "Conseils", () => t("Ne forcez pas un combat en infériorité de talent.")),
   phrase("tip-talent-advantage", "Conseils", () => t("Avantage de talent : forcez l'objectif ou un combat !")),
-  ...[10, 16, 20].map((l) => phrase(`tip-level-soon-${l}`, "Conseils", () => t("Niveau {l} imminent : attendez le talent avant d'engager.", { l }))),
   phrase("tip-stay-grouped", "Conseils", () => t("Restez groupés !")),
 ];
 

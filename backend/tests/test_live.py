@@ -21,7 +21,7 @@ def test_overlay_objective_and_powerspikes():
     texts = [a["text"] for a in snap["alerts"]]
     assert "Désavantage de talent : évitez les combats." in texts
     assert "L'équipe adverse atteint le niveau 10." in texts
-    assert "Ne forcez pas un combat en infériorité de talent." in snap["tips"]
+    assert snap["tips"] == ["Restez groupés."]  # infériorité de talent : l'alerte seule, aucun conseil redondant
 
 
 def test_alerts_never_accumulate():
@@ -254,7 +254,7 @@ def test_voice_keys_on_alerts_and_tips():
     assert keys["objective"] == "objective-soon"
     assert snap["tips"] == [t["text"] for t in snap["tip_items"]]
     tip_keys = [t["voice_key"] for t in snap["tip_items"]]
-    assert tip_keys == ["tip-no-fight", "tip-level-soon-10"]
+    assert tip_keys == ["tip-stay-grouped"]  # infériorité de talent : l'alerte seule, aucun conseil en plus
 
     s.set_levels(ally=13, enemy=None)  # 10 et 13 franchis : une seule annonce (13)
     snap = s.snapshot()

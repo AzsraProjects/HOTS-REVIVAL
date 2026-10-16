@@ -115,9 +115,8 @@ event: done    data: {"conversation_id": 12}
   "talents": [{"level": 1, "recommended": {"talent": "…", "winrate": 0.58, "popularity": 0.4}, "alternatives": []}],
   "alerts": [{"id": "talent-disadvantage", "text": "Désavantage de talent : évitez les combats.", "level": "danger",
               "voice": true, "voice_key": "talent-disadvantage"}],
-  "tips": ["Ne forcez pas un combat en infériorité de talent.", "Restez groupés."],
-  "tip_items": [{"text": "Ne forcez pas un combat en infériorité de talent.", "voice_key": "tip-no-fight"},
-                {"text": "Restez groupés.", "voice_key": "tip-stay-grouped"}],
+  "tips": ["Restez groupés."],
+  "tip_items": [{"text": "Restez groupés.", "voice_key": "tip-stay-grouped"}],
   "sources": ["user_input", "battlelobby_file", "static_data", "own_history"]
 }
 ```

@@ -342,15 +342,10 @@ def compute_overlay(s: LiveSession) -> dict[str, Any]:
             alerts.append({"id": "talent-disadvantage", "priority": 1, "level": "danger",
                            "text": tr("Désavantage de talent : évitez les combats."),
                            "voice_key": "talent-disadvantage"})
-            tips.append({"text": tr("Ne forcez pas un combat en infériorité de talent."),
-                         "voice_key": "tip-no-fight"})
         elif ally_tier > enemy_tier:
             lvl = TALENT_LEVELS[ally_tier - 1]
             tips.append({"text": tr("Avantage niveau {lvl} : forcez l'objectif ou un combat.", lvl=lvl),
                          "voice_key": "tip-talent-advantage"})
-        if ally_level in (9, 15, 19):
-            tips.append({"text": tr("Niveau {lvl} imminent : attendez le talent avant d'engager.", lvl=ally_level + 1),
-                         "voice_key": f"tip-level-soon-{ally_level + 1}"})
         if objective and objective["next_in_s"] is not None and 0 < objective["next_in_s"] <= OBJECTIVE_WARNING_S:
             tips.append({"text": tr("Restez groupés."), "voice_key": "tip-stay-grouped"})
 

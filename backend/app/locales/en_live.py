@@ -7,10 +7,7 @@ EN: dict[str, str] = {
     "Objectif dans {s} s : regroupez-vous.": "Objective in {s} s: group up.",
     "Camp {camp} disponible dans {s} s.": "{camp} camp available in {s} s.",
     "Désavantage de talent : évitez les combats.": "Talent disadvantage: avoid fights.",
-    "Ne forcez pas un combat en infériorité de talent.": "Don't force a fight while behind in talents.",
     "Avantage niveau {lvl} : forcez l'objectif ou un combat.": "Level {lvl} advantage: force the objective or a fight.",
-    "Niveau {lvl} imminent : attendez le talent avant d'engager.":
-        "Level {lvl} incoming: wait for the talent before engaging.",
     "Restez groupés.": "Stay grouped.",
     "de siège": "Siege",
     "de mercenaires": "Mercenary",
