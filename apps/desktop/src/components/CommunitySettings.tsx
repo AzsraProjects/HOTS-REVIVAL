@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAsync } from "../hooks/useAsync";
 import { api } from "../lib/api";
 import { t } from "../lib/i18n";
+import { SITE_URL } from "../lib/links";
 import type { CommunityStatus } from "../lib/types";
 import { Card } from "./ui";
 
@@ -66,7 +67,17 @@ export function CommunitySettings() {
               {s.last_error && <span className="text-amber-300"> · {s.last_error}</span>}
             </div>
           )}
-          {s.profile_slug && <div className="text-xs text-gold-300">{t("Profil public : {slug}", { slug: s.profile_slug })}</div>}
+          {s.profile_slug && (
+            <a href={`${SITE_URL}/joueurs/${s.profile_slug}`} target="_blank" rel="noreferrer"
+              className="block text-xs text-gold-300 hover:text-gold-400">
+              {t("Voir mon profil sur le site ↗")}
+            </a>
+          )}
+          {s.available && (
+            <a href={`${SITE_URL}/heros`} target="_blank" rel="noreferrer" className="block text-xs text-storm-300 hover:text-white">
+              {t("Voir les statistiques de la communauté ↗")}
+            </a>
+          )}
           {message && <div className="text-emerald-300">{message}</div>}
           {error && <div className="text-rose-300">{error}</div>}
 

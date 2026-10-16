@@ -29,6 +29,11 @@ HOTS REVIVAL vise à devenir le « Porofessor » de Heroes of the Storm : profil
 | Méta | Tier lists Icy Veins (générale, master, partie rapide, ARAM), meilleurs duos, builds, synergies, contres — mis à jour automatiquement | `meta/`, page Méta |
 | Rang & historique | Toutes les régions du compte, rang Storm League avec historique | page Paramètres |
 
+## Site communautaire
+
+Statistiques de la communauté (tier list, talents, synergies, profils publics) : **https://hots-revival.pages.dev**
+Alimenté par les joueurs qui activent « Partager mes parties » dans l'application → [docs/13-plateforme-communautaire.md](docs/13-plateforme-communautaire.md)
+
 ## Installation (joueurs)
 
 1. Ouvrez la page **[Releases](https://github.com/BigBlackC0de/HOTS-REVIVAL/releases)** et téléchargez `HOTS-REVIVAL-Setup-x.y.z.exe`.

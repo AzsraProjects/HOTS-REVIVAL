@@ -254,4 +254,7 @@ export const EN_COMPONENTS: Record<string, string> = {
   "Avantage de talent : forcez l'objectif ou un combat !": "Talent advantage: force the objective or a fight!",
   "Niveau {l} imminent : attendez le talent avant d'engager.": "Level {l} incoming: wait for the talent before engaging.",
   "Restez groupés !": "Stay together!",
+  "Site communautaire ↗": "Community website ↗",
+  "Voir mon profil sur le site ↗": "View my profile on the website ↗",
+  "Voir les statistiques de la communauté ↗": "View community stats ↗",
 };

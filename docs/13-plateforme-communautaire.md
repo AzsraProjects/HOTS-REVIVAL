@@ -110,7 +110,8 @@ React + Vite + Tailwind (mêmes couleurs que l'application), hébergé gratuitem
   `backend/app/data` ; portraits et icônes via heroes-talents (MIT, version figée) sur jsDelivr.
 - **Développement** : `cd site && npm install && npm run dev` (http://localhost:5180, API en ligne par défaut,
   `VITE_API_BASE` pour une autre instance).
-- **Déploiement** : `npm run deploy` (Cloudflare Pages, projet `hots-revival`).
+- **En ligne** : https://hots-revival.pages.dev (lien depuis l'application : barre latérale et Paramètres).
+- **Déploiement** : `npm run deploy` (Cloudflare Pages, projet `hots-revival`, branche de production `main`).
 
 ## 13.8 Prochaines étapes
 

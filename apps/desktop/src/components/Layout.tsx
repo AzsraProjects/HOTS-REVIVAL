@@ -6,6 +6,7 @@ import { useVoiceGuide } from "../hooks/useVoiceGuide";
 import { bridge } from "../lib/bridge";
 import { UpdateBanner, UpdateButton } from "./UpdateButton";
 import { t } from "../lib/i18n";
+import { SITE_URL } from "../lib/links";
 
 const nav = () => [
   { to: "/game", label: t("Partie en cours"), icon: "▶" },
@@ -65,6 +66,9 @@ export function Layout() {
         </nav>
         <div className="mt-auto space-y-2 text-xs text-slate-500">
           <UpdateButton />
+          <a href={SITE_URL} target="_blank" rel="noreferrer" className="block text-storm-300 hover:text-white">
+            {t("Site communautaire ↗")}
+          </a>
           <div className="flex items-center gap-2">
             <span className={`h-2 w-2 rounded-full ${connected ? "bg-emerald-400" : "bg-rose-500"}`} />
             {connected ? t("Moteur d'analyse actif") : t("Moteur d'analyse arrêté")}
