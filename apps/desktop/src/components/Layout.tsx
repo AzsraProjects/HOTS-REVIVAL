@@ -8,7 +8,7 @@ import { UpdateBanner, UpdateButton } from "./UpdateButton";
 import { CommunityNotice } from "./CommunityNotice";
 import { WhatsNew } from "./WhatsNew";
 import { t } from "../lib/i18n";
-import { SITE_URL } from "../lib/links";
+import { SITE_URL, SUPPORT_URL } from "../lib/links";
 
 const nav = () => [
   { to: "/game", label: t("Partie en cours"), icon: "▶" },
@@ -71,6 +71,10 @@ export function Layout() {
           <WhatsNew />
           <a href={SITE_URL} target="_blank" rel="noreferrer" className="block text-storm-300 hover:text-white">
             {t("Site communautaire ↗")}
+          </a>
+          <a href={SUPPORT_URL} target="_blank" rel="noreferrer" className="block text-storm-300 hover:text-white"
+            title={t("Le serveur de la plateforme communautaire est payé par la communauté : un café aide à le garder en ligne.")}>
+            {t("♥ Soutenir le projet ↗")}
           </a>
           <div className="flex items-center gap-2">
             <span className={`h-2 w-2 rounded-full ${connected ? "bg-emerald-400" : "bg-rose-500"}`} />

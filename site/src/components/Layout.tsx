@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, ScrollRestoration, useLocation } from "react-router-dom";
 
-import { DOWNLOAD_URL, REPO_URL } from "./links";
+import { DOWNLOAD_URL, REPO_URL, SUPPORT_URL } from "./links";
 import { LangSwitch, t } from "../lib/i18n";
 
 export { DOWNLOAD_URL, REPO_URL };
@@ -91,6 +91,10 @@ export function Layout() {
             <Link to="/a-propos" className="hover:text-slate-300">{t("Comment ça marche")}</Link>
             <Link to="/a-propos#confidentialite" className="hover:text-slate-300">{t("Confidentialité")}</Link>
             <a href={REPO_URL} target="_blank" rel="noreferrer" className="hover:text-slate-300">{t("Code source")}</a>
+            <a href={SUPPORT_URL} target="_blank" rel="noreferrer" className="text-storm-300 hover:text-white"
+              title={t("Le serveur de la plateforme communautaire est payé par la communauté : un café aide à le garder en ligne.")}>
+              {t("♥ Soutenir le projet")}
+            </a>
           </div>
         </div>
         <p className="mx-auto max-w-6xl px-4 pb-8 text-[11px] leading-relaxed text-slate-500">

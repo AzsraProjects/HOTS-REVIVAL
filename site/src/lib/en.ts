@@ -10,6 +10,8 @@ export const EN: Record<string, string> = {
   "Comment ça marche": "How it works",
   "Confidentialité": "Privacy",
   "Code source": "Source code",
+  "♥ Soutenir le projet": "♥ Support the project",
+  "Le serveur de la plateforme communautaire est payé par la communauté : un café aide à le garder en ligne.": "The community platform server is paid for by the community: a coffee helps keep it online.",
   "Site de fans non officiel. Heroes of the Storm, ses héros, portraits et icônes sont des marques et contenus de Blizzard Entertainment, Inc., utilisés conformément à sa politique relative au contenu des fans. Ce site n'est ni approuvé ni sponsorisé par Blizzard.":
     "Unofficial fan site. Heroes of the Storm, its heroes, portraits and icons are trademarks and content of Blizzard Entertainment, Inc., used under its fan content policy. This site is not endorsed or sponsored by Blizzard.",
   "Page introuvable": "Page not found",

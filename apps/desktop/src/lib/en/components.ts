@@ -278,6 +278,8 @@ export const EN_COMPONENTS: Record<string, string> = {
   "Avantage de talent : forcez l'objectif ou un combat !": "Talent advantage: force the objective or a fight!",
   "Restez groupés !": "Stay together!",
   "Site communautaire ↗": "Community website ↗",
+  "♥ Soutenir le projet ↗": "♥ Support the project ↗",
+  "Le serveur de la plateforme communautaire est payé par la communauté : un café aide à le garder en ligne.": "The community platform server is paid for by the community: a coffee helps keep it online.",
   "Voir mon profil sur le site ↗": "View my profile on the website ↗",
   "Voir les statistiques de la communauté ↗": "View community stats ↗",
   "en cours · fin ~{t}": "in progress · ends ~{t}",
