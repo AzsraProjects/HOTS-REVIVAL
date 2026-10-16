@@ -33,6 +33,7 @@ export const EN: Record<string, string> = {
   "Clé de phrase invalide : {key}": "Invalid phrase key: {key}",
   "Chemin invalide.": "Invalid path.",
   "Profil introuvable.": "Profile not found.",
+  "Profil officiel : il ne peut pas être modifié.": "Official profile: it can't be modified.",
   "Un profil porte déjà ce nom.": "A profile with this name already exists.",
   "Format audio non pris en charge.": "Unsupported audio format.",
   "Enregistrement vide ou trop long.": "Recording is empty or too long.",

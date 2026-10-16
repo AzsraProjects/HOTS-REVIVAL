@@ -1,6 +1,8 @@
 /**
  * Profils de voix : clips audio enregistrés par le joueur, rangés dans
  * <userData>/voices/<profil>/<clé>.<webm|ogg|wav|mp3>. Noms et clés sont assainis (aucun chemin hors du dossier).
+ * Profils officiels : livrés avec l'application (resources/voices, voir scripts/export-voice-profile.mjs),
+ * en lecture seule. Un profil du joueur portant le même nom a la priorité.
  */
 import { app, BrowserWindow, dialog, shell } from "electron";
 import fs from "node:fs";
@@ -16,6 +18,21 @@ export interface VoiceClip { key: string; ext: string; size: number; mtime: numb
 export interface ImportResult { imported: string[]; unmatched: { path: string; name: string }[] }
 
 const root = () => path.join(app.getPath("userData"), "voices");
+const builtinRoot = () => app.isPackaged ? path.join(process.resourcesPath, "voices") : path.join(app.getAppPath(), "resources", "voices");
+
+const dirNames = (dir: string): string[] => {
+  try {
+    return fs.readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
+  } catch {
+    return [];
+  }
+};
+
+/** Profils officiels non remplacés par un profil du joueur du même nom. */
+export function listBuiltinProfiles(): string[] {
+  const own = new Set(dirNames(root()).map((n) => n.toLowerCase()));
+  return dirNames(builtinRoot()).filter((n) => !own.has(n.toLowerCase())).sort();
+}
 
 /** Nom de profil lisible mais sûr comme nom de dossier Windows. */
 export function cleanProfileName(name: unknown): string {
@@ -36,24 +53,40 @@ function cleanKey(key: unknown): string {
   return k;
 }
 
+/** Dossier modifiable d'un profil du joueur (jamais un profil officiel). */
 function profileDir(name: unknown, mustExist = true): string {
   const dir = path.join(root(), cleanProfileName(name));
   if (path.dirname(dir) !== root()) throw new Error(t("Chemin invalide."));
-  if (mustExist && !fs.existsSync(dir)) throw new Error(t("Profil introuvable."));
+  if (mustExist && !fs.existsSync(dir)) {
+    if (isBuiltin(name)) throw new Error(t("Profil officiel : il ne peut pas être modifié."));
+    throw new Error(t("Profil introuvable."));
+  }
   return dir;
 }
 
+function isBuiltin(name: unknown): boolean {
+  const clean = cleanProfileName(name).toLowerCase();
+  return listBuiltinProfiles().some((n) => n.toLowerCase() === clean);
+}
+
+/** Dossier à lire : profil du joueur, sinon profil officiel. */
+function readableDir(name: unknown): string {
+  const own = path.join(root(), cleanProfileName(name));
+  if (path.dirname(own) !== root()) throw new Error(t("Chemin invalide."));
+  if (fs.existsSync(own)) return own;
+  const builtin = path.join(builtinRoot(), cleanProfileName(name));
+  if (fs.existsSync(builtin)) return builtin;
+  throw new Error(t("Profil introuvable."));
+}
+
+/** Tous les profils : ceux du joueur puis les officiels. */
 export function listProfiles(): string[] {
-  try {
-    return fs.readdirSync(root(), { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort();
-  } catch {
-    return [];
-  }
+  return [...dirNames(root()).sort(), ...listBuiltinProfiles()];
 }
 
 export function createProfile(name: unknown): string {
   const dir = profileDir(name, false);
-  if (fs.existsSync(dir)) throw new Error(t("Un profil porte déjà ce nom."));
+  if (fs.existsSync(dir) || isBuiltin(name)) throw new Error(t("Un profil porte déjà ce nom."));
   fs.mkdirSync(dir, { recursive: true });
   return path.basename(dir);
 }
@@ -63,7 +96,7 @@ export function renameProfile(from: unknown, to: unknown): string {
   const dst = profileDir(to, false);
   if (src === dst) return path.basename(dst);
   // Windows : un simple changement de casse renvoie « existe déjà »
-  if (fs.existsSync(dst) && src.toLowerCase() !== dst.toLowerCase()) throw new Error(t("Un profil porte déjà ce nom."));
+  if ((fs.existsSync(dst) || isBuiltin(to)) && src.toLowerCase() !== dst.toLowerCase()) throw new Error(t("Un profil porte déjà ce nom."));
   fs.renameSync(src, dst);
   return path.basename(dst);
 }
@@ -73,7 +106,7 @@ export function deleteProfile(name: unknown): void {
 }
 
 export function listClips(profile: unknown): VoiceClip[] {
-  const dir = profileDir(profile);
+  const dir = readableDir(profile);
   const clips: VoiceClip[] = [];
   for (const file of fs.readdirSync(dir)) {
     const ext = path.extname(file).slice(1).toLowerCase();
@@ -113,7 +146,7 @@ export function saveClip(profile: unknown, key: unknown, data: Uint8Array, ext: 
 
 /** Octets d'un clip (lus dans le rendu via un Blob : pas d'accès file:// depuis la page). */
 export function readClip(profile: unknown, key: unknown): { data: Uint8Array; mime: string } | null {
-  const file = clipFile(profileDir(profile), cleanKey(key));
+  const file = clipFile(readableDir(profile), cleanKey(key));
   if (!file) return null;
   return { data: new Uint8Array(fs.readFileSync(file)), mime: EXT_MIME[path.extname(file).slice(1).toLowerCase()] };
 }
@@ -162,5 +195,5 @@ export function assignImported(profile: unknown, key: unknown, file: unknown): v
 }
 
 export function openProfileFolder(profile: unknown): Promise<string> {
-  return shell.openPath(profileDir(profile));
+  return shell.openPath(readableDir(profile));
 }

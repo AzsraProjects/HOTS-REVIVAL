@@ -14,7 +14,7 @@ import { createOverlay, placeOverlay, say, sendPrefs, setInteractive, toggleOver
 import { loadPrefs, savePrefs, type OverlayPrefs } from "./prefs";
 import { registerShortcuts, SHORTCUTS, unregisterShortcuts } from "./shortcuts";
 import {
-  assignImported, cleanProfileName, createProfile, deleteClip, deleteProfile, importClips, listClips, listProfiles,
+  assignImported, cleanProfileName, createProfile, deleteClip, deleteProfile, importClips, listBuiltinProfiles, listClips, listProfiles,
   openProfileFolder, readClip, renameProfile, saveClip,
 } from "./voices";
 
@@ -152,6 +152,7 @@ if (!app.requestSingleInstanceLock()) {
       sendPrefs();
     };
     ipcMain.handle("voices:profiles", () => listProfiles());
+    ipcMain.handle("voices:builtin", () => listBuiltinProfiles());
     ipcMain.handle("voices:create", (_e, name: string) => createProfile(name));
     ipcMain.handle("voices:rename", (_e, from: string, to: string) => {
       const name = renameProfile(from, to);

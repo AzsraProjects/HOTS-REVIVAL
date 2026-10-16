@@ -12,11 +12,13 @@ const errText = (err: unknown) => (err instanceof Error ? err.message.replace(/^
 /**
  * Profils de voix : le joueur enregistre lui-même chaque phrase du guide (par ex. avec un changeur de voix
  * comme Voicemod, qui apparaît comme un micro). Le guide joue ces clips à la place de la voix Windows.
+ * Profils officiels (livrés avec l'application) : écoute seulement.
  */
 export function VoiceProfiles() {
   const b = bridge();
   const [prefs, setPrefs] = useState<OverlayPrefs | null>(null);
   const [profiles, setProfiles] = useState<string[]>([]);
+  const [builtin, setBuiltin] = useState<Set<string>>(new Set());
   const [profile, setProfile] = useState<string | null>(null); // profil affiché (édition)
   const [clips, setClips] = useState<Map<string, VoiceClip>>(new Map());
   const [mics, setMics] = useState<MediaDeviceInfo[]>([]);
@@ -45,9 +47,10 @@ export function VoiceProfiles() {
   useEffect(() => {
     if (!b) return;
     void (async () => {
-      const [p, list] = await Promise.all([b.prefs.get(), b.voices.profiles()]);
+      const [p, list, official] = await Promise.all([b.prefs.get(), b.voices.profiles(), b.voices.builtin()]);
       setPrefs(p);
       setProfiles(list);
+      setBuiltin(new Set(official));
       setProfile(p.voiceProfile && list.includes(p.voiceProfile) ? p.voiceProfile : list[0] ?? null);
     })();
     void loadMics();
@@ -69,7 +72,9 @@ export function VoiceProfiles() {
     try { await fn(); } catch (err) { setMessage(errText(err)); }
   };
   const refreshProfiles = async (select: string | null) => {
-    setProfiles(await b.voices.profiles());
+    const [list, official] = await Promise.all([b.voices.profiles(), b.voices.builtin()]);
+    setProfiles(list);
+    setBuiltin(new Set(official));
     setProfile(select);
   };
 
@@ -168,6 +173,8 @@ export function VoiceProfiles() {
   });
 
   const recorded = VOICE_PHRASES.filter((p) => clips.has(p.key)).length;
+  const readOnly = profile !== null && builtin.has(profile);
+  const label = (p: string) => (builtin.has(p) ? t("{p} (officiel)", { p }) : p);
   const hiddenLabels = mics.some((m) => !m.label);
 
   return (
@@ -176,7 +183,7 @@ export function VoiceProfiles() {
         <span>{t("Voix du guide")}</span>
         <select value={prefs.voiceProfile ?? ""} onChange={(e) => void update({ voiceProfile: e.target.value || null })}>
           <option value="">{t("Voix Windows (synthèse)")}</option>
-          {profiles.map((p) => <option key={p} value={p}>{t("Profil « {p} »", { p })}</option>)}
+          {profiles.map((p) => <option key={p} value={p}>{t("Profil « {p} »", { p: label(p) })}</option>)}
         </select>
       </div>
       <p className="text-xs text-slate-400">
@@ -185,16 +192,21 @@ export function VoiceProfiles() {
 
       <div className="space-y-2 border-t border-void-700 pt-3">
         <div className="flex flex-wrap items-center gap-2">
-          <span>{t("Profil à enregistrer")}</span>
+          <span>{t("Profil à écouter ou enregistrer")}</span>
           <select value={profile ?? ""} onChange={(e) => { setProfile(e.target.value || null); setUnmatched([]); }}>
             {!profiles.length && <option value="">{t("Aucun profil")}</option>}
-            {profiles.map((p) => <option key={p} value={p}>{p}</option>)}
+            {profiles.map((p) => <option key={p} value={p}>{label(p)}</option>)}
           </select>
-          {profile && <button className="btn-ghost py-1" onClick={() => { setRenaming(true); setName(profile); }}>{t("Renommer")}</button>}
-          {profile && <button className="btn-ghost py-1" onClick={() => void removeProfile()}>{t("Supprimer")}</button>}
-          {profile && <button className="btn-ghost py-1" onClick={() => void b.voices.openFolder(profile)}>{t("Ouvrir le dossier")}</button>}
-          {profile && <button className="btn-ghost py-1" onClick={() => void importFiles()}>{t("Importer des fichiers…")}</button>}
+          {profile && !readOnly && <button className="btn-ghost py-1" onClick={() => { setRenaming(true); setName(profile); }}>{t("Renommer")}</button>}
+          {profile && !readOnly && <button className="btn-ghost py-1" onClick={() => void removeProfile()}>{t("Supprimer")}</button>}
+          {profile && !readOnly && <button className="btn-ghost py-1" onClick={() => void b.voices.openFolder(profile)}>{t("Ouvrir le dossier")}</button>}
+          {profile && !readOnly && <button className="btn-ghost py-1" onClick={() => void importFiles()}>{t("Importer des fichiers…")}</button>}
         </div>
+        {readOnly && (
+          <p className="text-xs text-slate-400">
+            {t("Profil officiel, livré avec l'application : écoutez ses phrases ci-dessous, puis choisissez-le dans « Voix du guide ». Pour enregistrer votre propre voix, créez un profil.")}
+          </p>
+        )}
         <div className="flex items-center gap-2">
           <input value={name} onChange={(e) => setName(e.target.value)} maxLength={40}
             placeholder={renaming ? t("Nouveau nom du profil") : t("Nom d'un nouveau profil (ex. Annonceur)")}
@@ -262,20 +274,20 @@ export function VoiceProfiles() {
                         {has ? "✔" : "○"}
                       </span>
                       <span className="flex-1">{t("« {text} »", { text: p.text })}<span className="ml-2 text-[10px] text-slate-500">{p.key}</span></span>
-                      {rec
+                      {!readOnly && (rec
                         ? <button className="btn-gold py-1" onClick={stop}>■ {t("Stop")}</button>
-                        : <button className="btn-ghost py-1" disabled={recording !== null} onClick={() => void start(p.key)}>{t("● Enregistrer")}</button>}
+                        : <button className="btn-ghost py-1" disabled={recording !== null} onClick={() => void start(p.key)}>{t("● Enregistrer")}</button>)}
                       <button className="btn-ghost py-1" disabled={!has || rec} onClick={() => void listen(p.key)}>▶ {t("Écouter")}</button>
-                      <button className="btn-ghost py-1" disabled={!has || rec} onClick={() => void removeClip(p.key)} title={t("Supprimer l'enregistrement")}>🗑</button>
+                      {!readOnly && <button className="btn-ghost py-1" disabled={!has || rec} onClick={() => void removeClip(p.key)} title={t("Supprimer l'enregistrement")}>🗑</button>}
                     </div>
                   );
                 })}
               </div>
             </div>
           ))}
-          <p className="text-xs text-slate-400">
+          {!readOnly && <p className="text-xs text-slate-400">
             {t("Lisez la phrase après avoir cliqué sur « Enregistrer », puis « Stop » (arrêt automatique après 10 s). Fichiers rangés dans le dossier du profil sous le nom de la clé (ex. ally-level-10.webm) : un fichier importé nommé ainsi est reconnu automatiquement.")}
-          </p>
+          </p>}
         </div>
       )}
     </div>

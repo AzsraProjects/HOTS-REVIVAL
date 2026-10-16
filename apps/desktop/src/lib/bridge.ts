@@ -59,6 +59,7 @@ export interface HotsBridge {
   };
   voices: {
     profiles: () => Promise<string[]>;
+    builtin: () => Promise<string[]>;
     create: (name: string) => Promise<string>;
     rename: (from: string, to: string) => Promise<string>;
     remove: (name: string) => Promise<void>;

@@ -39,6 +39,7 @@ const api = {
   },
   voices: {
     profiles: (): Promise<string[]> => ipcRenderer.invoke("voices:profiles"),
+    builtin: (): Promise<string[]> => ipcRenderer.invoke("voices:builtin"),
     create: (name: string): Promise<string> => ipcRenderer.invoke("voices:create", name),
     rename: (from: string, to: string): Promise<string> => ipcRenderer.invoke("voices:rename", from, to),
     remove: (name: string): Promise<void> => ipcRenderer.invoke("voices:remove", name),

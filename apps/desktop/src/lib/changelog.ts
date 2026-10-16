@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.0.4",
+    date: "2026-10-16",
+    fr: ["Nouvelle voix officielle pour le guide vocal : « Mega Chad ». Écoutez-la dans les réglages des profils de voix, puis choisissez-la comme voix du guide. D'autres voix arrivent."],
+    en: ["New official voice for the voice guide: “Mega Chad”. Listen to it in the voice profile settings, then pick it as the guide voice. More voices are coming."],
+  },
+  {
     version: "1.0.3",
     date: "2026-10-16",
     fr: ["Nouveau : ces notes de mise à jour s'affichent après chaque mise à jour, et restent consultables depuis le bas du menu."],
