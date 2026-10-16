@@ -54,6 +54,8 @@ L'installeur est construit automatiquement sur un serveur Windows (GitHub Action
 
 Prérequis : Python ≥ 3.11, Node.js ≥ 20.
 
+**Tester la version locale en un double-clic** : `test-local.cmd` ferme l'application installée, lance le code du dépôt sur une copie de vos données (`%LOCALAPPDATA%\HOTS REVIVAL (test)`, sans import de replays ni partage), puis relance l'application installée quand vous fermez la fenêtre de test. `test-local.cmd reset` repart d'une copie fraîche.
+
 ```bash
 cd backend && pip install -e ".[dev]" && pytest          # tests (dont conformité)
 uvicorn app.main:app --port 8765 --reload                 # API : http://127.0.0.1:8765/docs

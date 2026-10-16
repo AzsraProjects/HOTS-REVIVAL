@@ -42,7 +42,7 @@ export function Dashboard() {
         <p>{t("Jouez une partie : à la fin, elle est analysée automatiquement et votre rapport apparaît ici.")}</p>
         <div className="mt-5 flex justify-center gap-3">
           <Link className="btn-gold" to="/settings">{t("Importer mes anciens replays")}</Link>
-          <Link className="btn-ghost" to="/settings">{t("Activer le coach IA")}</Link>
+          <Link className="btn-ghost" to="/settings?tab=coach">{t("Activer le coach IA")}</Link>
         </div>
       </Empty>
     );

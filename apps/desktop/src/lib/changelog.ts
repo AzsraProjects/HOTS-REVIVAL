@@ -10,6 +10,18 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.0.6",
+    date: "2026-10-16",
+    fr: [
+      "Paramètres réorganisés en onglets : Compte & replays, Guide vocal, Mode partie & overlay, Coach IA, Communauté, Application.",
+      "Un seul menu « Voix » pour le guide vocal : voix HOTS REVIVAL (Mega Chad, Insupp), vos voix enregistrées et voix Windows, au même endroit.",
+    ],
+    en: [
+      "Settings reorganized into tabs: Account & replays, Voice guide, Game mode & overlay, AI coach, Community, App.",
+      "A single “Voice” menu for the voice guide: HOTS REVIVAL voices (Mega Chad, Insupp), your recorded voices and Windows voices, all in one place.",
+    ],
+  },
+  {
     version: "1.0.5",
     date: "2026-10-16",
     fr: ["Nouvelle voix officielle pour le guide vocal : « Insupp ». À écouter et choisir dans les réglages des profils de voix."],

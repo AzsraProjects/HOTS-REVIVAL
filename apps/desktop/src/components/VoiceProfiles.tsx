@@ -179,20 +179,13 @@ export function VoiceProfiles() {
 
   return (
     <div className="space-y-4 text-sm">
-      <div className="grid grid-cols-[140px_1fr] items-center gap-3">
-        <span>{t("Voix du guide")}</span>
-        <select value={prefs.voiceProfile ?? ""} onChange={(e) => void update({ voiceProfile: e.target.value || null })}>
-          <option value="">{t("Voix Windows (synthèse)")}</option>
-          {profiles.map((p) => <option key={p} value={p}>{t("Profil « {p} »", { p: label(p) })}</option>)}
-        </select>
-      </div>
       <p className="text-xs text-slate-400">
-        {t("Une phrase non enregistrée dans le profil choisi est lue par la voix Windows. Volume et activation du guide : réglages ci-dessus.")}
+        {t("Enregistrez chaque phrase du guide avec votre voix (ou un changeur de voix comme Voicemod), puis choisissez votre profil dans « Voix » ci-dessus. Les voix HOTS REVIVAL s'écoutent aussi ici.")}
       </p>
 
-      <div className="space-y-2 border-t border-void-700 pt-3">
+      <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <span>{t("Profil à écouter ou enregistrer")}</span>
+          <span>{t("Profil")}</span>
           <select value={profile ?? ""} onChange={(e) => { setProfile(e.target.value || null); setUnmatched([]); }}>
             {!profiles.length && <option value="">{t("Aucun profil")}</option>}
             {profiles.map((p) => <option key={p} value={p}>{label(p)}</option>)}

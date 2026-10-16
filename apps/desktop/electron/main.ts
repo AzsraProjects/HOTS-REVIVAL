@@ -74,6 +74,9 @@ function lowerPriority(): void {
   }
 }
 
+// Version de test (test-local.cmd) : toutes les données dans un dossier à part, jamais celui de l'app installée.
+if (!app.isPackaged && process.env.HOTS_DATA_DIR) app.setPath("userData", process.env.HOTS_DATA_DIR);
+
 // Une seule instance : un double-clic sur le raccourci ramène la fenêtre existante.
 if (!app.requestSingleInstanceLock()) {
   app.quit();

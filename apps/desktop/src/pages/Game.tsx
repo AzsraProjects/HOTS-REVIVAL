@@ -310,7 +310,7 @@ export function Game() {
       <Players gameId={s.game_id} />
       <p className="text-xs text-slate-500">
         {t("Données : fichier de chargement, écran de chargement, horloge et niveaux (lecture d'écran ou saisie), timers mesurés sur replays. Aucune lecture du jeu.")}{" "}
-        <Link className="underline" to="/settings">{t("Guide vocal et lecture d'écran")}</Link>
+        <Link className="underline" to="/settings?tab=voice">{t("Guide vocal et lecture d'écran")}</Link>
       </p>
     </div>
   );
