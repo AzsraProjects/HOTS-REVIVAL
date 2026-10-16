@@ -115,5 +115,13 @@ React + Vite + Tailwind (mêmes couleurs que l'application), hébergé gratuitem
 
 ## 13.8 Prochaines étapes
 
-1. Statistiques communautaires dans le Draft Assistant et l'onglet Méta de l'application.
-2. Exports publics réguliers, signalement des profils.
+1. Noms officiels français (talents, capacités, héros) depuis les textes extraits du client
+   (HeroesToolChest/heroes-data, `gamestrings_*_frfr.json`), portrait de Xal'atath.
+2. Statistiques communautaires dans le Draft Assistant et l'onglet Méta de l'application.
+3. **MMR communautaire** : ni les replays ni Blizzard ne fournissent rang ou MMR. Comme HotsLogs /
+   Heroes Profile, estimer une cote par joueur et par mode (TrueSkill / Glicko) à partir des résultats
+   des parties partagées (10 pids + vainqueur), puis l'afficher sur les profils publics et filtrer les
+   statistiques par tranche de cote. Utile à partir d'un volume suffisant (≈ 20 parties par joueur,
+   adversaires eux-mêmes cotés).
+4. Exports publics réguliers des agrégats (résilience), signalement des profils usurpés.
+5. Déploiement automatique du Worker et du site (GitHub Actions + jeton API Cloudflare).
