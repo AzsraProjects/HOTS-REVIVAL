@@ -37,6 +37,12 @@ jobs:
         run: |
           npm ci
           npm run typecheck
+      - name: Plateforme communautaire (Worker)
+        working-directory: server
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
 
   windows:
     needs: tests

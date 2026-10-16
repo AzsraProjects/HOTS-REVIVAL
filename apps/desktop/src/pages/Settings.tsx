@@ -4,6 +4,7 @@ import { useAsync } from "../hooks/useAsync";
 import { api } from "../lib/api";
 import { bridge } from "../lib/bridge";
 import { AiSettings } from "../components/AiSettings";
+import { CommunitySettings } from "../components/CommunitySettings";
 import { OverlaySettings } from "../components/OverlaySettings";
 import { RankCard } from "../components/RankCard";
 import { ScreenCalibration } from "../components/ScreenCalibration";
@@ -91,6 +92,8 @@ export function Settings() {
       <AiSettings settings={s} onSaved={settings.setData} />
 
       <RankCard />
+
+      <CommunitySettings />
 
       <Card title="Replays">
         <div className="space-y-2 text-sm">

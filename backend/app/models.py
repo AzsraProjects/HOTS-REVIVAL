@@ -172,6 +172,18 @@ class SavedAnalysis(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class CommunityUpload(Base):
+    """Partie déjà envoyée à la plateforme communautaire (clé : empreinte du replay,
+    stable même si l'historique est réanalysé)."""
+
+    __tablename__ = "community_uploads"
+
+    file_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    status: Mapped[str] = mapped_column(String(16))  # accepted|confirmed|conflict|duplicate|rejected
+    detail: Mapped[str | None] = mapped_column(Text)
+    sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class Draft(Base):
     __tablename__ = "drafts"
 

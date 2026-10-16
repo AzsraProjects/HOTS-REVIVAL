@@ -27,7 +27,10 @@ TOON_HANDLE_RE = re.compile(r"\d+-Hero-\d+-\d+")
 
 # Réglages modifiables depuis l'écran Paramètres (persistés dans settings.json).
 USER_EDITABLE = ("replay_dir", "player_battletag", "player_toon_handle", "anthropic_api_key", "claude_model",
-                 "ai_provider", "ai_api_keys", "ai_models", "ai_base_url")
+                 "ai_provider", "ai_api_keys", "ai_models", "ai_base_url", "share_matches", "public_profile")
+
+# Plateforme communautaire (server/, Cloudflare Worker). HOTS_COMMUNITY_URL pour une autre instance.
+COMMUNITY_URL = "https://hots-revival-community.hots-revival.workers.dev"
 
 
 def data_dir() -> Path:
@@ -70,6 +73,11 @@ class Settings(BaseSettings):
     ai_api_keys: dict[str, str] = {}
     ai_models: dict[str, str] = {}
     ai_base_url: str = ""  # fournisseur « custom » uniquement
+
+    # Plateforme communautaire : rien n'est envoyé sans accord explicite du joueur.
+    community_url: str = COMMUNITY_URL
+    share_matches: bool = False
+    public_profile: bool = False
 
     sentry_dsn: str = ""
     posthog_key: str = ""

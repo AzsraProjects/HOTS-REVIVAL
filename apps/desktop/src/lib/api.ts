@@ -2,7 +2,7 @@ import { bridge } from "./bridge";
 import type {
   LobbyPlayer,
   RankEntry,
-  AppSettings, Combo, Compliance, HeroMeta, TierListData, DraftResult, Hero, MapInfo, MatchDetail, MatchSummary, OverlayState, Profile,
+  AppSettings, CommunityStatus, Combo, Compliance, HeroMeta, TierListData, DraftResult, Hero, MapInfo, MatchDetail, MatchSummary, OverlayState, Profile,
   ProgressionPoint, Report, ReplayStatus,
 } from "./types";
 
@@ -59,6 +59,12 @@ export const api = {
   refreshMetaDirect: (force = false) => post<{ updated: number; errors: unknown[] }>(`/meta/refresh?force=${force}`),
   ranks: () => request<{ leagues: string[]; history: RankEntry[] }>("/profile/ranks"),
   addRank: (league: string, division: number | null) => post<RankEntry>("/profile/ranks", { league, division }),
+  community: {
+    status: () => request<CommunityStatus>("/community"),
+    update: (body: { share_matches?: boolean; public_profile?: boolean }) =>
+      request<CommunityStatus>("/community", { method: "PUT", body: JSON.stringify(body) }),
+    deleteMe: () => request<CommunityStatus>("/community/me", { method: "DELETE" }),
+  },
   coachStatus: () => request<{ available: boolean; model: string }>("/coach/status"),
   live: {
     state: () => request<OverlayState>("/live/state"),

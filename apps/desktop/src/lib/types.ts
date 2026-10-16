@@ -246,6 +246,20 @@ export interface AppSettings {
   data_dir: string;
 }
 
+export interface CommunityStatus {
+  available: boolean;
+  share_matches: boolean;
+  public_profile: boolean;
+  profile_slug: string | null;
+  registered: boolean;
+  sent: number;
+  rejected: number;
+  pending: number;
+  last_error: string | null;
+  paused_until: string | null;
+  notice?: string | null;
+}
+
 export interface AiProvider {
   id: string;
   label: string;

@@ -43,7 +43,7 @@ Chaque état d'overlay renvoyé par l'API porte le champ `sources` listant celle
 | Timers de camps adverses | Les camps capturés sont visibles sur la minimap ; deviner une capture non vue serait une information cachée. | Timer démarré **manuellement** par le joueur pour un camp qu'il a vu. Aucune inférence automatique. |
 | Lecture d'écran (OCR) du HUD | Lecture des pixels déjà affichés (horloge, niveaux d'équipe) sans toucher au processus. Pratique courante des overlays, mais Blizzard peut l'apprécier différemment. | Implémentée en **option désactivée par défaut**, limitée à 3 zones publiques calibrées par le joueur, jamais la minimap, aucune image conservée. Validation Blizzard recommandée avant diffusion publique. |
 | Contenu Icy Veins | Pages publiques consultées comme le ferait un navigateur, pour l'usage personnel du joueur. | Téléchargement espacé (une page à la fois, tier lists 1×/jour, guides 1×/semaine), source et lien affichés. Demander l'accord d'Icy Veins avant une diffusion large. |
-| Statistiques des autres joueurs | Les replays contiennent les 10 joueurs. | Agrégats anonymisés (talents, héros). Pas de profilage nominatif d'autres joueurs dans le MVP. |
+| Statistiques des autres joueurs | Les replays contiennent les 10 joueurs. | Agrégats anonymisés (talents, héros). Plateforme communautaire : partage **opt-in** de résumés sans pseudo, comptes pseudonymisés côté serveur, seuls les joueurs volontaires ont un profil public nominatif ([13-plateforme-communautaire.md](13-plateforme-communautaire.md)). |
 | Raccourcis globaux | Ils capturent une combinaison au niveau OS sans rien envoyer au jeu. | Autorisé ; combinaisons peu utilisées en jeu, reconfigurables (backlog). |
 
 ## 2.5 Garde-fous techniques

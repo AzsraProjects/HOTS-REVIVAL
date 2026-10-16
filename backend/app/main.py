@@ -11,7 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
 from app.analytics.timings import map_timings
-from app.api import coach, draft, live, matches, meta, profile, reference, replays, settings as settings_api
+from app.api import coach, community, draft, live, matches, meta, profile, reference, replays, settings as settings_api
+from app.community.uploader import CommunityUploader
 from app.config import Settings, get_settings
 from app.db import SessionLocal, create_schema, init_engine
 from app.safekeeping import archive_existing, backup_database
@@ -39,6 +40,8 @@ def _on_import(path: Path, result: ImportResult) -> None:
             if match:
                 learn_map(live_session.lobby_map_hash, match.map_id)
     live_session.on_game_end()
+    if _community_uploader:
+        _community_uploader.wake()
     hub.publish_threadsafe({"type": "match_imported", "match_id": result.match_id, "file": path.name})
 
 
@@ -52,6 +55,7 @@ def _on_lobby(info: LobbyInfo) -> None:
 
 
 _lobby_watcher: LobbyWatcher | None = None
+_community_uploader: CommunityUploader | None = None
 _replay_dirs: list[Path] = []
 
 
@@ -115,8 +119,8 @@ def create_app(settings: Settings | None = None, start_watchers: bool = True) ->
             db.commit()
         hub.bind_loop(asyncio.get_running_loop())
         app.state.start_watchers = start_watchers
-        global _lobby_watcher, _replay_dirs
-        app.state.lobby_watcher = app.state.process_monitor = None
+        global _lobby_watcher, _replay_dirs, _community_uploader
+        app.state.lobby_watcher = app.state.process_monitor = app.state.community_uploader = None
         _replay_dirs = settings.resolved_replay_dirs()
         start_replay_watching(app, start_watchers)
         if start_watchers and settings.watch_live:
@@ -128,12 +132,17 @@ def create_app(settings: Settings | None = None, start_watchers: bool = True) ->
         if start_watchers:  # après la détection de chargement : permet de reprendre une partie en cours
             app.state.process_monitor = GameProcessMonitor(_on_process)
             app.state.process_monitor.start()
+            # partage communautaire (inactif tant que le joueur ne l'a pas accepté)
+            _community_uploader = app.state.community_uploader = CommunityUploader(lambda: app.state.settings)
+            app.state.community_uploader.start()
         yield
         stop_replay_watching(app)
         if app.state.lobby_watcher:
             app.state.lobby_watcher.stop()
         if app.state.process_monitor:
             app.state.process_monitor.stop()
+        if app.state.community_uploader:
+            app.state.community_uploader.stop()
 
     app = FastAPI(title="HOTS REVIVAL API", version=__version__, lifespan=lifespan)
     app.state.settings = settings
@@ -145,7 +154,7 @@ def create_app(settings: Settings | None = None, start_watchers: bool = True) ->
         allow_headers=["*"],
     )
     for router in (reference.router, profile.router, matches.router, replays.router,
-                   draft.router, coach.router, live.router, settings_api.router, meta.router):
+                   draft.router, coach.router, live.router, settings_api.router, meta.router, community.router):
         app.include_router(router, prefix="/api")
     app.include_router(live.ws_router)
     return app

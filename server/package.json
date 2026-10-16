@@ -1,0 +1,26 @@
+{
+  "name": "hots-revival-community",
+  "private": true,
+  "version": "0.1.0",
+  "description": "API de la plateforme communautaire HOTS REVIVAL (Cloudflare Worker + D1)",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "db:local": "wrangler d1 migrations apply hots-community --local",
+    "db:remote": "wrangler d1 migrations apply hots-community --remote",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "4.20250927.0",
+    "typescript": "5.6.3",
+    "vitest": "2.1.9",
+    "wrangler": "4.40.0"
+  },
+  "allowScripts": {
+    "esbuild@0.21.5": true,
+    "esbuild@0.25.4": true,
+    "workerd@1.20250924.0": true
+  }
+}

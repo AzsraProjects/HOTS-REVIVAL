@@ -1,0 +1,15 @@
+name = "hots-revival-community"
+main = "src/index.ts"
+workers_dev = true
+compatibility_date = "2025-09-01"
+
+# Agrégation des nouvelles parties toutes les heures.
+[triggers]
+crons = ["17 * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "hots-community"
+# Identifiant de la base (non secret), créé par `npx wrangler d1 create hots-community`.
+database_id = "7bf48328-ddd6-4f02-a15b-069d8fd5e4a6"
+migrations_dir = "migrations"
