@@ -4,6 +4,7 @@ import { useAsync } from "../hooks/useAsync";
 import { api } from "../lib/api";
 import { bridge } from "../lib/bridge";
 import { date, pct, ROLE_FR } from "../lib/format";
+import { t } from "../lib/i18n";
 import type { HeroMeta, TierEntry } from "../lib/types";
 
 const TIER_STYLE: Record<string, string> = {
@@ -21,7 +22,7 @@ function HeroChip({ e, onClick }: { e: TierEntry; onClick: () => void }) {
       <span className="text-sm font-medium text-white">{e.hero}</span>
       {e.my_games > 0 && (
         <span className={`text-[11px] ${(e.my_winrate ?? 0) >= 0.5 ? "text-emerald-300" : "text-rose-300"}`}>
-          vous {pct(e.my_winrate)} · {e.my_games}
+          {t("vous {winrate} · {games}", { winrate: pct(e.my_winrate), games: e.my_games })}
         </span>
       )}
     </button>
@@ -31,13 +32,13 @@ function HeroChip({ e, onClick }: { e: TierEntry; onClick: () => void }) {
 function HeroPanel({ heroId, onClose, onPick }: { heroId: string; onClose: () => void; onPick: (id: string) => void }) {
   const { data, loading, error } = useAsync<HeroMeta>(() => api.heroMeta(heroId), [heroId]);
   if (loading) return <Card><Loading /></Card>;
-  if (error || !data) return <ErrorBox message={error ?? "Héros introuvable"} />;
+  if (error || !data) return <ErrorBox message={error ?? t("Héros introuvable")} />;
   const g = data.guide;
   return (
     <Card title={`${data.hero} · ${ROLE_FR[data.role] ?? data.role}`} action={<button className="text-slate-400 hover:text-white" onClick={onClose}>✕</button>}>
       <div className="mb-4 flex flex-wrap gap-2">
-        {Object.entries(data.tiers).map(([k, t]) => t && (
-          <span key={k} className="chip">{{ general: "Générale", master: "Master", quick_match: "Partie rapide", aram: "ARAM" }[k] ?? k} : <b className="text-gold-400">{t}</b></span>
+        {Object.entries(data.tiers).map(([k, tier]) => tier && (
+          <span key={k} className="chip">{{ general: t("Générale"), master: "Master", quick_match: t("Partie rapide"), aram: "ARAM" }[k] ?? k} : <b className="text-gold-400">{tier}</b></span>
         ))}
       </div>
       {g ? (
@@ -47,20 +48,20 @@ function HeroPanel({ heroId, onClose, onPick }: { heroId: string; onClose: () =>
               <div key={b.title}>
                 <h3 className="card-title">{b.title}</h3>
                 <div className="grid grid-cols-7 gap-1.5">
-                  {b.talents.map((t) => {
-                    const desc = data.talent_catalog[String(t.level)]?.find((c) => c.id === t.talent)?.description;
+                  {b.talents.map((tal) => {
+                    const desc = data.talent_catalog[String(tal.level)]?.find((c) => c.id === tal.talent)?.description;
                     return (
-                      <div key={t.level} title={desc} className="rounded-md border border-void-600 bg-void-800 p-1.5 text-center">
-                        <div className="text-[10px] text-slate-500">Niv. {t.level}</div>
-                        <div className="text-xs leading-tight text-white">{t.name}</div>
+                      <div key={tal.level} title={desc} className="rounded-md border border-void-600 bg-void-800 p-1.5 text-center">
+                        <div className="text-[10px] text-slate-500">{t("Niv. {level}", { level: tal.level })}</div>
+                        <div className="text-xs leading-tight text-white">{tal.name}</div>
                       </div>
                     );
                   })}
                 </div>
               </div>
             ))}
-            {!g.builds.length && <p className="text-sm text-slate-500">Aucun build lu sur le guide.</p>}
-            <a className="text-xs text-storm-300 underline" href={g.url} target="_blank" rel="noreferrer">Guide complet sur Icy Veins ↗</a>
+            {!g.builds.length && <p className="text-sm text-slate-500">{t("Aucun build lu sur le guide.")}</p>}
+            <a className="text-xs text-storm-300 underline" href={g.url} target="_blank" rel="noreferrer">{t("Guide complet sur Icy Veins ↗")}</a>
           </div>
           <div className="space-y-4">
             <div>
@@ -68,18 +69,18 @@ function HeroPanel({ heroId, onClose, onPick }: { heroId: string; onClose: () =>
               <div className="flex flex-wrap gap-1.5">{g.synergies.map((h) => <button key={h.hero_id} className="chip hover:border-emerald-400" onClick={() => onPick(h.hero_id)}>{h.hero}</button>)}</div>
             </div>
             <div>
-              <h3 className="card-title">Contré par</h3>
+              <h3 className="card-title">{t("Contré par")}</h3>
               <div className="flex flex-wrap gap-1.5">{g.counters.map((h) => <button key={h.hero_id} className="chip hover:border-rose-400" onClick={() => onPick(h.hero_id)}>{h.hero}</button>)}</div>
             </div>
           </div>
         </div>
       ) : (
-        <p className="text-sm text-slate-500">Guide Icy Veins pas encore téléchargé (mise à jour automatique en cours).</p>
+        <p className="text-sm text-slate-500">{t("Guide Icy Veins pas encore téléchargé (mise à jour automatique en cours).")}</p>
       )}
       {data.replay_talent_stats.length > 0 && (
         <div className="mt-5">
-          <h3 className="card-title">Talents les plus gagnants dans vos replays</h3>
-          <List items={data.replay_talent_stats.map((t) => `Niv. ${t.level} : ${t.options[0].name} (${pct(t.options[0].winrate)} sur ${t.options[0].games} parties)`)} />
+          <h3 className="card-title">{t("Talents les plus gagnants dans vos replays")}</h3>
+          <List items={data.replay_talent_stats.map((s) => t("Niv. {level} : {talent} ({winrate} sur {games} parties)", { level: s.level, talent: s.options[0].name, winrate: pct(s.options[0].winrate), games: s.options[0].games }))} />
         </div>
       )}
     </Card>
@@ -95,13 +96,13 @@ export function Meta() {
   const [progress, setProgress] = useState<string | null>(null);
 
   useEffect(() => bridge()?.onMetaProgress((p) => {
-    setProgress(p.finished ? null : `Mise à jour Icy Veins : ${p.done}/${p.total}`);
+    setProgress(p.finished ? null : t("Mise à jour Icy Veins : {done}/{total}", { done: p.done, total: p.total }));
     if (p.finished) { lists.reload(); combos.reload(); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), []);
 
   const refresh = async () => {
-    setProgress("Mise à jour Icy Veins…");
+    setProgress(t("Mise à jour Icy Veins…"));
     if (bridge()) await bridge()!.refreshMeta(true);
     else await api.refreshMetaDirect(true).catch(() => undefined);
     setProgress(null);
@@ -117,22 +118,22 @@ export function Meta() {
     <div className="space-y-5">
       <header className="flex items-end justify-between">
         <div>
-          <h1 className="title-display text-3xl">Méta</h1>
+          <h1 className="title-display text-3xl">{t("Méta")}</h1>
           <p className="text-xs text-slate-400">
-            Source : <a className="underline" href={current.url} target="_blank" rel="noreferrer">Icy Veins</a>
-            {current.updated_label && <> · mise à jour Icy Veins : {current.updated_label}</>}
-            {current.fetched_at && <> · récupérée le {date(current.fetched_at)}</>} · actualisation automatique
+            {t("Source :")} <a className="underline" href={current.url} target="_blank" rel="noreferrer">Icy Veins</a>
+            {current.updated_label && <> · {t("mise à jour Icy Veins : {date}", { date: current.updated_label })}</>}
+            {current.fetched_at && <> · {t("récupérée le {date}", { date: date(current.fetched_at) })}</>} · {t("actualisation automatique")}
           </p>
         </div>
         <div className="flex items-center gap-3">
           {progress && <span className="text-xs text-gold-300">{progress}</span>}
-          <button className="btn-ghost" onClick={refresh} disabled={!!progress}>Actualiser</button>
+          <button className="btn-ghost" onClick={refresh} disabled={!!progress}>{t("Actualiser")}</button>
         </div>
       </header>
 
       <div className="flex gap-2">
         <button className={tab === "tiers" ? "btn-primary" : "btn-ghost"} onClick={() => setTab("tiers")}>Tier lists</button>
-        <button className={tab === "combos" ? "btn-primary" : "btn-ghost"} onClick={() => setTab("combos")}>Meilleurs duos</button>
+        <button className={tab === "combos" ? "btn-primary" : "btn-ghost"} onClick={() => setTab("combos")}>{t("Meilleurs duos")}</button>
         {tab === "tiers" && (
           <select className="ml-auto w-72" value={listKey} onChange={(e) => setListKey(e.target.value)}>
             {lists.data!.map((l) => <option key={l.key} value={l.key}>{l.title}</option>)}
@@ -167,8 +168,8 @@ export function Meta() {
           })}
         </div>
       ) : (
-        <Empty title="Tier list en cours de récupération">
-          La méta est téléchargée automatiquement depuis Icy Veins au démarrage puis toutes les 6 heures. Cliquez sur « Actualiser » pour forcer.
+        <Empty title={t("Tier list en cours de récupération")}>
+          {t("La méta est téléchargée automatiquement depuis Icy Veins au démarrage puis toutes les 6 heures. Cliquez sur « Actualiser » pour forcer.")}
         </Empty>
       ))}
 
@@ -185,11 +186,11 @@ export function Meta() {
                   </span>
                 ))}
               </div>
-              {c.mutual && <span className="text-[10px] text-emerald-300">synergie réciproque</span>}
+              {c.mutual && <span className="text-[10px] text-emerald-300">{t("synergie réciproque")}</span>}
             </div>
           ))}
         </div>
-      ) : <Empty title="Duos en cours de récupération">Les synergies viennent des guides de héros Icy Veins.</Empty>)}
+      ) : <Empty title={t("Duos en cours de récupération")}>{t("Les synergies viennent des guides de héros Icy Veins.")}</Empty>)}
     </div>
   );
 }

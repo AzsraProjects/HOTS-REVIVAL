@@ -8,9 +8,10 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass, field
 
+from app.i18n import tr
 from app.reference import ROLES, Hero, registry
 
-# Combos connus (paires) : (héros A, héros B, explication)
+# Combos connus (paires) : (héros A, héros B, explication — traduite via tr() à l'affichage)
 NAMED_COMBOS: list[tuple[str, str, str]] = [
     ("etc", "jaina", "Mosh Pit d'E.T.C. + zone de Jaina : combo d'élimination de groupe."),
     ("etc", "kaelthas", "Mosh Pit d'E.T.C. + Pyroblast/Flamestrike : burst de zone garanti."),
@@ -168,54 +169,56 @@ def analyze_draft(
 
     # Forces / faiblesses
     if ally.has("burst", 2) and ally.has("cc", 2):
-        result.strengths.append("Votre composition gagne les combats courts : engagez sur une cible isolée.")
+        result.strengths.append(tr("Votre composition gagne les combats courts : engagez sur une cible isolée."))
     if ally.has("sustained", 2) or (ally.roles["Healer"] and ally.has("selfsustain", 2)):
-        result.strengths.append("Votre composition gagne les combats longs : évitez les échanges explosifs.")
+        result.strengths.append(tr("Votre composition gagne les combats longs : évitez les échanges explosifs."))
     if ally.has("poke", 2):
-        result.strengths.append("Bon potentiel de harcèlement avant les objectifs.")
+        result.strengths.append(tr("Bon potentiel de harcèlement avant les objectifs."))
     if ally.has("waveclear", 2):
-        result.strengths.append("Excellent clear de vagues : vous pouvez tenir la carte et faire des rotations.")
+        result.strengths.append(tr("Excellent clear de vagues : vous pouvez tenir la carte et faire des rotations."))
     if ally.has("global"):
-        result.strengths.append("Présence globale : punissez les joueurs isolés sur les autres lignes.")
+        result.strengths.append(tr("Présence globale : punissez les joueurs isolés sur les autres lignes."))
     if ally_heroes and not ally.roles["Tank"]:
-        result.weaknesses.append("Pas de tank : difficile d'initier et d'absorber l'engagement adverse.")
+        result.weaknesses.append(tr("Pas de tank : difficile d'initier et d'absorber l'engagement adverse."))
     if ally_heroes and not ally.roles["Healer"]:
-        result.weaknesses.append("Pas de soigneur : privilégiez les combats courts et les fontaines.")
+        result.weaknesses.append(tr("Pas de soigneur : privilégiez les combats courts et les fontaines."))
     if ally_heroes and ally.tags["waveclear"] == 0:
-        result.weaknesses.append("Peu de clear de vagues : risque de perdre la pression sur les lignes.")
+        result.weaknesses.append(tr("Peu de clear de vagues : risque de perdre la pression sur les lignes."))
     if ally_heroes and ally.tags["cc"] <= 1:
-        result.weaknesses.append("Peu de contrôle : difficile de verrouiller une cible.")
+        result.weaknesses.append(tr("Peu de contrôle : difficile de verrouiller une cible."))
 
     # Héros à protéger
     for h in ally_heroes:
         if "protect" in h.tags and enemy.tags["dive"] + enemy.tags["stealth"] >= 2:
-            result.win_conditions.append(f"Protégez {h.name} : l'adversaire dispose d'outils de plongée.")
+            result.win_conditions.append(
+                tr("Protégez {hero} : l'adversaire dispose d'outils de plongée.", hero=h.name))
 
     # Synergies / menaces nommées
     ally_ids, enemy_ids = {h.id for h in ally_heroes}, {h.id for h in enemy_heroes}
     for a, b, why in NAMED_COMBOS:
         if a in ally_ids and b in ally_ids:
-            result.synergies.append(why)
+            result.synergies.append(tr(why))
         if a in enemy_ids and b in enemy_ids:
             na, nb = registry().heroes[a].name, registry().heroes[b].name
-            result.threats.append(f"Attention au combo {na} + {nb}. {why}")
+            result.threats.append(tr("Attention au combo {a} + {b}.", a=na, b=nb) + " " + tr(why))
     for a in ally_heroes:
         for b in ally_heroes:
             if a.id < b.id and meta.synergy(a.id, b.id):
-                result.synergies.append(f"Bonne synergie {a.name} + {b.name} (Icy Veins).")
+                result.synergies.append(tr("Bonne synergie {a} + {b} (Icy Veins).", a=a.name, b=b.name))
         for e in enemy_heroes:
             if meta.counters(e.id, a.id):
-                result.threats.append(f"{a.name} est contré par {e.name} : jouez prudemment.")
+                result.threats.append(
+                    tr("{hero} est contré par {enemy} : jouez prudemment.", hero=a.name, enemy=e.name))
     if enemy.has("dive", 2):
-        result.threats.append("L'équipe adverse plonge : restez groupés autour de vos héros fragiles.")
+        result.threats.append(tr("L'équipe adverse plonge : restez groupés autour de vos héros fragiles."))
     if enemy.has("poke", 2):
-        result.threats.append("Fort harcèlement adverse : n'entamez pas l'objectif à mi-vie.")
+        result.threats.append(tr("Fort harcèlement adverse : n'entamez pas l'objectif à mi-vie."))
 
     # Counters directs
     for h in ally_heroes:
         cs = counter_score(h, enemy)
         if cs >= 1.0:
-            result.counters.append(f"{h.name} est efficace contre cette composition adverse.")
+            result.counters.append(tr("{hero} est efficace contre cette composition adverse.", hero=h.name))
 
     # Phases de jeu
     for i, phase in enumerate(PHASES):
@@ -227,15 +230,16 @@ def analyze_draft(
     best = max(result.phases, key=result.phases.get)
     labels = {"early": "début de partie", "mid": "milieu de partie", "late": "fin de partie"}
     if result.phases[best] >= 55:
-        result.win_conditions.append(f"Votre fenêtre de puissance : {labels[best]}. Jouez les objectifs à ce moment.")
+        result.win_conditions.append(
+            tr("Votre fenêtre de puissance : {phase}. Jouez les objectifs à ce moment.", phase=tr(labels[best])))
     if result.phases["late"] <= 45:
-        result.win_conditions.append("L'adversaire scale mieux : terminez la partie avant le niveau 20.")
+        result.win_conditions.append(tr("L'adversaire scale mieux : terminez la partie avant le niveau 20."))
 
     # Conseils carte
     if map_id:
         info = registry().resolve_map(map_id)
         if info:
-            result.win_conditions.extend(info.tips[:1])
+            result.win_conditions.extend(tr(tip) for tip in info.tips[:1])
 
     # Recommandations de picks
     taken = ally_ids | enemy_ids | {h.id for h in _resolve(bans or [], [])}
@@ -261,7 +265,7 @@ def analyze_draft(
             )
         if result.recommendations:
             top = result.recommendations[0]["hero"]
-            result.counters.insert(0, f"{top} est le meilleur choix contre cette draft.")
+            result.counters.insert(0, tr("{hero} est le meilleur choix contre cette draft.", hero=top))
 
     result.composition_score = _composition_score(ally, enemy)
     return result

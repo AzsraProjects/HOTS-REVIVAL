@@ -1,5 +1,5 @@
 import { app, BrowserWindow, dialog, ipcMain, screen, shell } from "electron";
-import { getLanguage, initLanguage, setLanguage, type Lang } from "./i18n";
+import { getLanguage, initLanguage, setLanguage, t, type Lang } from "./i18n";
 import * as Sentry from "@sentry/electron/main";
 import os from "node:os";
 import path from "node:path";
@@ -23,10 +23,10 @@ if (process.env.HOTS_SENTRY_DSN) Sentry.init({ dsn: process.env.HOTS_SENTRY_DSN 
 const DEV_URL = process.env.VITE_DEV_SERVER_URL;
 let mainWindow: BrowserWindow | null = null;
 
-const SPLASH = `<!doctype html><html><body style="margin:0;height:100vh;display:flex;flex-direction:column;
+const splash = () => `<!doctype html><html><body style="margin:0;height:100vh;display:flex;flex-direction:column;
 align-items:center;justify-content:center;background:#0b0d1a;color:#cbd5e1;font-family:Segoe UI,sans-serif">
 <div style="font:700 42px Georgia,serif;letter-spacing:2px;color:#f5c451">HOTS <span style="color:#46a8ff">REVIVAL</span></div>
-<div style="margin-top:12px;font-size:14px;opacity:.8">Démarrage de votre coach…</div></body></html>`;
+<div style="margin-top:12px;font-size:14px;opacity:.8">${t("Démarrage de votre coach…")}</div></body></html>`;
 
 function loadRoute(win: BrowserWindow, route: string): void {
   if (DEV_URL) void win.loadURL(`${DEV_URL}#${route}`);
@@ -54,7 +54,7 @@ function createMainWindow(): BrowserWindow {
     void shell.openExternal(url);
     return { action: "deny" };
   });
-  void win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(SPLASH)}`);
+  void win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(splash())}`);
   win.webContents.on("did-finish-load", () => win.webContents.send("overlay:prefs", loadPrefs()));
   return win;
 }
@@ -132,7 +132,9 @@ if (!app.requestSingleInstanceLock()) {
     });
     ipcMain.handle("displays:list", () =>
       screen.getAllDisplays().map((d, i) => ({
-        id: d.id, label: `Écran ${i + 1} (${d.size.width}×${d.size.height})${d.id === screen.getPrimaryDisplay().id ? " – principal" : ""}`,
+        id: d.id,
+        label: t("Écran {n} ({w}×{h})", { n: i + 1, w: d.size.width, h: d.size.height })
+          + (d.id === screen.getPrimaryDisplay().id ? t(" – principal") : ""),
       })),
     );
     ipcMain.handle("overlay:say", (_e, text: string) => say(String(text)));
@@ -193,8 +195,8 @@ if (!app.requestSingleInstanceLock()) {
       await dialog.showMessageBox({
         type: "error",
         title: "HOTS REVIVAL",
-        message: "Le moteur d'analyse n'a pas pu démarrer.",
-        detail: `Journal : ${backendLogPath()}\nVérifiez qu'aucun antivirus ne bloque l'application, puis relancez-la.`,
+        message: t("Le moteur d'analyse n'a pas pu démarrer."),
+        detail: t("Journal : {path}\nVérifiez qu'aucun antivirus ne bloque l'application, puis relancez-la.", { path: backendLogPath() }),
       });
     }
     if (mainWindow) loadRoute(mainWindow, "/");

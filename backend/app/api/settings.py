@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from app.coach import providers
 from app.config import Settings, app_settings, data_dir, get_settings, write_user_settings
-from app.i18n import set_language
+from app.i18n import set_language, tr
 
 router = APIRouter(prefix="/settings", tags=["paramètres"])
 
@@ -76,12 +76,12 @@ def read(settings: Settings = Depends(app_settings)) -> SettingsOut:
 def update(body: SettingsUpdate, request: Request) -> SettingsOut:
     values = body.model_dump(exclude_none=True)
     if values.get("replay_dir") and not Path(values["replay_dir"]).is_dir():
-        raise HTTPException(400, "Ce dossier n'existe pas.")
+        raise HTTPException(400, tr("Ce dossier n'existe pas."))
     values = {k: v.strip() for k, v in values.items()}
     old: Settings = request.app.state.settings
     provider = values.get("ai_provider") or old.ai_provider
     if provider not in providers.PROVIDERS:
-        raise HTTPException(400, "Fournisseur d'IA inconnu.")
+        raise HTTPException(400, tr("Fournisseur d'IA inconnu."))
     # clé et modèle sont rangés par fournisseur : changer d'IA ne fait rien perdre
     if "ai_api_key" in values:
         values["ai_api_keys"] = {**old.ai_api_keys, provider: values.pop("ai_api_key")}

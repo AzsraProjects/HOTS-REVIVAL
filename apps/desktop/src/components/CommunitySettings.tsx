@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAsync } from "../hooks/useAsync";
 import { api } from "../lib/api";
+import { t } from "../lib/i18n";
 import type { CommunityStatus } from "../lib/types";
 import { Card } from "./ui";
 
@@ -30,10 +31,10 @@ export function CommunitySettings() {
   if (!s) return null;
 
   return (
-    <Card title="Communauté HOTS REVIVAL">
+    <Card title={t("Communauté HOTS REVIVAL")}>
       {!s.available ? (
         <p className="text-sm text-slate-400">
-          La plateforme communautaire arrive bientôt : statistiques de tous les joueurs HOTS REVIVAL et profils publics.
+          {t("La plateforme communautaire arrive bientôt : statistiques de tous les joueurs HOTS REVIVAL et profils publics.")}
         </p>
       ) : (
         <div className="space-y-3 text-sm">
@@ -41,10 +42,9 @@ export function CommunitySettings() {
             <input type="checkbox" className="mt-1" checked={s.share_matches} disabled={busy}
               onChange={(e) => void run(() => api.community.update({ share_matches: e.target.checked }))} />
             <span>
-              Partager mes parties pour alimenter les statistiques communautaires
+              {t("Partager mes parties pour alimenter les statistiques communautaires")}
               <span className="block text-xs text-slate-500">
-                Seul un résumé est envoyé (héros, carte, résultat, talents, statistiques de fin de partie). Ni replay, ni chat,
-                ni pseudo : les comptes des 10 joueurs sont pseudonymisés par le serveur. Vos parties déjà importées sont envoyées aussi.
+                {t("Seul un résumé est envoyé (héros, carte, résultat, talents, statistiques de fin de partie). Ni replay, ni chat, ni pseudo : les comptes des 10 joueurs sont pseudonymisés par le serveur. Vos parties déjà importées sont envoyées aussi.")}
               </span>
             </span>
           </label>
@@ -52,33 +52,32 @@ export function CommunitySettings() {
             <input type="checkbox" className="mt-1" checked={s.public_profile} disabled={busy || !s.share_matches}
               onChange={(e) => void run(() => api.community.update({ public_profile: e.target.checked }))} />
             <span>
-              Rendre mon profil public sur le site
+              {t("Rendre mon profil public sur le site")}
               <span className="block text-xs text-slate-500">
-                Votre BattleTag, vos héros et vos dernières parties deviennent visibles par tous. Les autres joueurs de vos
-                parties n'apparaissent jamais par leur nom.
+                {t("Votre BattleTag, vos héros et vos dernières parties deviennent visibles par tous. Les autres joueurs de vos parties n'apparaissent jamais par leur nom.")}
               </span>
             </span>
           </label>
 
           {s.share_matches && (
             <div className="text-xs text-slate-400">
-              {s.sent} partie(s) partagée(s){s.pending ? ` · ${s.pending} en attente d'envoi` : ""}
-              {s.rejected ? ` · ${s.rejected} refusée(s) par le serveur` : ""}
+              {t("{n} partie(s) partagée(s)", { n: s.sent })}{s.pending ? ` · ${t("{n} en attente d'envoi", { n: s.pending })}` : ""}
+              {s.rejected ? ` · ${t("{n} refusée(s) par le serveur", { n: s.rejected })}` : ""}
               {s.last_error && <span className="text-amber-300"> · {s.last_error}</span>}
             </div>
           )}
-          {s.profile_slug && <div className="text-xs text-gold-300">Profil public : {s.profile_slug}</div>}
+          {s.profile_slug && <div className="text-xs text-gold-300">{t("Profil public : {slug}", { slug: s.profile_slug })}</div>}
           {message && <div className="text-emerald-300">{message}</div>}
           {error && <div className="text-rose-300">{error}</div>}
 
           {s.registered && (
             <button className="btn-ghost" disabled={busy}
               onClick={() => {
-                if (confirm("Supprimer votre profil et tout lien entre vous et vos parties sur la plateforme ?")) {
-                  void run(api.community.deleteMe, "Vos données communautaires ont été supprimées.");
+                if (confirm(t("Supprimer votre profil et tout lien entre vous et vos parties sur la plateforme ?"))) {
+                  void run(api.community.deleteMe, t("Vos données communautaires ont été supprimées."));
                 }
               }}>
-              Supprimer mes données communautaires
+              {t("Supprimer mes données communautaires")}
             </button>
           )}
         </div>

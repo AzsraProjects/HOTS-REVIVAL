@@ -15,6 +15,7 @@ from dataclasses import asdict, dataclass
 import httpx
 
 from app.config import Settings
+from app.i18n import tr
 
 TIMEOUT = httpx.Timeout(120.0, connect=10.0)
 
@@ -82,7 +83,8 @@ def is_ready(settings: Settings) -> bool:
 
 def describe(settings: Settings) -> list[dict]:
     """Catalogue pour l'écran Paramètres (sans aucune clé)."""
-    return [{**asdict(p), "default_model": settings.claude_model if p.id == "anthropic" else p.default_model}
+    return [{**asdict(p), "label": tr(p.label),
+             "default_model": settings.claude_model if p.id == "anthropic" else p.default_model}
             for p in PROVIDERS.values()]
 
 
@@ -91,7 +93,7 @@ def _request(settings: Settings) -> tuple[Provider, str, dict]:
     p = current(settings)
     url = base_url(settings, p)
     if not url:
-        raise CoachError("Adresse de l'API manquante : renseignez-la dans Paramètres.")
+        raise CoachError(tr("Adresse de l'API manquante : renseignez-la dans Paramètres."))
     headers = {"Content-Type": "application/json"}
     key = api_key(settings, p)
     if key:
@@ -102,12 +104,13 @@ def _request(settings: Settings) -> tuple[Provider, str, dict]:
 def _http_error(p: Provider, settings: Settings, response: httpx.Response) -> CoachError:
     code = response.status_code
     if code in (401, 403):
-        return CoachError(f"Clé refusée par {p.label} : vérifiez-la dans Paramètres.")
+        return CoachError(tr("Clé refusée par {provider} : vérifiez-la dans Paramètres.", provider=tr(p.label)))
     if code == 404:
-        return CoachError(f"Modèle « {model(settings, p)} » introuvable chez {p.label}.")
+        return CoachError(tr("Modèle « {model} » introuvable chez {provider}.",
+                              model=model(settings, p), provider=tr(p.label)))
     if code == 429:
-        return CoachError("Limite de requêtes atteinte, réessayez dans un instant.")
-    return CoachError(f"Erreur de l'API {p.label} ({code}).")
+        return CoachError(tr("Limite de requêtes atteinte, réessayez dans un instant."))
+    return CoachError(tr("Erreur de l'API {provider} ({code}).", provider=tr(p.label), code=code))
 
 
 def _messages(system: str, messages: list[dict]) -> list[dict]:
@@ -138,7 +141,7 @@ async def stream_chat(settings: Settings, system: str, messages: list[dict]) -> 
                         if text:
                             yield text
     except httpx.HTTPError as exc:
-        raise CoachError(f"Impossible de joindre {p.label}.") from exc
+        raise CoachError(tr("Impossible de joindre {provider}.", provider=tr(p.label))) from exc
 
 
 async def complete_json(settings: Settings, system: str, prompt: str) -> str:
@@ -153,7 +156,7 @@ async def complete_json(settings: Settings, system: str, prompt: str) -> str:
                 payload.pop("response_format")
                 response = await client.post(url, headers=headers, json=payload)
     except httpx.HTTPError as exc:
-        raise CoachError(f"Impossible de joindre {p.label}.") from exc
+        raise CoachError(tr("Impossible de joindre {provider}.", provider=tr(p.label))) from exc
     if response.status_code >= 400:
         raise _http_error(p, settings, response)
     choices = response.json().get("choices") or [{}]

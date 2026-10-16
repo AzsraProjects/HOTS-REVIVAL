@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings, app_settings
 from app.db import get_db
+from app.i18n import tr
 from app.models import Replay
 from app.replay.importer import ImportResult
 from app.replay.watcher import REPLAY_SUFFIX, ReplayImporter
@@ -51,7 +52,7 @@ def import_replays(
     targets = [Path(body.path)] if body.path else settings.resolved_replay_dirs()
     targets = [t for t in targets if t.exists()]
     if not targets:
-        raise HTTPException(400, f"Chemin introuvable : {body.path or 'dossier de replays'}")
+        raise HTTPException(400, tr("Chemin introuvable : {path}", path=body.path or tr("dossier de replays")))
     importer = importer or ReplayImporter(targets, settings.resolved_toon_handles())
 
     results: list[ImportResult] = []

@@ -14,6 +14,7 @@ from app.community.client import CommunityClient, CommunityError, profile_slug
 from app.community.summary import SHARED_MODES, build_summary, is_shareable
 from app.config import Settings
 from app.db import SessionLocal
+from app.i18n import tr
 from app.models import CommunityUpload, Match, MatchPlayer, Replay
 
 log = logging.getLogger(__name__)
@@ -106,7 +107,7 @@ class CommunityUploader:
             return wait
         except Exception:
             log.exception("Partage communautaire")
-            self.last_error = "Erreur inattendue (voir le journal)"
+            self.last_error = tr("Erreur inattendue (voir le journal)")
             return 600
         self.last_error = self.paused_until = None
         if settings.public_profile and not profile_slug():

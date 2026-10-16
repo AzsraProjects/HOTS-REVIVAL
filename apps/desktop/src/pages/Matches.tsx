@@ -3,22 +3,23 @@ import { Empty, ErrorBox, Loading, ModeLabel } from "../components/ui";
 import { useAsync } from "../hooks/useAsync";
 import { api } from "../lib/api";
 import { clock, date, scoreColor } from "../lib/format";
+import { t } from "../lib/i18n";
 
 export function Matches() {
   const { data, error, loading } = useAsync(() => api.matches(50));
   if (loading) return <Loading />;
   if (error) return <ErrorBox message={error} />;
-  if (!data?.length) return <Empty title="Aucune partie">Les replays apparaîtront ici dès leur import.</Empty>;
+  if (!data?.length) return <Empty title={t("Aucune partie")}>{t("Les replays apparaîtront ici dès leur import.")}</Empty>;
 
   return (
     <div className="space-y-3">
-      <h1 className="title-display text-3xl">Historique des parties</h1>
+      <h1 className="title-display text-3xl">{t("Historique des parties")}</h1>
       {data.map((m) => {
         const win = m.me?.is_winner;
         return (
           <Link key={m.id} to={`/matches/${m.id}`}
             className={`card flex items-center gap-6 border-l-4 transition hover:border-nexus-500 ${m.counted ? "" : "opacity-60"} ${win ? "border-l-storm-500" : "border-l-rose-500"}`}>
-            <div className={`w-20 text-sm font-bold ${win ? "text-storm-300" : "text-rose-300"}`}>{win ? "VICTOIRE" : "DÉFAITE"}</div>
+            <div className={`w-20 text-sm font-bold ${win ? "text-storm-300" : "text-rose-300"}`}>{win ? t("VICTOIRE") : t("DÉFAITE")}</div>
             <div className="w-48">
               <div className="font-semibold text-white">{m.me?.hero_name ?? "?"}</div>
               <div className="text-xs text-slate-400"><ModeLabel mode={m.game_mode} counted={m.counted} /></div>

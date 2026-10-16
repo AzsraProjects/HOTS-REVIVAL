@@ -6,6 +6,8 @@ Ce module est la référence lue par l'UI (/api/compliance) et par les tests.
 """
 from __future__ import annotations
 
+from app.i18n import tr
+
 ALLOWED_SOURCES: dict[str, str] = {
     "game_process": "Présence du processus HeroesOfTheStorm dans la liste des programmes (jeu lancé / fermé), "
                     "comme le fait Discord. Le processus n'est jamais ouvert ni lu.",
@@ -39,10 +41,13 @@ FORBIDDEN_CODE_TOKENS: tuple[str, ...] = (
 )
 
 
+STATEMENT = ("Overlay passif : aucune lecture mémoire, aucune injection, aucune action automatique. "
+             "Seules les informations publiques ou personnelles sont utilisées.")
+
+
 def describe() -> dict:
     return {
-        "allowed_sources": ALLOWED_SOURCES,
-        "forbidden": list(FORBIDDEN_CAPABILITIES),
-        "statement": "Overlay passif : aucune lecture mémoire, aucune injection, aucune action automatique. "
-                     "Seules les informations publiques ou personnelles sont utilisées.",
+        "allowed_sources": {key: tr(text) for key, text in ALLOWED_SOURCES.items()},
+        "forbidden": [tr(text) for text in FORBIDDEN_CAPABILITIES],
+        "statement": tr(STATEMENT),
     }

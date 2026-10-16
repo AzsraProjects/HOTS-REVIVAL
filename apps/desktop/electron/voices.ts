@@ -5,6 +5,7 @@
 import { app, BrowserWindow, dialog, shell } from "electron";
 import fs from "node:fs";
 import path from "node:path";
+import { t } from "./i18n";
 
 const EXT_MIME: Record<string, string> = { webm: "audio/webm", ogg: "audio/ogg", wav: "audio/wav", mp3: "audio/mpeg" };
 const MAX_CLIP_BYTES = 10 * 1024 * 1024;
@@ -25,20 +26,20 @@ export function cleanProfileName(name: unknown): string {
     .replace(/^\.+|\.+$/g, "")
     .slice(0, 40)
     .trim();
-  if (!clean || RESERVED.test(clean)) throw new Error("Nom de profil invalide.");
+  if (!clean || RESERVED.test(clean)) throw new Error(t("Nom de profil invalide."));
   return clean;
 }
 
 function cleanKey(key: unknown): string {
   const k = String(key ?? "");
-  if (!KEY_RE.test(k)) throw new Error(`Clé de phrase invalide : ${k}`);
+  if (!KEY_RE.test(k)) throw new Error(t("Clé de phrase invalide : {key}", { key: k }));
   return k;
 }
 
 function profileDir(name: unknown, mustExist = true): string {
   const dir = path.join(root(), cleanProfileName(name));
-  if (path.dirname(dir) !== root()) throw new Error("Chemin invalide.");
-  if (mustExist && !fs.existsSync(dir)) throw new Error("Profil introuvable.");
+  if (path.dirname(dir) !== root()) throw new Error(t("Chemin invalide."));
+  if (mustExist && !fs.existsSync(dir)) throw new Error(t("Profil introuvable."));
   return dir;
 }
 
@@ -52,7 +53,7 @@ export function listProfiles(): string[] {
 
 export function createProfile(name: unknown): string {
   const dir = profileDir(name, false);
-  if (fs.existsSync(dir)) throw new Error("Un profil porte déjà ce nom.");
+  if (fs.existsSync(dir)) throw new Error(t("Un profil porte déjà ce nom."));
   fs.mkdirSync(dir, { recursive: true });
   return path.basename(dir);
 }
@@ -62,7 +63,7 @@ export function renameProfile(from: unknown, to: unknown): string {
   const dst = profileDir(to, false);
   if (src === dst) return path.basename(dst);
   // Windows : un simple changement de casse renvoie « existe déjà »
-  if (fs.existsSync(dst) && src.toLowerCase() !== dst.toLowerCase()) throw new Error("Un profil porte déjà ce nom.");
+  if (fs.existsSync(dst) && src.toLowerCase() !== dst.toLowerCase()) throw new Error(t("Un profil porte déjà ce nom."));
   fs.renameSync(src, dst);
   return path.basename(dst);
 }
@@ -100,9 +101,9 @@ export function deleteClip(profile: unknown, key: unknown): void {
 
 export function saveClip(profile: unknown, key: unknown, data: Uint8Array, ext: unknown = "webm"): VoiceClip {
   const e = String(ext).toLowerCase();
-  if (!EXT_MIME[e]) throw new Error("Format audio non pris en charge.");
+  if (!EXT_MIME[e]) throw new Error(t("Format audio non pris en charge."));
   const bytes = Buffer.from(data);
-  if (!bytes.length || bytes.length > MAX_CLIP_BYTES) throw new Error("Enregistrement vide ou trop long.");
+  if (!bytes.length || bytes.length > MAX_CLIP_BYTES) throw new Error(t("Enregistrement vide ou trop long."));
   const dir = profileDir(profile);
   const k = cleanKey(key);
   deleteClip(profile, k); // un seul fichier par phrase, quel que soit le format
@@ -125,7 +126,7 @@ export async function importClips(win: BrowserWindow | null, profile: unknown, k
   const dir = profileDir(profile);
   const known = new Set(Array.isArray(keys) ? keys.map(String) : []);
   const opts: Electron.OpenDialogOptions = {
-    title: "Importer des enregistrements",
+    title: t("Importer des enregistrements"),
     properties: ["openFile", "multiSelections"],
     filters: [{ name: "Audio", extensions: Object.keys(EXT_MIME) }],
   };
@@ -147,8 +148,8 @@ export async function importClips(win: BrowserWindow | null, profile: unknown, k
 
 function copyClip(dir: string, profile: unknown, key: string, file: string): void {
   const ext = path.extname(file).slice(1).toLowerCase();
-  if (!EXT_MIME[ext]) throw new Error("Format audio non pris en charge.");
-  if (fs.statSync(file).size > MAX_CLIP_BYTES) throw new Error("Fichier trop volumineux.");
+  if (!EXT_MIME[ext]) throw new Error(t("Format audio non pris en charge."));
+  if (fs.statSync(file).size > MAX_CLIP_BYTES) throw new Error(t("Fichier trop volumineux."));
   deleteClip(profile, key);
   fs.copyFileSync(file, path.join(dir, `${key}.${ext}`));
 }
@@ -156,7 +157,7 @@ function copyClip(dir: string, profile: unknown, key: string, file: string): voi
 /** Attribue à une phrase un fichier choisi lors du dernier import (nom non reconnu). */
 export function assignImported(profile: unknown, key: unknown, file: unknown): void {
   const f = String(file);
-  if (!picked.has(f)) throw new Error("Fichier non sélectionné.");
+  if (!picked.has(f)) throw new Error(t("Fichier non sélectionné."));
   copyClip(profileDir(profile), profile, cleanKey(key), f);
 }
 

@@ -5,6 +5,8 @@ dégâts, un tank encaisse beaucoup) et à donner des conseils propres au rôle 
 """
 from __future__ import annotations
 
+from app.i18n import tr
+
 ROLE_PLAYBOOK: dict[str, dict] = {
     "Healer": {
         "label": "Soigneur",
@@ -73,9 +75,21 @@ ROLE_PLAYBOOK: dict[str, dict] = {
     },
 }
 
+# conseil de diversification (texte français = clé de traduction)
+ROLE_ADVICE = ("{pct} % de vos parties sont en {role} : développer un second rôle (idéalement un rôle de dégâts "
+               "si vous jouez surtout soutien/soigneur) rend vos drafts plus flexibles et vos statistiques plus "
+               "équilibrées.")
+
 
 def role_context(role: str | None) -> dict:
-    return ROLE_PLAYBOOK.get(role or "", ROLE_PLAYBOOK["Ranged Assassin"])
+    """Fiche du rôle, textes traduits dans la langue de l'interface (le tableau reste en français)."""
+    entry = ROLE_PLAYBOOK.get(role or "", ROLE_PLAYBOOK["Ranged Assassin"])
+    return {
+        "label": tr(entry["label"]),
+        "focus": [tr(f) for f in entry["focus"]],
+        "normal": tr(entry["normal"]),
+        "habits": [tr(h) for h in entry["habits"]],
+    }
 
 
 def role_balance(by_role: dict[str, dict]) -> dict:
@@ -85,9 +99,5 @@ def role_balance(by_role: dict[str, dict]) -> dict:
     main = max(shares, key=shares.get) if shares else None
     out = {"shares": shares, "main_role": main, "advice": None}
     if main and shares[main] >= 0.6 and total >= 10:
-        out["advice"] = (
-            f"{round(shares[main] * 100)} % de vos parties sont en {role_context(main)['label'].lower()} : "
-            "développer un second rôle (idéalement un rôle de dégâts si vous jouez surtout soutien/soigneur) "
-            "rend vos drafts plus flexibles et vos statistiques plus équilibrées."
-        )
+        out["advice"] = tr(ROLE_ADVICE, pct=round(shares[main] * 100), role=role_context(main)["label"].lower())
     return out

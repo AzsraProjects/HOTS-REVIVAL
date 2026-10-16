@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api } from "../lib/api";
 import { clock, pct } from "../lib/format";
+import { t } from "../lib/i18n";
 import type { Hero, MapInfo, OverlayState, OverlayTalent } from "../lib/types";
 import { HeroSelect } from "./HeroSelect";
 
@@ -10,22 +11,23 @@ const ALERT_TONE = {
   success: "border-emerald-400 text-emerald-200",
   danger: "border-rose-500 text-rose-200",
 };
+// libellés traduits à la lecture (getters), jamais au chargement du module
 const CAMPS = [
-  { id: "siege", label: "Siège" },
-  { id: "bruiser", label: "Combattant" },
-  { id: "boss", label: "Boss" },
-  { id: "support", label: "Soutien" },
+  { id: "siege", get label() { return t("Siège"); } },
+  { id: "bruiser", get label() { return t("Combattant"); } },
+  { id: "boss", get label() { return t("Boss"); } },
+  { id: "support", get label() { return t("Soutien"); } },
 ];
 const campLabel = (id: string) => CAMPS.find((c) => c.id === id)?.label.toLowerCase() ?? id;
 const box = "rounded-lg bg-void-950/85 px-3 py-1.5 backdrop-blur";
 
-function TalentLine({ t }: { t: OverlayTalent }) {
-  const name = t.recommended.name ?? t.recommended.talent;
+function TalentLine({ t: talent }: { t: OverlayTalent }) {
+  const name = talent.recommended.name ?? talent.recommended.talent;
   return (
     <div className="flex justify-between gap-2">
-      <span className="text-slate-400">Niv. {t.level}</span>
+      <span className="text-slate-400">{t("Niv. {level}", { level: talent.level })}</span>
       <span className="flex-1 truncate text-white">{name}</span>
-      {t.recommended.winrate != null && <span className="text-xs text-slate-400">{pct(t.recommended.winrate)}</span>}
+      {talent.recommended.winrate != null && <span className="text-xs text-slate-400">{pct(talent.recommended.winrate)}</span>}
     </div>
   );
 }
@@ -51,7 +53,7 @@ export function OverlayPanel({ state, interactive, heroes, maps, onState, previe
     // Jeu ouvert, pas de partie : petite pastille pour confirmer que l'overlay est actif.
     return s?.game_running ? (
       <div className="inline-flex items-center gap-2 rounded-full border border-nexus-600/60 bg-void-950/80 px-3 py-1 text-[11px] text-slate-300">
-        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> HOTS REVIVAL prêt · s'affiche au chargement d'une partie
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> {t("HOTS REVIVAL prêt · s'affiche au chargement d'une partie")}
       </div>
     ) : null;
   }
@@ -61,10 +63,10 @@ export function OverlayPanel({ state, interactive, heroes, maps, onState, previe
       {(status !== "idle" || interactive || preview) && (
         <div className="flex items-center justify-between rounded-lg border border-nexus-600/60 bg-void-950/85 px-3 py-1.5">
           <span className="truncate font-display text-xs text-gold-400">
-            {s?.map_name ?? (status === "idle" ? "HOTS REVIVAL" : "Carte inconnue")}
+            {s?.map_name ?? (status === "idle" ? "HOTS REVIVAL" : t("Carte inconnue"))}
           </span>
           <span className="font-mono text-base text-white">
-            {status === "loading" ? "chargement" : status === "ended" ? "terminée"
+            {status === "loading" ? t("chargement") : status === "ended" ? t("terminée")
               : clock(s?.clock_s)}
           </span>
         </div>
@@ -87,24 +89,24 @@ export function OverlayPanel({ state, interactive, heroes, maps, onState, previe
             <div className={`${box} flex justify-between`}>
               <span className="text-storm-300">{s.objective.name}</span>
               <span className="font-mono font-bold text-gold-400">
-                {s.objective.next_in_s !== null && s.objective.next_in_s > 0 ? clock(s.objective.next_in_s) : "en cours"}
+                {s.objective.next_in_s !== null && s.objective.next_in_s > 0 ? clock(s.objective.next_in_s) : t("en cours")}
               </span>
             </div>
           )}
           {s.levels && (
           <div className={`${box} flex justify-between`}>
-            <span>Alliés <b className="text-storm-300">{s.levels.ally}</b></span>
+            <span>{t("Alliés")} <b className="text-storm-300">{s.levels.ally}</b></span>
             <span className={s.levels.ally_tier > s.levels.enemy_tier ? "text-emerald-300" : s.levels.ally_tier < s.levels.enemy_tier ? "text-rose-300" : "text-slate-500"}>
-              {s.levels.ally_tier === s.levels.enemy_tier ? "talents égaux" : s.levels.ally_tier > s.levels.enemy_tier ? "▲ avantage" : "▼ désavantage"}
+              {s.levels.ally_tier === s.levels.enemy_tier ? t("talents égaux") : s.levels.ally_tier > s.levels.enemy_tier ? `▲ ${t("avantage")}` : `▼ ${t("désavantage")}`}
             </span>
-            <span>Adv. <b className="text-rose-300">{s.levels.enemy}</b></span>
+            <span>{t("Adv.")} <b className="text-rose-300">{s.levels.enemy}</b></span>
           </div>
           )}
           {s.next_talent && <div className={box}><TalentLine t={s.next_talent} /></div>}
           {s.camps.map((c) => (
             <div key={c.camp + c.side} className={`${box} flex justify-between`}>
-              <span className={c.side === "ally" ? "text-storm-300" : "text-rose-300"}>Camp {campLabel(c.camp)}</span>
-              <span className="font-mono">{c.respawn_in_s !== null && c.respawn_in_s > 0 ? clock(c.respawn_in_s) : "disponible"}</span>
+              <span className={c.side === "ally" ? "text-storm-300" : "text-rose-300"}>{t("Camp {camp}", { camp: campLabel(c.camp) })}</span>
+              <span className="font-mono">{c.respawn_in_s !== null && c.respawn_in_s > 0 ? clock(c.respawn_in_s) : t("disponible")}</span>
             </div>
           ))}
           {s.tips[0] && <div className={`${box} text-gold-300`}>✦ {s.tips[0]}</div>}
@@ -117,24 +119,24 @@ export function OverlayPanel({ state, interactive, heroes, maps, onState, previe
             <>
               {!s?.map_id && (
                 <select className="w-full" value={mapId} onChange={(e) => setMapId(e.target.value)}>
-                  <option value="">— Carte (si non détectée) —</option>
+                  <option value="">{t("— Carte (si non détectée) —")}</option>
                   {maps.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </select>
               )}
               <button className="btn-gold w-full justify-center py-1" onClick={() => act(api.live.start(mapId || null, null, 0))}>
-                La partie commence (horloge à 0:00)
+                {t("La partie commence (horloge à 0:00)")}
               </button>
             </>
           )}
-          <HeroSelect heroes={heroes} value={s?.my_hero_id ?? ""} placeholder="— Votre héros (build) —"
+          <HeroSelect heroes={heroes} value={s?.my_hero_id ?? ""} placeholder={t("— Votre héros (build) —")}
             onChange={(id) => id && act(api.live.hero(id))} />
           {status === "in_game" && (
             <>
               <div className="grid grid-cols-4 gap-1">
-                <button className="btn-ghost justify-center px-1 py-1" onClick={() => act(api.live.levels({ ally_delta: 1 }))}>Allié +1</button>
-                <button className="btn-ghost justify-center px-1 py-1" onClick={() => act(api.live.levels({ ally_delta: -1 }))}>Allié −1</button>
-                <button className="btn-ghost justify-center px-1 py-1" onClick={() => act(api.live.levels({ enemy_delta: 1 }))}>Adv. +1</button>
-                <button className="btn-ghost justify-center px-1 py-1" onClick={() => act(api.live.levels({ enemy_delta: -1 }))}>Adv. −1</button>
+                <button className="btn-ghost justify-center px-1 py-1" onClick={() => act(api.live.levels({ ally_delta: 1 }))}>{t("Allié +1")}</button>
+                <button className="btn-ghost justify-center px-1 py-1" onClick={() => act(api.live.levels({ ally_delta: -1 }))}>{t("Allié −1")}</button>
+                <button className="btn-ghost justify-center px-1 py-1" onClick={() => act(api.live.levels({ enemy_delta: 1 }))}>{t("Adv. +1")}</button>
+                <button className="btn-ghost justify-center px-1 py-1" onClick={() => act(api.live.levels({ enemy_delta: -1 }))}>{t("Adv. −1")}</button>
               </div>
               <div className="grid grid-cols-4 gap-1">
                 {CAMPS.map((c) => (
@@ -142,12 +144,12 @@ export function OverlayPanel({ state, interactive, heroes, maps, onState, previe
                 ))}
               </div>
               <div className="flex gap-1">
-                <button className="btn-ghost flex-1 justify-center py-1" onClick={() => act(api.live.objectiveDone())}>Objectif terminé</button>
-                <button className="btn-ghost justify-center py-1 text-rose-300" onClick={() => act(api.live.stop())}>Fin</button>
+                <button className="btn-ghost flex-1 justify-center py-1" onClick={() => act(api.live.objectiveDone())}>{t("Objectif terminé")}</button>
+                <button className="btn-ghost justify-center py-1 text-rose-300" onClick={() => act(api.live.stop())}>{t("Fin")}</button>
               </div>
             </>
           )}
-          <div className="text-[10px] text-slate-500">Ctrl+Shift+I pour revenir au mode transparent.</div>
+          <div className="text-[10px] text-slate-500">{t("Ctrl+Shift+I pour revenir au mode transparent.")}</div>
         </div>
       )}
     </div>

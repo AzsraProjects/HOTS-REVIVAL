@@ -1,4 +1,5 @@
 import { bridge } from "./bridge";
+import { t } from "./i18n";
 import type {
   LobbyPlayer,
   RankEntry,
@@ -93,7 +94,7 @@ export async function streamCoach(
     body: JSON.stringify(body),
     signal,
   });
-  if (!res.ok || !res.body) throw new ApiError(res.status, "Coach indisponible");
+  if (!res.ok || !res.body) throw new ApiError(res.status, t("Coach indisponible"));
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";

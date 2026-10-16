@@ -4,11 +4,12 @@ import { ScoreRadar } from "../components/ScoreRadar";
 import { useAsync } from "../hooks/useAsync";
 import { api } from "../lib/api";
 import { CATEGORY_FR, pct, ROLE_FR, scoreColor } from "../lib/format";
+import { t } from "../lib/i18n";
 import type { ProgressionPoint } from "../lib/types";
 
 function Sparkline({ points }: { points: ProgressionPoint[] }) {
   const values = points.map((p) => p.heros_score ?? 0);
-  if (values.length < 2) return <p className="text-sm text-slate-500">Jouez quelques parties pour voir votre courbe.</p>;
+  if (values.length < 2) return <p className="text-sm text-slate-500">{t("Jouez quelques parties pour voir votre courbe.")}</p>;
   const w = 560, h = 120;
   const path = values
     .map((v, i) => `${i === 0 ? "M" : "L"}${(i / (values.length - 1)) * w},${h - (v / 100) * h}`)
@@ -37,11 +38,11 @@ export function Dashboard() {
 
   if (!p.total.games)
     return (
-      <Empty title="Bienvenue dans HOTS REVIVAL">
-        <p>Jouez une partie : à la fin, elle est analysée automatiquement et votre rapport apparaît ici.</p>
+      <Empty title={t("Bienvenue dans HOTS REVIVAL")}>
+        <p>{t("Jouez une partie : à la fin, elle est analysée automatiquement et votre rapport apparaît ici.")}</p>
         <div className="mt-5 flex justify-center gap-3">
-          <Link className="btn-gold" to="/settings">Importer mes anciens replays</Link>
-          <Link className="btn-ghost" to="/settings">Activer le coach IA</Link>
+          <Link className="btn-gold" to="/settings">{t("Importer mes anciens replays")}</Link>
+          <Link className="btn-ghost" to="/settings">{t("Activer le coach IA")}</Link>
         </div>
       </Empty>
     );
@@ -53,70 +54,70 @@ export function Dashboard() {
     <div className="space-y-6">
       <header className="flex items-end justify-between">
         <div>
-          <h1 className="title-display text-3xl">{p.player.battletag ?? p.player.name ?? "Joueur"}</h1>
+          <h1 className="title-display text-3xl">{p.player.battletag ?? p.player.name ?? t("Joueur")}</h1>
           <p className="text-sm text-slate-400">
-            Rôle principal : <b className="text-white">{ROLE_FR[p.main_role ?? ""] ?? "–"}</b> · secondaire :{" "}
+            {t("Rôle principal :")} <b className="text-white">{ROLE_FR[p.main_role ?? ""] ?? "–"}</b> · {t("secondaire :")}{" "}
             <b className="text-white">{ROLE_FR[p.secondary_role ?? ""] ?? "–"}</b>
-            {p.player.rank && <> · Rang : <b className="text-gold-400">{p.player.rank}</b></>}
+            {p.player.rank && <> · {t("Rang :")} <b className="text-gold-400">{p.player.rank}</b></>}
           </p>
         </div>
       </header>
 
       <div className="grid grid-cols-4 gap-4">
-        <Stat label="Winrate global" value={pct(p.total.winrate, 1)} hint={`${p.total.wins} V / ${p.total.games - p.total.wins} D`} tone="text-storm-300" />
-        <Stat label="Parties analysées" value={p.total.games} />
-        <Stat label="HEROS SCORE moyen" value={p.total.avg_heros_score ?? "–"}
-          tone={scoreColor(p.total.avg_heros_score ?? 0)} hint="sur 100" />
-        <Stat label="Tendance (10 parties)" value={`${trendIcon} ${pct(p.trend.last_10_winrate)}`}
-          hint={`précédentes : ${pct(p.trend.previous_10_winrate)}`}
+        <Stat label={t("Winrate global")} value={pct(p.total.winrate, 1)} hint={t("{w} V / {l} D", { w: p.total.wins, l: p.total.games - p.total.wins })} tone="text-storm-300" />
+        <Stat label={t("Parties analysées")} value={p.total.games} />
+        <Stat label={t("HEROS SCORE moyen")} value={p.total.avg_heros_score ?? "–"}
+          tone={scoreColor(p.total.avg_heros_score ?? 0)} hint={t("sur 100")} />
+        <Stat label={t("Tendance (10 parties)")} value={`${trendIcon} ${pct(p.trend.last_10_winrate)}`}
+          hint={t("précédentes : {winrate}", { winrate: pct(p.trend.previous_10_winrate) })}
           tone={p.trend.direction === "down" ? "text-rose-400" : "text-emerald-400"} />
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <Card title="HEROS SCORE moyen">
+        <Card title={t("HEROS SCORE moyen")}>
           <div className="flex justify-center"><ScoreRadar score={p.category_averages} /></div>
         </Card>
-        <Card title="Winrate par rôle">
+        <Card title={t("Winrate par rôle")}>
           <div className="space-y-3">
             {Object.entries(p.by_role).sort((a, b) => b[1].games - a[1].games).map(([role, b]) => (
               <div key={role}>
                 <div className="mb-1 flex justify-between text-sm">
                   <span>{ROLE_FR[role] ?? role}</span>
-                  <span className="text-slate-400">{pct(b.winrate)} · {b.games} parties</span>
+                  <span className="text-slate-400">{pct(b.winrate)} · {t("{n} parties", { n: b.games })}</span>
                 </div>
                 <Bar value={(b.winrate ?? 0) * 100} />
               </div>
             ))}
           </div>
         </Card>
-        <Card title="Synthèse">
+        <Card title={t("Synthèse")}>
           <div className="space-y-3 text-sm">
-            <div>Meilleur héros : <b className="text-gold-400">{p.best_hero ?? "–"}</b></div>
-            <div>Héros le plus difficile : <b className="text-rose-300">{p.worst_hero ?? "–"}</b></div>
+            <div>{t("Meilleur héros :")} <b className="text-gold-400">{p.best_hero ?? "–"}</b></div>
+            <div>{t("Héros le plus difficile :")} <b className="text-rose-300">{p.worst_hero ?? "–"}</b></div>
             <div>
-              <div className="mb-1 text-slate-400">Héros à éviter pour l'instant :</div>
-              <List items={p.heroes_to_avoid} icon="⚠" tone="text-rose-300" empty="Aucun — continuez ainsi." />
+              <div className="mb-1 text-slate-400">{t("Héros à éviter pour l'instant :")}</div>
+              <List items={p.heroes_to_avoid} icon="⚠" tone="text-rose-300" empty={t("Aucun — continuez ainsi.")} />
             </div>
-            <div className="text-xs text-slate-500">Calculs lissés (min. 3 parties par héros).</div>
+            <div className="text-xs text-slate-500">{t("Calculs lissés (min. 3 parties par héros).")}</div>
           </div>
         </Card>
       </div>
 
       {p.role_balance?.advice && (
-        <Card title="Équilibre des rôles" className="border-gold-600/40">
+        <Card title={t("Équilibre des rôles")} className="border-gold-600/40">
           <p className="text-sm text-gold-300">{p.role_balance.advice}</p>
-          <p className="mt-2 text-xs text-slate-400">Demandez au coach « Quel second rôle dois-je développer ? » ou consultez la page Méta.</p>
+          <p className="mt-2 text-xs text-slate-400">{t("Demandez au coach « Quel second rôle dois-je développer ? » ou consultez la page Méta.")}</p>
         </Card>
       )}
 
-      <Card title="Progression du HEROS SCORE">
+      <Card title={t("Progression du HEROS SCORE")}>
         {prog.data ? <Sparkline points={prog.data} /> : <Loading />}
       </Card>
 
-      <Card title="Héros">
+      <Card title={t("Héros")}>
         <table className="w-full text-sm">
           <thead className="text-left text-xs uppercase tracking-wider text-slate-500">
-            <tr><th className="py-2">Héros</th><th>Parties</th><th>Winrate</th><th>HEROS SCORE</th></tr>
+            <tr><th className="py-2">{t("Héros")}</th><th>{t("Parties")}</th><th>Winrate</th><th>HEROS SCORE</th></tr>
           </thead>
           <tbody>
             {heroes.map(([id, h]) => (
@@ -132,7 +133,7 @@ export function Dashboard() {
       </Card>
 
       <p className="text-xs text-slate-500">
-        Catégories : {Object.values(CATEGORY_FR).join(" · ")}. Le placement est estimé par des indicateurs indirects du replay.
+        {t("Catégories : {list}. Le placement est estimé par des indicateurs indirects du replay.", { list: Object.values(CATEGORY_FR).join(" · ") })}
       </p>
     </div>
   );

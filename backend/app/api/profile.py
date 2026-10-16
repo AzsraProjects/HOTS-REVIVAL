@@ -11,6 +11,7 @@ from app.analytics.profile_stats import build_profile, progression
 from app.coach.roles import role_balance
 from app.config import Settings, app_settings
 from app.db import get_db
+from app.i18n import tr
 from app.models import Player, RankSnapshot
 
 router = APIRouter(prefix="/profile", tags=["profil"])
@@ -60,7 +61,7 @@ def ranks(db: Session = Depends(get_db)) -> dict:
 @router.post("/ranks")
 def add_rank(body: RankIn, db: Session = Depends(get_db)) -> dict:
     if body.league not in LEAGUES:
-        raise HTTPException(400, "Ligue inconnue")
+        raise HTTPException(400, tr("Ligue inconnue"))
     r = RankSnapshot(league=body.league, division=body.division, mode=body.mode)
     db.add(r)
     db.commit()

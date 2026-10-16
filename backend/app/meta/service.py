@@ -9,6 +9,7 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.i18n import tr
 from app.meta.icyveins import (
     TIER_LISTS, guide_url, parse_hero_guide, parse_tier_list, tier_slugs, updated_label,
 )
@@ -73,10 +74,10 @@ def ingest(db: Session, kind: str, key: str, url: str, html: str) -> dict:
     """Analyse et enregistre une page. Une page illisible ne remplace jamais des données valides."""
     if kind == "tierlist":
         if key not in TIER_LISTS:
-            return {"ok": False, "error": "liste inconnue"}
+            return {"ok": False, "error": tr("liste inconnue")}
         entries = parse_tier_list(html)
         if len(entries) < 20:
-            return {"ok": False, "error": f"tier list illisible ({len(entries)} héros reconnus)"}
+            return {"ok": False, "error": tr("tier list illisible ({n} héros reconnus)", n=len(entries))}
         tl = db.scalar(select(MetaTierList).where(MetaTierList.list_key == key)) or MetaTierList(list_key=key)
         tl.title, tl.url = TIER_LISTS[key]["title"], url
         tl.updated_label = updated_label(html)
@@ -88,17 +89,17 @@ def ingest(db: Session, kind: str, key: str, url: str, html: str) -> dict:
         return {"ok": True, "heroes": len(entries)}
     if kind == "guide":
         if key not in registry().heroes:
-            return {"ok": False, "error": "héros inconnu"}
+            return {"ok": False, "error": tr("héros inconnu")}
         guide = parse_hero_guide(html, key)
         if not (guide.builds or guide.synergies or guide.counters):
-            return {"ok": False, "error": "guide illisible"}
+            return {"ok": False, "error": tr("guide illisible")}
         g = db.scalar(select(MetaHeroGuide).where(MetaHeroGuide.hero_id == key)) or MetaHeroGuide(hero_id=key)
         g.url, g.synergies, g.counters, g.builds = url, guide.synergies, guide.counters, guide.builds
         g.fetched_at = _now()
         db.add(g)
         db.commit()
         return {"ok": True, "builds": len(guide.builds), "synergies": len(guide.synergies)}
-    return {"ok": False, "error": "type inconnu"}
+    return {"ok": False, "error": tr("type inconnu")}
 
 
 def refresh_direct(db: Session, force: bool = False, limit: int | None = None) -> dict:
@@ -127,7 +128,7 @@ def tier_lists(db: Session) -> list[dict]:
     for key, cfg in TIER_LISTS.items():
         tl = by_key.get(key)
         out.append({
-            "key": key, "title": cfg["title"], "url": cfg["url"],
+            "key": key, "title": tr(cfg["title"]), "url": cfg["url"],
             "updated_label": tl.updated_label if tl else None,
             "fetched_at": tl.fetched_at.isoformat() if tl else None,
             "entries": [

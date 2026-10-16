@@ -5,6 +5,7 @@ import { useAsync } from "../hooks/useAsync";
 import { useLive } from "../hooks/useLive";
 import { api } from "../lib/api";
 import { bridge } from "../lib/bridge";
+import { t } from "../lib/i18n";
 
 /** Page de contrôle / aperçu de l'overlay dans la fenêtre principale. */
 export function LiveControl() {
@@ -26,16 +27,16 @@ export function LiveControl() {
         </div>
       </div>
       <div className="space-y-4 pt-14">
-        <Card title="Fonctionnement">
+        <Card title={t("Fonctionnement")}>
           <List items={[
-            "Automatique : lancement et fermeture du jeu, chargement d'une partie, carte, fin de partie (l'overlay se vide tout seul).",
-            "Les timers d'objectifs sont mesurés sur vos propres replays (ou sur des replays de référence).",
-            "Horloge et niveaux d'équipe : lecture de l'écran (à activer dans Paramètres) ou raccourcis clavier.",
-            "Le build affiché vient d'Icy Veins pour votre héros, à défaut de vos replays.",
-            "Lancez le jeu en mode « Plein écran fenêtré » pour que l'overlay soit visible.",
+            t("Automatique : lancement et fermeture du jeu, chargement d'une partie, carte, fin de partie (l'overlay se vide tout seul)."),
+            t("Les timers d'objectifs sont mesurés sur vos propres replays (ou sur des replays de référence)."),
+            t("Horloge et niveaux d'équipe : lecture de l'écran (à activer dans Paramètres) ou raccourcis clavier."),
+            t("Le build affiché vient d'Icy Veins pour votre héros, à défaut de vos replays."),
+            t("Lancez le jeu en mode « Plein écran fenêtré » pour que l'overlay soit visible."),
           ]} />
         </Card>
-        <Card title="Raccourcis (n'envoient aucune touche au jeu)">
+        <Card title={t("Raccourcis (n'envoient aucune touche au jeu)")}>
           {Object.keys(shortcuts).length ? (
             <table className="w-full text-sm">
               <tbody>
@@ -44,12 +45,11 @@ export function LiveControl() {
                 ))}
               </tbody>
             </table>
-          ) : <p className="text-sm text-slate-500">Disponibles dans l'application desktop.</p>}
+          ) : <p className="text-sm text-slate-500">{t("Disponibles dans l'application desktop.")}</p>}
         </Card>
-        <Card title="Conformité">
+        <Card title={t("Conformité")}>
           <p className="text-sm text-slate-300">
-            L'overlay est une fenêtre indépendante : il ne lit pas la mémoire du jeu, n'injecte rien, ne révèle pas le brouillard
-            de guerre et n'automatise aucune action. Les informations affichées sont publiques ou saisies par vous.
+            {t("L'overlay est une fenêtre indépendante : il ne lit pas la mémoire du jeu, n'injecte rien, ne révèle pas le brouillard de guerre et n'automatise aucune action. Les informations affichées sont publiques ou saisies par vous.")}
           </p>
         </Card>
       </div>

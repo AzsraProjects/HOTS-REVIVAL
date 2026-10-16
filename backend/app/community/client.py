@@ -10,6 +10,7 @@ import httpx
 
 from app import __version__
 from app.config import data_dir
+from app.i18n import tr
 
 log = logging.getLogger(__name__)
 TIMEOUT = 20
@@ -82,7 +83,7 @@ class CommunityClient:
         try:
             r = httpx.request(method, f"{self.base_url}{path}", json=body, headers=headers, timeout=TIMEOUT)
         except httpx.HTTPError as exc:
-            raise CommunityError(f"Plateforme injoignable ({type(exc).__name__})") from exc
+            raise CommunityError(tr("Plateforme injoignable ({error})", error=type(exc).__name__)) from exc
         if r.status_code >= 400:
             try:
                 detail = r.json().get("detail", r.reason_phrase)

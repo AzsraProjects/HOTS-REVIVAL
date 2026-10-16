@@ -4,6 +4,7 @@ import { HeroSelect } from "../components/HeroSelect";
 import { useAsync } from "../hooks/useAsync";
 import { api } from "../lib/api";
 import { pct, ROLE_FR } from "../lib/format";
+import { t } from "../lib/i18n";
 import type { DraftResult } from "../lib/types";
 
 const empty5 = () => ["", "", "", "", ""];
@@ -23,12 +24,12 @@ export function Draft() {
   useEffect(() => {
     const a = allies.filter(Boolean), e = enemies.filter(Boolean);
     if (!a.length && !e.length) { setResult(null); return; }
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       api.analyzeDraft({ allies: a, enemies: e, bans: bans.filter(Boolean), map_id: mapId || null })
         .then((r) => { setResult(r); setError(null); })
         .catch((err: Error) => setError(err.message));
     }, 250);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [allies, enemies, bans, mapId]);
 
   if (heroes.loading || maps.loading) return <Loading />;
@@ -49,18 +50,18 @@ export function Draft() {
       <header className="flex items-center justify-between">
         <h1 className="title-display text-3xl">Draft Assistant</h1>
         <select value={mapId} onChange={(e) => setMapId(e.target.value)} className="w-64">
-          <option value="">— Carte —</option>
+          <option value="">{t("— Carte —")}</option>
           {maps.data?.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
         </select>
       </header>
 
       <div className="grid grid-cols-[1fr_1fr_220px] gap-4">
-        <Card title="Votre équipe" className="border-storm-700">
+        <Card title={t("Votre équipe")} className="border-storm-700">
           <div className="space-y-2">
             {allies.map((v, i) => <HeroSelect key={i} heroes={heroes.data!} value={v} exclude={picked} onChange={(id) => setAt(allies, setAllies, i, id)} />)}
           </div>
         </Card>
-        <Card title="Équipe adverse" className="border-rose-900">
+        <Card title={t("Équipe adverse")} className="border-rose-900">
           <div className="space-y-2">
             {enemies.map((v, i) => <HeroSelect key={i} heroes={heroes.data!} value={v} exclude={picked} onChange={(id) => setAt(enemies, setEnemies, i, id)} />)}
           </div>
@@ -76,7 +77,7 @@ export function Draft() {
       {result && (
         <>
           <div className="grid grid-cols-3 gap-4">
-            <Card title="Note de composition">
+            <Card title={t("Note de composition")}>
               <div className="text-5xl font-bold text-gold-400">{result.composition_score}<span className="text-lg text-slate-500">/100</span></div>
               <div className="mt-4 space-y-3">
                 <Phase label="Early game" value={result.phases.early} />
@@ -84,17 +85,17 @@ export function Draft() {
                 <Phase label="Late game" value={result.phases.late} />
               </div>
             </Card>
-            <Card title="Forces"><List items={result.strengths} icon="✔" tone="text-emerald-300" /></Card>
-            <Card title="Faiblesses"><List items={result.weaknesses} icon="✖" tone="text-rose-300" /></Card>
+            <Card title={t("Forces")}><List items={result.strengths} icon="✔" tone="text-emerald-300" /></Card>
+            <Card title={t("Faiblesses")}><List items={result.weaknesses} icon="✖" tone="text-rose-300" /></Card>
           </div>
           <div className="grid grid-cols-3 gap-4">
             <Card title="Synergies"><List items={result.synergies} icon="✦" tone="text-nexus-300" /></Card>
-            <Card title="Menaces"><List items={result.threats} icon="⚠" tone="text-rose-200" /></Card>
+            <Card title={t("Menaces")}><List items={result.threats} icon="⚠" tone="text-rose-200" /></Card>
             <Card title="Win conditions"><List items={result.win_conditions} icon="➜" tone="text-gold-300" /></Card>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Card title="Counters"><List items={result.counters} icon="⚔" /></Card>
-            <Card title="Picks recommandés">
+            <Card title={t("Picks recommandés")}>
               {result.recommendations.length ? (
                 <div className="space-y-2">
                   {result.recommendations.map((r, i) => (
@@ -103,14 +104,14 @@ export function Draft() {
                       if (slot >= 0) setAt(allies, setAllies, slot, r.hero_id);
                     }} className="flex w-full items-center justify-between rounded-lg border border-void-600 px-3 py-2 text-left hover:border-gold-500">
                       <span><span className="mr-2 text-gold-400">#{i + 1}</span><b className="text-white">{r.hero}</b> <span className="text-xs text-slate-400">{ROLE_FR[r.role]}</span>{r.tier && <span className="ml-2 rounded bg-gold-500 px-1 text-[10px] text-void-950">Tier {r.tier}</span>}</span>
-                      <span className="text-xs text-slate-400">{r.personal_winrate !== null ? `vous : ${pct(r.personal_winrate)}` : ""} · {r.score.toFixed(1)}</span>
+                      <span className="text-xs text-slate-400">{r.personal_winrate !== null ? t("vous : {winrate}", { winrate: pct(r.personal_winrate) }) : ""} · {r.score.toFixed(1)}</span>
                     </button>
                   ))}
                 </div>
-              ) : <p className="text-sm text-slate-500">Composition complète.</p>}
+              ) : <p className="text-sm text-slate-500">{t("Composition complète.")}</p>}
             </Card>
           </div>
-          <p className="text-xs text-slate-500">Analyse basée uniquement sur les choix visibles en draft, les profils publics des héros et votre historique personnel.</p>
+          <p className="text-xs text-slate-500">{t("Analyse basée uniquement sur les choix visibles en draft, les profils publics des héros et votre historique personnel.")}</p>
         </>
       )}
     </div>

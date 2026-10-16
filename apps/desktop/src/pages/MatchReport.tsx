@@ -6,18 +6,19 @@ import { useAsync } from "../hooks/useAsync";
 import { api } from "../lib/api";
 import { track } from "../lib/analytics";
 import { CATEGORY_FR, clock, compact, pct, scoreColor } from "../lib/format";
+import { t } from "../lib/i18n";
 import type { MatchPlayer } from "../lib/types";
 
 function Scoreboard({ players }: { players: MatchPlayer[] }) {
   return (
     <table className="w-full text-sm">
       <thead className="text-left text-xs uppercase tracking-wider text-slate-500">
-        <tr><th className="py-2">Joueur</th><th>Héros</th><th>K/D/A</th><th>Dégâts héros</th><th>Siège</th><th>Soins</th><th>XP</th><th>Score</th></tr>
+        <tr><th className="py-2">{t("Joueur")}</th><th>{t("Héros")}</th><th>K/D/A</th><th>{t("Dégâts héros")}</th><th>{t("Siège")}</th><th>{t("Soins")}</th><th>XP</th><th>Score</th></tr>
       </thead>
       <tbody>
         {players.map((p) => (
           <tr key={p.id} className={`border-t border-void-700 ${p.is_me ? "bg-nexus-700/20" : ""}`}>
-            <td className={`py-1.5 ${p.team === 0 ? "text-storm-300" : "text-rose-300"}`}>{p.name}{p.is_me && " (vous)"}</td>
+            <td className={`py-1.5 ${p.team === 0 ? "text-storm-300" : "text-rose-300"}`}>{p.name}{p.is_me && ` ${t("(vous)")}`}</td>
             <td>{p.hero_name}</td>
             <td>{p.kills}/{p.deaths}/{p.assists}</td>
             <td>{compact(p.hero_damage)}</td>
@@ -59,7 +60,7 @@ export function MatchReport() {
     <div className="space-y-6">
       <header className="flex items-start justify-between">
         <div>
-          <Link to="/matches" className="text-xs text-slate-400 hover:text-white">← Parties</Link>
+          <Link to="/matches" className="text-xs text-slate-400 hover:text-white">← {t("Parties")}</Link>
           <h1 className="title-display text-3xl">{m.map_name}</h1>
           <p className="text-sm text-slate-400"><ModeLabel mode={m.game_mode} counted={m.counted} /> · {clock(m.duration_s)} · {me?.hero_name}</p>
         </div>
@@ -70,24 +71,24 @@ export function MatchReport() {
       </header>
 
       {facts && (
-        <Card title="Résumé">
+        <Card title={t("Résumé")}>
           <p className="text-base text-white">{ai?.summary ?? facts.headline}</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="chip">Participation {pct(facts.kill_participation)}</span>
+            <span className="chip">{t("Participation {value}", { value: pct(facts.kill_participation) })}</span>
             <span className="chip">K/D/A {facts.kda.kills}/{facts.kda.deaths}/{facts.kda.assists}</span>
-            <span className="chip">Temps mort {facts.time_spent_dead_s} s</span>
-            <span className="chip">Part des dégâts {pct(facts.shares.hero_damage)}</span>
-            <span className="chip">Part d'XP {pct(facts.shares.xp_contribution)}</span>
+            <span className="chip">{t("Temps mort {n} s", { n: facts.time_spent_dead_s })}</span>
+            <span className="chip">{t("Part des dégâts {value}", { value: pct(facts.shares.hero_damage) })}</span>
+            <span className="chip">{t("Part d'XP {value}", { value: pct(facts.shares.xp_contribution) })}</span>
           </div>
           <div className="mt-4 flex items-center gap-3">
             <button className="btn-primary" onClick={generate} disabled={generating}>
-              {generating ? "Analyse en cours…" : ai ? "Regénérer l'analyse IA" : "✦ Générer l'analyse IA"}
+              {generating ? t("Analyse en cours…") : ai ? t("Regénérer l'analyse IA") : t("✦ Générer l'analyse IA")}
             </button>
-            <Link className="btn-ghost" to={`/coach?match=${id}`}>Poser une question au coach</Link>
+            <Link className="btn-ghost" to={`/coach?match=${id}`}>{t("Poser une question au coach")}</Link>
             {report.data?.model && (
               <span className="text-xs text-slate-500">
-                Analyse : {report.data.model === "deterministic" ? "sans IA (règles)"
-                  : report.data.model.includes(" · ") ? report.data.model : `Claude · ${report.data.model}`}
+                {t("Analyse : {model}", { model: report.data.model === "deterministic" ? t("sans IA (règles)")
+                  : report.data.model.includes(" · ") ? report.data.model : `Claude · ${report.data.model}` })}
               </span>
             )}
           </div>
@@ -111,43 +112,43 @@ export function MatchReport() {
                 })}
               </div>
             </>
-          ) : <p className="text-sm text-slate-500">Score indisponible.</p>}
+          ) : <p className="text-sm text-slate-500">{t("Score indisponible.")}</p>}
         </Card>
-        <Card title="Points forts">
+        <Card title={t("Points forts")}>
           <List items={ai?.strengths ?? facts?.strengths ?? []} icon="✔" tone="text-emerald-300" />
-          <h3 className="card-title mt-5">Actions excellentes</h3>
-          <List items={ai?.excellent_actions ?? []} icon="★" tone="text-gold-300" empty="Générez l'analyse IA." />
+          <h3 className="card-title mt-5">{t("Actions excellentes")}</h3>
+          <List items={ai?.excellent_actions ?? []} icon="★" tone="text-gold-300" empty={t("Générez l'analyse IA.")} />
         </Card>
-        <Card title="Points faibles">
+        <Card title={t("Points faibles")}>
           <List items={ai?.weaknesses ?? facts?.weaknesses ?? []} icon="✖" tone="text-rose-300" />
-          <h3 className="card-title mt-5">Erreurs majeures</h3>
-          <List items={ai?.major_mistakes ?? []} icon="!" tone="text-rose-200" empty="Générez l'analyse IA." />
+          <h3 className="card-title mt-5">{t("Erreurs majeures")}</h3>
+          <List items={ai?.major_mistakes ?? []} icon="!" tone="text-rose-200" empty={t("Générez l'analyse IA.")} />
         </Card>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Card title="Moments clés">
+        <Card title={t("Moments clés")}>
           <List items={ai?.key_moments ?? facts?.key_moments ?? []} icon="⏱" />
         </Card>
-        <Card title="Plan d'amélioration" className="border-gold-600/40">
+        <Card title={t("Plan d'amélioration")} className="border-gold-600/40">
           <List items={ai?.improvement_plan ?? facts?.improvement_plan ?? []} icon="➜" tone="text-gold-300" />
         </Card>
       </div>
 
       {facts?.role_context && (
-        <Card title={`Conseils pour votre rôle : ${facts.role_context.label}`}>
+        <Card title={t("Conseils pour votre rôle : {role}", { role: facts.role_context.label })}>
           <p className="mb-3 text-xs text-slate-400">{facts.role_context.normal}</p>
           <List items={ai?.role_advice?.length ? ai.role_advice : []} icon="◆" tone="text-storm-50"
-            empty="Générez l'analyse IA pour des conseils adaptés à votre héros." />
+            empty={t("Générez l'analyse IA pour des conseils adaptés à votre héros.")} />
         </Card>
       )}
 
-      <Card title="Tableau des scores"><Scoreboard players={m.players} /></Card>
+      <Card title={t("Tableau des scores")}><Scoreboard players={m.players} /></Card>
 
       {me?.talents.length ? (
-        <Card title="Talents choisis">
+        <Card title={t("Talents choisis")}>
           <div className="flex flex-wrap gap-2">
-            {me.talents.map((t) => <span key={t.tier} className="chip">Niv. {t.level} · {t.label ?? t.name}</span>)}
+            {me.talents.map((tal) => <span key={tal.tier} className="chip">{t("Niv. {level}", { level: tal.level })} · {tal.label ?? tal.name}</span>)}
           </div>
         </Card>
       ) : null}

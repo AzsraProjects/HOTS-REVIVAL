@@ -6,7 +6,7 @@ import path from "node:path";
 export interface OverlayPrefs {
   voice: boolean; // guide vocal (fonctionne même en plein écran exclusif)
   tips: boolean; // lire aussi les conseils (« Restez groupés »…)
-  voiceName: string | null; // voix Windows choisie (null = première voix française)
+  voiceName: string | null; // voix Windows choisie (null = première voix de la langue de l'application : française, anglaise en EN)
   rate: number;
   volume: number;
   overlay: boolean; // fenêtre overlay par-dessus le jeu (désactivée par défaut)

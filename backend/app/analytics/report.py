@@ -5,7 +5,7 @@ factuel à Claude, qui ne doit rien inventer au-delà.
 """
 from __future__ import annotations
 
-from app.i18n import language
+from app.i18n import language, tr
 from app.coach.roles import role_context
 from app.models import Match, MatchPlayer
 
@@ -56,11 +56,18 @@ def build_facts(match: Match, me: MatchPlayer) -> dict:
     my_deaths = [fmt_clock(e.t_s) for e in match.events if e.kind == "death" and e.slot == me.slot]
     key_moments = []
     for w in _team_wipes(match):
-        who = "Votre équipe" if w["team"] == me.team else "L'équipe adverse"
-        key_moments.append(f"{fmt_clock(w['t_s'])} – {who} perd {w['deaths']} héros en un combat.")
-    for side, label in (("allies", "Votre équipe"), ("enemies", "L'équipe adverse")):
+        if w["team"] == me.team:
+            text = tr("Votre équipe perd {n} héros en un combat.", n=w["deaths"])
+        else:
+            text = tr("L'équipe adverse perd {n} héros en un combat.", n=w["deaths"])
+        key_moments.append(f"{fmt_clock(w['t_s'])} – {text}")
+    for side in ("allies", "enemies"):
         for lvl, clock in level_timings[side].items():
-            key_moments.append(f"{clock} – {label} atteint le niveau {lvl}.")
+            if side == "allies":
+                text = tr("Votre équipe atteint le niveau {lvl}.", lvl=lvl)
+            else:
+                text = tr("L'équipe adverse atteint le niveau {lvl}.", lvl=lvl)
+            key_moments.append(f"{clock} – {text}")
     def _clock_key(text: str) -> int:
         minutes, seconds = text.split(" ", 1)[0].split(":")
         return int(minutes) * 60 + int(seconds)
@@ -71,50 +78,52 @@ def build_facts(match: Match, me: MatchPlayer) -> dict:
     categories = {c: getattr(score, c) for c in CATEGORY_LABELS} if score else {}
     strengths, weaknesses = [], []
     if kp >= 0.7:
-        strengths.append("Participation élevée aux éliminations.")
+        strengths.append(tr("Participation élevée aux éliminations."))
     if share("hero_damage") >= 0.28 and me.role in ("Ranged Assassin", "Melee Assassin"):
-        strengths.append("Bons dégâts sur les héros adverses.")
+        strengths.append(tr("Bons dégâts sur les héros adverses."))
     if me.role == "Healer" and share("healing") >= 0.6:
-        strengths.append(f"Vous assurez {round(share('healing') * 100)} % des soins de l'équipe.")
+        strengths.append(tr("Vous assurez {pct} % des soins de l'équipe.", pct=round(share("healing") * 100)))
     if me.role in ("Tank", "Bruiser") and share("damage_taken") >= 0.3:
-        strengths.append(f"Vous encaissez {round(share('damage_taken') * 100)} % des dégâts de l'équipe : bon rôle de ligne de front.")
+        strengths.append(tr("Vous encaissez {pct} % des dégâts de l'équipe : bon rôle de ligne de front.",
+                            pct=round(share("damage_taken") * 100)))
     if me.deaths <= 2:
-        strengths.append("Excellente survie.")
+        strengths.append(tr("Excellente survie."))
     if share("xp_contribution") >= 0.25:
-        strengths.append("Très bonne contribution à l'expérience de l'équipe.")
+        strengths.append(tr("Très bonne contribution à l'expérience de l'équipe."))
     if me.deaths >= 5:
-        weaknesses.append(f"{me.deaths} morts.")
+        weaknesses.append(tr("{n} morts.", n=me.deaths))
     if me.time_spent_dead_s >= 90:
-        weaknesses.append(f"Temps passé mort : {me.time_spent_dead_s} secondes.")
+        weaknesses.append(tr("Temps passé mort : {s} secondes.", s=me.time_spent_dead_s))
     if me.role == "Healer" and share("healing") < 0.4:
-        weaknesses.append(f"Seulement {round(share('healing') * 100)} % des soins de l'équipe : restez à portée de vos alliés.")
+        weaknesses.append(tr("Seulement {pct} % des soins de l'équipe : restez à portée de vos alliés.",
+                              pct=round(share("healing") * 100)))
     if categories.get("macro", 100) < 45 and me.role != "Healer":
-        weaknesses.append("Faible contribution macro (XP, siège, camps).")
+        weaknesses.append(tr("Faible contribution macro (XP, siège, camps)."))
     if categories:
         for c, v in sorted(categories.items(), key=lambda kv: -kv[1])[:2]:
             if v >= 75 and c != "draft":
-                strengths.append(f"Catégorie {CATEGORY_LABELS[c]} solide ({v}/100).")
+                strengths.append(tr("Catégorie {cat} solide ({v}/100).", cat=tr(CATEGORY_LABELS[c]), v=v))
 
     weakest = min((c for c in categories if c != "draft"), key=categories.get, default=None)
     plan = []
     if weakest == "survival" or me.deaths >= 4:
-        plan.append(f"Réduire vos morts à {max(2, me.deaths - 2)} maximum.")
+        plan.append(tr("Réduire vos morts à {n} maximum.", n=max(2, me.deaths - 2)))
     if weakest == "macro":
-        plan.append("Prendre au moins 2 camps par tranche de 10 minutes et soaker les vagues inactives.")
+        plan.append(tr("Prendre au moins 2 camps par tranche de 10 minutes et soaker les vagues inactives."))
     if weakest == "teamfight":
-        plan.append("Rester à portée de votre équipe avant chaque objectif pour viser 70 % de participation.")
+        plan.append(tr("Rester à portée de votre équipe avant chaque objectif pour viser 70 % de participation."))
     if weakest == "placement":
-        plan.append("Éviter les morts en infériorité numérique : ne pas avancer sans vision ni alliés.")
+        plan.append(tr("Éviter les morts en infériorité numérique : ne pas avancer sans vision ni alliés."))
     if weakest == "objectives":
-        plan.append("Être présent 20 s avant chaque objectif plutôt que d'arriver pendant le combat.")
+        plan.append(tr("Être présent 20 s avant chaque objectif plutôt que d'arriver pendant le combat."))
 
-    result = "gagnée" if me.is_winner else "perdue"
-    headline = (
-        f"Partie {result} à {fmt_clock(match.duration_s)} sur {match.map_name}. "
-        f"Vous avez participé à {round(kp * 100)} % des éliminations."
-    )
+    if me.is_winner:
+        headline = tr("Partie gagnée à {clock} sur {map}.", clock=fmt_clock(match.duration_s), map=match.map_name)
+    else:
+        headline = tr("Partie perdue à {clock} sur {map}.", clock=fmt_clock(match.duration_s), map=match.map_name)
+    headline += " " + tr("Vous avez participé à {pct} % des éliminations.", pct=round(kp * 100))
     if weakest:
-        headline += f" Votre principal axe de progression : {CATEGORY_LABELS[weakest]}."
+        headline += " " + tr("Votre principal axe de progression : {cat}.", cat=tr(CATEGORY_LABELS[weakest]))
 
     role = role_context(me.role)
     return {

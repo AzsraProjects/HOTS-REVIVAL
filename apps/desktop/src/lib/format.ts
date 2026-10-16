@@ -1,5 +1,7 @@
+import { lang, locale, t } from "./i18n";
+
 export const pct = (v: number | null | undefined, digits = 0) =>
-  v === null || v === undefined ? "–" : `${(v * 100).toFixed(digits)} %`;
+  v === null || v === undefined ? "–" : `${(v * 100).toFixed(digits)}${lang() === "fr" ? " %" : "%"}`;
 
 export const clock = (s: number | null | undefined) => {
   if (s === null || s === undefined) return "–:––";
@@ -11,25 +13,26 @@ export const clock = (s: number | null | undefined) => {
 export const compact = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
 
 export const date = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "–";
+  iso ? new Date(iso).toLocaleString(locale(), { dateStyle: "short", timeStyle: "short" }) : "–";
 
 export const scoreColor = (score: number) =>
   score >= 75 ? "text-gold-400" : score >= 55 ? "text-storm-300" : score >= 40 ? "text-nexus-300" : "text-rose-400";
 
+// Libellés traduits à la lecture (getters) : ROLE_FR[x], Object.values(…) suivent la langue active.
 export const ROLE_FR: Record<string, string> = {
-  Tank: "Tank",
-  Bruiser: "Combattant",
-  "Ranged Assassin": "Assassin à distance",
-  "Melee Assassin": "Assassin de mêlée",
-  Healer: "Soigneur",
-  Support: "Soutien",
+  get Tank() { return t("Tank"); },
+  get Bruiser() { return t("Combattant"); },
+  get "Ranged Assassin"() { return t("Assassin à distance"); },
+  get "Melee Assassin"() { return t("Assassin de mêlée"); },
+  get Healer() { return t("Soigneur"); },
+  get Support() { return t("Soutien"); },
 };
 
 export const CATEGORY_FR: Record<string, string> = {
-  placement: "Placement",
-  macro: "Macro",
-  teamfight: "Teamfight",
-  objectives: "Objectifs",
-  survival: "Survie",
-  draft: "Draft",
+  get placement() { return t("Placement"); },
+  get macro() { return t("Macro"); },
+  get teamfight() { return t("Teamfight"); },
+  get objectives() { return t("Objectifs"); },
+  get survival() { return t("Survie"); },
+  get draft() { return t("Draft"); },
 };

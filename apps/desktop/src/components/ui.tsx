@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { t } from "../lib/i18n";
 
 export function Card({ title, children, className = "", action }: {
   title?: string; children: ReactNode; className?: string; action?: ReactNode;
@@ -39,10 +40,10 @@ export function Bar({ value, max = 100, color = "from-storm-500 to-nexus-500" }:
   );
 }
 
-export function List({ items, icon = "•", tone = "text-slate-300", empty = "Rien à signaler." }: {
+export function List({ items, icon = "•", tone = "text-slate-300", empty }: {
   items: string[]; icon?: string; tone?: string; empty?: string;
 }) {
-  if (!items.length) return <p className="text-sm text-slate-500">{empty}</p>;
+  if (!items.length) return <p className="text-sm text-slate-500">{empty ?? t("Rien à signaler.")}</p>;
   return (
     <ul className="space-y-1.5">
       {items.map((it, i) => (
@@ -65,32 +66,33 @@ export function Empty({ title, children }: { title: string; children?: ReactNode
 }
 
 export function Loading() {
-  return <div className="animate-pulse p-6 text-sm text-slate-400">Chargement…</div>;
+  return <div className="animate-pulse p-6 text-sm text-slate-400">{t("Chargement…")}</div>;
 }
 
 export function ErrorBox({ message }: { message: string }) {
   return (
     <div className="card border-rose-800 text-sm text-rose-300">
       {message}
-      <div className="mt-1 text-xs text-slate-400">Le moteur d&apos;analyse ne répond pas : fermez puis relancez HOTS REVIVAL.</div>
+      <div className="mt-1 text-xs text-slate-400">{t("Le moteur d'analyse ne répond pas : fermez puis relancez HOTS REVIVAL.")}</div>
     </div>
   );
 }
 
-const MODE_FR: Record<string, string> = {
-  "Quick Match": "Partie rapide", "Storm League": "Classée", "Hero League": "Classée (Ligue des héros)",
-  "Team League": "Classée (Ligue par équipe)", "Versus AI": "Contre l'IA", ARAM: "ARAM", Brawl: "Bagarre",
-  "Unranked Draft": "Non classée", Practice: "Entraînement", Custom: "Personnalisée",
-};
+// Libellés à l'affichage (jamais au chargement du module : la langue peut changer).
+const modeName = (mode: string): string => ({
+  "Quick Match": t("Partie rapide"), "Storm League": t("Classée"), "Hero League": t("Classée (Ligue des héros)"),
+  "Team League": t("Classée (Ligue par équipe)"), "Versus AI": t("Contre l'IA"), ARAM: "ARAM", Brawl: t("Bagarre"),
+  "Unranked Draft": t("Non classée"), Practice: t("Entraînement"), Custom: t("Personnalisée"),
+} as Record<string, string>)[mode] ?? mode;
 
 /** Mode de jeu ; pastille « hors stats » pour tout ce qui n'est ni partie rapide ni classée. */
 export function ModeLabel({ mode, counted }: { mode: string | null; counted: boolean }) {
-  const label = mode ? MODE_FR[mode] ?? mode : "Mode inconnu";
+  const label = mode ? modeName(mode) : t("Mode inconnu");
   if (counted) return <span>{label}</span>;
   return (
     <span className="inline-flex items-center gap-1.5">
       <span className="rounded-full border border-amber-400/60 bg-amber-400/15 px-2 py-0.5 text-[11px] font-semibold text-amber-300">{label}</span>
-      <span className="text-[11px] text-slate-500">hors stats</span>
+      <span className="text-[11px] text-slate-500">{t("hors stats")}</span>
     </span>
   );
 }

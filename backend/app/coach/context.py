@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.analytics.profile_stats import build_profile, my_match_lines
 from app.coach.roles import role_balance, role_context
+from app.i18n import tr
 from app.meta.service import all_tiers, hero_guide
 from app.models import MatchPlayer, Report
 from app.reference import registry
@@ -70,4 +71,4 @@ def player_context(db: Session, match_id: int | None = None) -> str:
                         "contre_par": [h["hero"] for h in guide["counters"]],
                         "source": guide["url"],
                     }
-    return "Données du joueur (JSON) :\n" + json.dumps(ctx, ensure_ascii=False, default=str)
+    return tr("Données du joueur (JSON) :") + "\n" + json.dumps(ctx, ensure_ascii=False, default=str)

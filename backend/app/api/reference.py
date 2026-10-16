@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app import __version__
 from app.analytics.profile_stats import talent_stats
 from app.db import get_db
+from app.i18n import tr
 from app.live.compliance import describe
 from app.reference import registry
 from app.replay.protocol import available_builds, load_protocol
@@ -43,8 +44,8 @@ def heroes() -> list[dict]:
 @router.get("/maps")
 def maps() -> list[dict]:
     return [
-        {"id": m.id, "name": m.name, "objective": m.objective, "first_objective_s": m.first_objective_s,
-         "objective_interval_s": m.objective_interval_s, "verified": m.verified, "tips": list(m.tips)}
+        {"id": m.id, "name": m.name, "objective": tr(m.objective), "first_objective_s": m.first_objective_s,
+         "objective_interval_s": m.objective_interval_s, "verified": m.verified, "tips": [tr(t) for t in m.tips]}
         for m in registry().maps.values()
     ]
 

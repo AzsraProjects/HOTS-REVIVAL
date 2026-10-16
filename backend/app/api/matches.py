@@ -11,7 +11,7 @@ from app.coach.client import CoachError, coach_available, deterministic_summary,
 from app.coach.context import player_context
 from app.config import Settings, app_settings
 from app.db import get_db
-from app.i18n import language
+from app.i18n import language, tr
 from app.models import Match, MatchPlayer, Replay, Report
 from app.observability import track
 from app.safekeeping import archive_summary
@@ -50,7 +50,7 @@ def _get_match(db: Session, match_id: int) -> Match:
     match = db.get(Match, match_id, options=[selectinload(Match.players).selectinload(MatchPlayer.score),
                                              selectinload(Match.events)])
     if not match:
-        raise HTTPException(404, "Partie introuvable")
+        raise HTTPException(404, tr("Partie introuvable"))
     return match
 
 
@@ -72,7 +72,7 @@ def _report(db: Session, match_id: int) -> Report:
             report.facts = build_facts(match, me)
             db.commit()
     if not report:
-        raise HTTPException(404, "Aucun rapport : le joueur local n'a pas été identifié dans cette partie.")
+        raise HTTPException(404, tr("Aucun rapport : le joueur local n'a pas été identifié dans cette partie."))
     return report
 
 

@@ -10,6 +10,7 @@ from app.community.client import CommunityClient, CommunityError, forget_credent
 from app.community.uploader import count_pending
 from app.config import Settings, app_settings, get_settings, write_user_settings
 from app.db import get_db
+from app.i18n import tr
 from app.models import CommunityUpload, MatchPlayer
 
 router = APIRouter(prefix="/community", tags=["communauté"])
@@ -60,10 +61,10 @@ def status(request: Request, db: Session = Depends(get_db), settings: Settings =
 def update(body: CommunityUpdate, request: Request, db: Session = Depends(get_db),
            settings: Settings = Depends(app_settings)) -> dict:
     if not settings.community_url:
-        raise HTTPException(409, "La plateforme communautaire n'est pas encore en ligne.")
+        raise HTTPException(409, tr("La plateforme communautaire n'est pas encore en ligne."))
     values = body.model_dump(exclude_none=True)
     if values.get("public_profile") and not (values.get("share_matches", settings.share_matches)):
-        raise HTTPException(400, "Le profil public nécessite le partage des parties.")
+        raise HTTPException(400, tr("Le profil public nécessite le partage des parties."))
     if values.get("share_matches") is False:
         values["public_profile"] = False  # plus de partage = plus de profil public
 
@@ -77,7 +78,7 @@ def update(body: CommunityUpdate, request: Request, db: Session = Depends(get_db
                 client.set_profile(False)
         except CommunityError as exc:
             if exc.status == 409:  # pas encore assez de parties envoyées : activé après les premiers envois
-                notice = "Votre profil sera publié dès que vos premières parties auront été envoyées."
+                notice = tr("Votre profil sera publié dès que vos premières parties auront été envoyées.")
             else:
                 raise HTTPException(400 if exc.status == 400 else 502, str(exc)) from exc
 

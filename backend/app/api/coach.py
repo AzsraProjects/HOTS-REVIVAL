@@ -10,12 +10,16 @@ from app.coach.client import CoachError, coach_available, model_label, stream_co
 from app.coach.context import player_context
 from app.config import Settings, app_settings
 from app.db import SessionLocal, get_db
+from app.i18n import tr
 from app.models import CoachConversation, CoachMessage
 from app.observability import track
 from app.schemas import CoachChatRequest
 
 router = APIRouter(prefix="/coach", tags=["coach"])
 MAX_HISTORY = 20
+# texte français (clé de traduction) : traduit à l'envoi via tr()
+NOT_CONFIGURED = ("Le coach IA n'est pas encore configuré : choisissez une IA et sa clé dans les paramètres. "
+                  "En attendant, consultez le rapport de partie et votre HEROS SCORE.")
 
 
 def _sse(event: str, data: dict) -> str:
@@ -31,7 +35,7 @@ def status(settings: Settings = Depends(app_settings)) -> dict:
 def get_conversation(conversation_id: int, db: Session = Depends(get_db)) -> dict:
     conv = db.get(CoachConversation, conversation_id, options=[selectinload(CoachConversation.messages)])
     if not conv:
-        raise HTTPException(404, "Conversation introuvable")
+        raise HTTPException(404, tr("Conversation introuvable"))
     return {
         "id": conv.id, "title": conv.title, "match_id": conv.match_id,
         "messages": [{"role": m.role, "content": m.content} for m in conv.messages],
@@ -45,7 +49,7 @@ async def chat(
     if body.conversation_id:
         conv = db.get(CoachConversation, body.conversation_id, options=[selectinload(CoachConversation.messages)])
         if not conv:
-            raise HTTPException(404, "Conversation introuvable")
+            raise HTTPException(404, tr("Conversation introuvable"))
     else:
         conv = CoachConversation(title=body.message[:120], match_id=body.match_id)
         db.add(conv)
@@ -63,8 +67,7 @@ async def chat(
         yield _sse("start", {"conversation_id": conversation_id})
         parts: list[str] = []
         if not coach_available(settings):
-            text = ("Le coach IA n'est pas encore configuré : choisissez une IA et sa clé dans les paramètres. "
-                    "En attendant, consultez le rapport de partie et votre HEROS SCORE.")
+            text = tr(NOT_CONFIGURED)
             parts.append(text)
             yield _sse("delta", {"text": text})
         else:

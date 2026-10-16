@@ -3,28 +3,33 @@
  * quand la phrase existe, sinon synthèse vocale (voix installées sur Windows).
  */
 import { bridge } from "./bridge";
+import { lang, locale } from "./i18n";
 
 export interface VoiceOptions { voiceName?: string | null; rate?: number; volume?: number; voiceProfile?: string | null }
 
 export function listVoices(): SpeechSynthesisVoice[] {
   const voices = window.speechSynthesis?.getVoices() ?? [];
-  // voix françaises d'abord
-  return [...voices].sort((a, b) => Number(b.lang.startsWith("fr")) - Number(a.lang.startsWith("fr")));
+  // voix de la langue de l'interface d'abord (français ou anglais)
+  const mine = (v: SpeechSynthesisVoice) => Number(v.lang.toLowerCase().startsWith(lang()));
+  return [...voices].sort((a, b) => mine(b) - mine(a));
 }
 
 function pickVoice(name?: string | null): SpeechSynthesisVoice | null {
   const voices = listVoices();
-  return voices.find((v) => v.name === name) ?? voices.find((v) => v.lang.toLowerCase().startsWith("fr")) ?? null;
+  // voix choisie par le joueur, sinon la première voix de la langue de l'interface
+  return voices.find((v) => v.name === name) ?? voices.find((v) => v.lang.toLowerCase().startsWith(lang())) ?? null;
 }
 
 function utterance(text: string, opts: VoiceOptions): SpeechSynthesisUtterance {
   // « 30 s » -> « 30 secondes » : seulement après un nombre (\b ignore les accents : « groupés » cassait)
-  const spoken = text.replace(/≈/g, "environ")
-    .replace(/(\d+)\s?s(?![\p{L}\d])/gu, (_, n: string) => `${n} seconde${n === "1" || n === "0" ? "" : "s"}`);
+  const fr = lang() === "fr";
+  const spoken = text.replace(/≈/g, fr ? "environ" : "about")
+    .replace(/(\d+)\s?s(?![\p{L}\d])/gu, (_, n: string) =>
+      fr ? `${n} seconde${n === "1" || n === "0" ? "" : "s"}` : `${n} second${n === "1" ? "" : "s"}`);
   const u = new SpeechSynthesisUtterance(spoken);
   const voice = pickVoice(opts.voiceName);
   if (voice) u.voice = voice;
-  u.lang = voice?.lang ?? "fr-FR";
+  u.lang = voice?.lang ?? locale();
   u.rate = opts.rate ?? 1.05;
   u.volume = opts.volume ?? 1;
   return u;

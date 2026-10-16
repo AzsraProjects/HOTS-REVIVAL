@@ -8,6 +8,7 @@ import { app, BrowserWindow, desktopCapturer, Display, ipcMain, screen } from "e
 import fs from "node:fs";
 import path from "node:path";
 import type { Rect } from "./ocr";
+import { t } from "./i18n";
 import { loadPrefs } from "./prefs";
 
 export interface Crop { width: number; height: number; data: Buffer } // pixels BGRA
@@ -53,7 +54,7 @@ function toBgra(rgba: Buffer): Buffer {
 }
 
 ipcMain.on("capture:started", (_e, msg: { ok: boolean; error?: string }) => {
-  if (!msg.ok) lastError = msg.error ?? "capture refusée";
+  if (!msg.ok) lastError = msg.error ?? t("capture refusée");
   started?.(msg.ok);
   started = null;
 });
@@ -98,7 +99,7 @@ export async function startCapture(mode: CaptureMode = "hud"): Promise<boolean> 
   const sources = await desktopCapturer.getSources({ types: ["screen"], thumbnailSize: { width: 0, height: 0 } });
   const source = sources.find((s) => s.display_id === String(display.id)) ?? sources[0];
   if (!source) {
-    lastError = "aucun écran trouvé";
+    lastError = t("aucun écran trouvé");
     return false;
   }
   if (!reuse) {

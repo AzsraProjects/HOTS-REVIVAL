@@ -4,6 +4,7 @@
  */
 import { app, BrowserWindow } from "electron";
 import { autoUpdater } from "electron-updater";
+import { t } from "./i18n";
 
 export interface UpdateStatus {
   state: "idle" | "checking" | "available" | "none" | "downloading" | "ready" | "error";
@@ -37,7 +38,7 @@ export function initUpdater(win: BrowserWindow): void {
 }
 
 export async function checkForUpdates(): Promise<UpdateStatus> {
-  if (!app.isPackaged) return { ...status, state: "none", message: "Mode développement" };
+  if (!app.isPackaged) return { ...status, state: "none", message: t("Mode développement") };
   try {
     await autoUpdater.checkForUpdates();
   } catch (err) {

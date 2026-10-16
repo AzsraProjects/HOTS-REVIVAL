@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.analytics.profile_stats import build_profile, talent_stats
 from app.db import get_db
+from app.i18n import tr
 from app.meta import service
 from app.reference import registry
 from app.talents import catalog
@@ -56,7 +57,7 @@ def combos(db: Session = Depends(get_db)) -> list[dict]:
 @router.get("/heroes/{hero_id}")
 def hero(hero_id: str, db: Session = Depends(get_db)) -> dict:
     if hero_id not in registry().heroes:
-        raise HTTPException(404, "Héros inconnu")
+        raise HTTPException(404, tr("Héros inconnu"))
     h = registry().heroes[hero_id]
     talents = catalog().get(hero_id, {}).get("talents", {})
     return {

@@ -13,6 +13,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+from app.i18n import tr
 from app.live.composition import teams_from
 from app.reference import registry
 
@@ -24,6 +25,9 @@ ENDED_LINGER_S = 15
 LEVEL_SOURCES = ("manuel", "écran")
 SCREEN_MAX_STEP = 2  # écart max accepté entre deux lectures d'écran successives retenues
 
+
+# Libellés des camps dans les alertes (« Camp de siège disponible dans 20 s. »).
+CAMP_NAMES = {"siege": "de siège", "bruiser": "de mercenaires", "boss": "du boss", "support": "de soutien", "other": ""}
 
 def talent_tier(level: int) -> int:
     return sum(1 for lvl in TALENT_LEVELS if level >= lvl)
@@ -169,14 +173,15 @@ class LiveSession:
                 ally = max(1, min(30, ally))
                 crossed = [lvl for lvl in TALENT_LEVELS[1:] if self.ally_level < lvl <= ally]
                 if crossed:  # un seul message, même si plusieurs paliers d'un coup
-                    self._flash_locked(f"ally-{crossed[-1]}", f"Niveau {crossed[-1]} atteint.", "success",
+                    self._flash_locked(f"ally-{crossed[-1]}", tr("Niveau {lvl} atteint.", lvl=crossed[-1]), "success",
                                        f"ally-level-{crossed[-1]}")
                 self.ally_level = ally
             if enemy is not None:
                 enemy = max(1, min(30, enemy))
                 crossed = [lvl for lvl in (10, 16, 20) if self.enemy_level < lvl <= enemy]
                 if crossed:
-                    self._flash_locked(f"enemy-{crossed[-1]}", f"L'équipe adverse atteint le niveau {crossed[-1]}.",
+                    self._flash_locked(f"enemy-{crossed[-1]}",
+                                       tr("L'équipe adverse atteint le niveau {lvl}.", lvl=crossed[-1]),
                                        "danger", f"enemy-level-{crossed[-1]}")
                 self.enemy_level = enemy
             self.level_source = source if source in LEVEL_SOURCES else "manuel"
@@ -264,17 +269,17 @@ def compute_overlay(s: LiveSession) -> dict[str, Any]:
             if remaining < -90 and interval:  # pas de « objectif terminé » : on projette le suivant
                 s.next_objective_at += interval
                 remaining += interval
-        priority = "Farm, soak d'XP et camps"
+        priority = tr("Farm, soak d'XP et camps")
         if remaining is not None and remaining <= OBJECTIVE_WARNING_S:
-            priority = "Regroupement pour l'objectif"
+            priority = tr("Regroupement pour l'objectif")
             if remaining > 0:
                 alerts.append({"id": "objective", "priority": 2, "level": "warning",
-                               "text": f"Objectif dans {int(remaining)} s : regroupez-vous.",
+                               "text": tr("Objectif dans {s} s : regroupez-vous.", s=int(remaining)),
                                "voice_key": "objective-soon"})
         objective = {
-            "name": info.objective, "map": info.name, "next_in_s": remaining,
+            "name": tr(info.objective), "map": info.name, "next_in_s": remaining,
             "source": s.timings.get("source", "estimation"), "samples": s.timings.get("samples", 0),
-            "priority": priority, "tips": list(info.tips),
+            "priority": priority, "tips": [tr(tip) for tip in info.tips],
         }
 
     # Camps
@@ -286,7 +291,7 @@ def compute_overlay(s: LiveSession) -> dict[str, Any]:
         camps.append({"camp": c.camp_type, "side": c.side, "respawn_in_s": left})
         if left is not None and 0 < left <= 20 and c.side == "ally":
             alerts.append({"id": f"camp-{c.camp_type}", "priority": 3, "level": "info",
-                           "text": f"Camp {c.camp_type} disponible dans {int(left)} s.",
+                           "text": tr("Camp {camp} disponible dans {s} s.", camp=tr(CAMP_NAMES.get(c.camp_type, "")), s=int(left)).replace("  ", " ").strip().capitalize(),
                            "voice_key": f"camp-{c.camp_type}"})
 
     # Powerspikes (niveaux d'équipe lus en haut de l'écran ou saisis) — rien si inconnus
@@ -296,17 +301,19 @@ def compute_overlay(s: LiveSession) -> dict[str, Any]:
     if s.status == "in_game" and known:
         if enemy_tier > ally_tier:
             alerts.append({"id": "talent-disadvantage", "priority": 1, "level": "danger",
-                           "text": "Désavantage de talent : évitez les combats.", "voice_key": "talent-disadvantage"})
-            tips.append({"text": "Ne forcez pas un combat en infériorité de talent.", "voice_key": "tip-no-fight"})
+                           "text": tr("Désavantage de talent : évitez les combats."),
+                           "voice_key": "talent-disadvantage"})
+            tips.append({"text": tr("Ne forcez pas un combat en infériorité de talent."),
+                         "voice_key": "tip-no-fight"})
         elif ally_tier > enemy_tier:
             lvl = TALENT_LEVELS[ally_tier - 1]
-            tips.append({"text": f"Avantage niveau {lvl} : forcez l'objectif ou un combat.",
+            tips.append({"text": tr("Avantage niveau {lvl} : forcez l'objectif ou un combat.", lvl=lvl),
                          "voice_key": "tip-talent-advantage"})
         if ally_level in (9, 15, 19):
-            tips.append({"text": f"Niveau {ally_level + 1} imminent : attendez le talent avant d'engager.",
+            tips.append({"text": tr("Niveau {lvl} imminent : attendez le talent avant d'engager.", lvl=ally_level + 1),
                          "voice_key": f"tip-level-soon-{ally_level + 1}"})
         if objective and objective["next_in_s"] is not None and 0 < objective["next_in_s"] <= OBJECTIVE_WARNING_S:
-            tips.append({"text": "Restez groupés.", "voice_key": "tip-stay-grouped"})
+            tips.append({"text": tr("Restez groupés."), "voice_key": "tip-stay-grouped"})
 
     now = time.monotonic()
     for key, (text, level, until, voice_key) in list(s._flashes.items()):

@@ -10,10 +10,11 @@ from anthropic.types.beta import BetaMessageParam
 from pydantic import BaseModel, Field, ValidationError
 
 from app.coach import providers
-from app.coach.prompts import COACH_SYSTEM, SUMMARY_INSTRUCTIONS
+from app.coach.prompts import coach_system, json_only, summary_instructions
 from app.coach.providers import CoachError
 from app.coach.roles import role_context
 from app.config import Settings
+from app.i18n import tr
 
 log = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ def coach_available(settings: Settings) -> bool:
 def model_label(settings: Settings) -> str:
     """Fournisseur et modèle utilisés, tels qu'affichés au joueur (« Gemini (Google) · gemini-… »)."""
     p = providers.current(settings)
-    return f"{p.label} · {providers.model(settings, p)}"
+    return f"{tr(p.label)} · {providers.model(settings, p)}"
 
 
 def _uses_claude(settings: Settings) -> bool:
@@ -56,22 +57,22 @@ def _uses_claude(settings: Settings) -> bool:
 def _client(settings: Settings) -> anthropic.AsyncAnthropic:
     key = providers.api_key(settings, providers.PROVIDERS["anthropic"])
     if not key:
-        raise CoachUnavailable("ANTHROPIC_API_KEY n'est pas configurée.")
+        raise CoachUnavailable(tr("ANTHROPIC_API_KEY n'est pas configurée."))
     return anthropic.AsyncAnthropic(api_key=key)
 
 
 def _claude_error(exc: anthropic.APIError) -> CoachError:
     if isinstance(exc, anthropic.RateLimitError):
-        return CoachError("Limite de requêtes atteinte, réessayez dans un instant.")
+        return CoachError(tr("Limite de requêtes atteinte, réessayez dans un instant."))
     if isinstance(exc, anthropic.APIStatusError):
-        return CoachError(f"Erreur de l'API Claude ({exc.status_code}).")
-    return CoachError("Impossible de joindre l'API Claude.")
+        return CoachError(tr("Erreur de l'API Claude ({code}).", code=exc.status_code))
+    return CoachError(tr("Impossible de joindre l'API Claude."))
 
 
 def _system(context: str) -> list[dict]:
     # bloc stable mis en cache, puis contexte joueur (variable)
     return [
-        {"type": "text", "text": COACH_SYSTEM, "cache_control": {"type": "ephemeral"}},
+        {"type": "text", "text": coach_system(), "cache_control": {"type": "ephemeral"}},
         {"type": "text", "text": context},
     ]
 
@@ -80,7 +81,7 @@ async def stream_coach_reply(
     settings: Settings, context: str, messages: list[BetaMessageParam]
 ) -> AsyncIterator[str]:
     if not _uses_claude(settings):
-        async for text in providers.stream_chat(settings, f"{COACH_SYSTEM}\n\n{context}", messages):
+        async for text in providers.stream_chat(settings, f"{coach_system()}\n\n{context}", messages):
             yield text
         return
     try:
@@ -105,9 +106,9 @@ async def _stream_claude(settings: Settings, context: str, messages: list[BetaMe
             yield text
         final = await stream.get_final_message()
     if final.stop_reason == "refusal":
-        yield "\n\n_Le coach n'a pas pu répondre à cette demande. Reformulez votre question._"
+        yield "\n\n_" + tr("Le coach n'a pas pu répondre à cette demande. Reformulez votre question.") + "_"
     elif final.stop_reason == "max_tokens":
-        yield "\n\n_(réponse tronquée)_"
+        yield "\n\n_(" + tr("réponse tronquée") + ")_"
 
 
 async def generate_game_summary(settings: Settings, facts: dict, context: str) -> GameSummary | None:
@@ -121,9 +122,9 @@ async def generate_game_summary(settings: Settings, facts: dict, context: str) -
 
 async def _summary_compatible(settings: Settings, facts: dict, context: str) -> GameSummary | None:
     schema = json.dumps(GameSummary.model_json_schema(), ensure_ascii=False)
-    prompt = (f"{SUMMARY_INSTRUCTIONS}\n\nRéponds UNIQUEMENT par un objet JSON conforme à ce schéma :\n{schema}"
+    prompt = (f"{summary_instructions()}\n\n{json_only()}\n{schema}"
               f"\n\n```json\n{json.dumps(facts, ensure_ascii=False)}\n```")
-    text = await providers.complete_json(settings, f"{COACH_SYSTEM}\n\n{context}", prompt)
+    text = await providers.complete_json(settings, f"{coach_system()}\n\n{context}", prompt)
     try:
         return GameSummary.model_validate_json(providers.extract_json(text))
     except ValidationError:
@@ -142,7 +143,7 @@ async def _summary_claude(settings: Settings, facts: dict, context: str) -> Game
         system=_system(context),
         messages=[{
             "role": "user",
-            "content": f"{SUMMARY_INSTRUCTIONS}\n\n```json\n{json.dumps(facts, ensure_ascii=False)}\n```",
+            "content": f"{summary_instructions()}\n\n```json\n{json.dumps(facts, ensure_ascii=False)}\n```",
         }],
         output_format=GameSummary,
     )
@@ -159,7 +160,7 @@ def deterministic_summary(facts: dict) -> GameSummary:
         strengths=facts.get("strengths", []),
         weaknesses=facts.get("weaknesses", []),
         key_moments=facts.get("key_moments", [])[:5],
-        major_mistakes=[f"Mort à {t}" for t in facts.get("my_death_times", [])[:3]],
+        major_mistakes=[tr("Mort à {clock}", clock=t) for t in facts.get("my_death_times", [])[:3]],
         excellent_actions=[],
         improvement_plan=facts.get("improvement_plan", []),
         role_advice=role_context((facts.get("role_context") or {}).get("role"))["habits"][:3],
