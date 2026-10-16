@@ -141,7 +141,8 @@ export function VoiceProfiles() {
 
   const listen = (key: string) => run(async () => {
     const url = profile ? await clipUrl(profile, key) : null;
-    if (url) await playUrl(url, prefs.volume);
+    const err = url ? await playUrl(url, prefs.volume) : null;
+    if (err) throw new Error(t("Lecture du clip impossible sur ce PC : {err}", { err }));
   });
 
   const removeClip = (key: string) => run(async () => {

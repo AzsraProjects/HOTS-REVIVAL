@@ -17,6 +17,7 @@ export function VoiceSettings() {
   const [tts, setTts] = useState<SpeechSynthesisVoice[]>([]);
   const [profiles, setProfiles] = useState<string[]>([]);
   const [builtin, setBuiltin] = useState<string[]>([]);
+  const [testError, setTestError] = useState<string | null>(null);
 
   const loadProfiles = useCallback(async () => {
     if (!b) return;
@@ -49,7 +50,11 @@ export function VoiceSettings() {
     ? update({ voiceProfile: v.slice("profile:".length) })
     : update({ voiceProfile: null, voiceName: v.slice("tts:".length) || null }));
   const phrase = VOICE_PHRASES.find((p) => p.key === TEST_KEY);
-  const test = () => phrase && announce({ text: phrase.text, key: phrase.key }, prefs);
+  const test = async () => {
+    if (!phrase) return;
+    setTestError(null);
+    setTestError(await announce({ text: phrase.text, key: phrase.key }, prefs));
+  };
 
   return (
     <div className="space-y-4 text-sm">
@@ -103,13 +108,18 @@ export function VoiceSettings() {
       </div>
 
       <div className="flex items-center gap-3">
-        <button className="btn-primary" onClick={test}>{t("Tester la voix")}</button>
+        <button className="btn-primary" onClick={() => void test()}>{t("Tester la voix")}</button>
         <span className="text-xs text-slate-400">
           {prefs.voiceProfile
             ? t("Une phrase absente de cette voix est lue par la voix Windows choisie ci-dessus.")
             : t("D'autres voix françaises s'ajoutent dans Windows : Paramètres → Heure et langue → Voix.")}
         </span>
       </div>
+      {testError && (
+        <p className="text-xs text-amber-300">
+          {t("Lecture du clip impossible sur ce PC, la voix Windows a pris le relais : {err}", { err: testError })}
+        </p>
+      )}
     </div>
   );
 }

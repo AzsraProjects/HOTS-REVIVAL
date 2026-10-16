@@ -76,21 +76,23 @@ export function clipUrl(profile: string, key: string): Promise<string | null> {
   return url;
 }
 
-export function playUrl(url: string, volume = 1): Promise<void> {
+/** Lit un clip jusqu'au bout ; renvoie l'erreur de lecture, null si tout s'est bien passé. */
+export function playUrl(url: string, volume = 1): Promise<string | null> {
   return new Promise((resolve) => {
     const audio = new Audio(url);
     audio.volume = Math.max(0, Math.min(1, volume));
-    const timer = window.setTimeout(resolve, 15_000);
-    const done = () => { window.clearTimeout(timer); resolve(); };
-    audio.onended = audio.onerror = done;
-    audio.play().catch(done);
+    const timer = window.setTimeout(() => resolve(null), 15_000);
+    const done = (err: string | null) => { window.clearTimeout(timer); resolve(err); };
+    audio.onended = () => done(null);
+    audio.onerror = () => done(audio.error?.message || `MediaError ${audio.error?.code ?? "?"}`);
+    audio.play().catch((e: unknown) => done(e instanceof Error ? `${e.name}: ${e.message}` : String(e)));
   });
 }
 
 // ---- file d'attente : une annonce à la fois, clips et synthèse confondus ----------------------
 export interface Announcement { text: string; key?: string | null }
 const MAX_PENDING = 4;
-const queue: { item: Announcement; opts: VoiceOptions }[] = [];
+const queue: { item: Announcement; opts: VoiceOptions; resolve: (err: string | null) => void }[] = [];
 let playing = false;
 
 async function drain(): Promise<void> {
@@ -98,19 +100,27 @@ async function drain(): Promise<void> {
   playing = true;
   try {
     for (let next = queue.shift(); next; next = queue.shift()) {
-      const { item, opts } = next;
+      const { item, opts, resolve } = next;
       const url = opts.voiceProfile && item.key ? await clipUrl(opts.voiceProfile, item.key) : null;
-      if (url) await playUrl(url, opts.volume ?? 1);
-      else await speakAsync(item.text, opts);
+      // clip illisible sur ce PC : la voix Windows prend le relais plutôt que le silence
+      const err = url ? await playUrl(url, opts.volume ?? 1) : null;
+      if (err) console.warn(`Clip ${opts.voiceProfile}/${item.key} illisible : ${err}`);
+      if (!url || err) await speakAsync(item.text, opts);
+      resolve(err);
     }
   } finally {
     playing = false;
   }
 }
 
-/** Annonce une phrase : le clip enregistré de la clé s'il existe dans le profil choisi, sinon la voix Windows. */
-export function announce(item: Announcement, opts: VoiceOptions = {}): void {
-  if (queue.length >= MAX_PENDING) queue.shift(); // en retard : on abandonne la plus ancienne
-  queue.push({ item, opts });
-  void drain();
+/**
+ * Annonce une phrase : le clip enregistré de la clé s'il existe dans le profil choisi, sinon la voix Windows.
+ * La promesse se résout une fois la phrase dite : erreur de lecture du clip, ou null.
+ */
+export function announce(item: Announcement, opts: VoiceOptions = {}): Promise<string | null> {
+  if (queue.length >= MAX_PENDING) queue.shift()?.resolve(null); // en retard : on abandonne la plus ancienne
+  return new Promise((resolve) => {
+    queue.push({ item, opts, resolve });
+    void drain();
+  });
 }

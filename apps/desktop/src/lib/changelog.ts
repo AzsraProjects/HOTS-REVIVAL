@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.0.8",
+    date: "2026-10-16",
+    fr: ["Guide vocal : si votre PC n'arrive pas à lire une voix HOTS REVIVAL (Mega Chad, Insupp…), la voix Windows prend le relais au lieu du silence, et « Tester la voix » affiche la cause du problème."],
+    en: ["Voice guide: if your PC cannot play a HOTS REVIVAL voice (Mega Chad, Insupp…), the Windows voice takes over instead of silence, and “Test the voice” shows what went wrong."],
+  },
+  {
     version: "1.0.7",
     date: "2026-10-16",
     fr: ["Guide vocal plus calme en infériorité de talent : une seule annonce « Désavantage de talent : évitez les combats ! » au lieu de trois phrases à la suite."],

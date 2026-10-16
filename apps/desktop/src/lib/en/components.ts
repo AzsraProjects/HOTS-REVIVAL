@@ -104,6 +104,8 @@ export const EN_COMPONENTS: Record<string, string> = {
   "Phrases manquantes": "Missing lines",
   "Vitesse (voix Windows)": "Speed (Windows voice)",
   "Une phrase absente de cette voix est lue par la voix Windows choisie ci-dessus.": "A line missing from this voice is read by the Windows voice chosen above.",
+  "Lecture du clip impossible sur ce PC, la voix Windows a pris le relais : {err}": "This PC could not play the clip, the Windows voice took over: {err}",
+  "Lecture du clip impossible sur ce PC : {err}": "This PC could not play the clip: {err}",
   "Compte & replays": "Account & replays",
   "Mode partie & overlay": "Game mode & overlay",
   "Communauté": "Community",
