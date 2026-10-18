@@ -12,6 +12,8 @@ const NAV = [
   { to: "/a-propos", fr: "À propos" },
 ];
 
+const SUPPORT_BTN = "btn bg-gradient-to-r from-gold-400 to-gold-500 font-semibold text-void-950 shadow-gold hover:brightness-110";
+
 export function Logo({ size = 34 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden>
@@ -55,6 +57,10 @@ export function Layout() {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-3">
+            <a href={SUPPORT_URL} target="_blank" rel="noreferrer" className={`${SUPPORT_BTN} hidden py-2 sm:inline-flex`}
+              title={t("Le serveur de la plateforme communautaire est payé par la communauté : un café aide à le garder en ligne.")}>
+              {t("♥ Soutenir le projet")}
+            </a>
             <a href={DOWNLOAD_URL} target="_blank" rel="noreferrer" className="btn-primary hidden py-2 lg:inline-flex">
               {t("Télécharger l'appli")}
             </a>
@@ -72,6 +78,7 @@ export function Layout() {
             {NAV.map((n) => (
               <NavLink key={n.to} to={n.to} className="block rounded-lg px-3 py-2.5 text-slate-200 hover:bg-white/5">{t(n.fr)}</NavLink>
             ))}
+            <a href={SUPPORT_URL} target="_blank" rel="noreferrer" className={`${SUPPORT_BTN} mt-2 w-full`}>{t("♥ Soutenir le projet")}</a>
             <a href={DOWNLOAD_URL} target="_blank" rel="noreferrer" className="btn-primary mt-2 w-full">{t("Télécharger l'appli")}</a>
           </nav>
         )}

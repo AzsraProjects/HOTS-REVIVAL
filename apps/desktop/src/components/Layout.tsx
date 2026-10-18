@@ -50,10 +50,14 @@ export function Layout() {
     <LiveContext.Provider value={{ state, setState, connected }}>
     <div className="flex h-full">
       <aside className="flex w-60 shrink-0 flex-col border-r border-void-700 bg-void-950/80 p-4">
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="title-display text-2xl leading-none">HOTS</div>
           <div className="title-display text-2xl leading-none text-storm-400">REVIVAL</div>
           <div className="mt-2 text-[11px] leading-snug text-slate-500">{t("Conçue par des joueurs, pour des joueurs.")}</div>
+          <a href={SUPPORT_URL} target="_blank" rel="noreferrer" className="btn-gold mt-4 w-full justify-center text-sm font-semibold shadow-gold"
+            title={t("Le serveur de la plateforme communautaire est payé par la communauté : un café aide à le garder en ligne.")}>
+            {t("♥ Soutenir le projet ↗")}
+          </a>
         </div>
         <nav className="flex flex-col gap-1">
           {nav().map((n) => (
@@ -71,10 +75,6 @@ export function Layout() {
           <WhatsNew />
           <a href={SITE_URL} target="_blank" rel="noreferrer" className="block text-storm-300 hover:text-white">
             {t("Site communautaire ↗")}
-          </a>
-          <a href={SUPPORT_URL} target="_blank" rel="noreferrer" className="block text-storm-300 hover:text-white"
-            title={t("Le serveur de la plateforme communautaire est payé par la communauté : un café aide à le garder en ligne.")}>
-            {t("♥ Soutenir le projet ↗")}
           </a>
           <div className="flex items-center gap-2">
             <span className={`h-2 w-2 rounded-full ${connected ? "bg-emerald-400" : "bg-rose-500"}`} />
