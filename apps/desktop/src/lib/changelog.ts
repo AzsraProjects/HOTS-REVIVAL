@@ -10,6 +10,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.0.10",
+    date: "2026-10-18",
+    fr: ["Le bouton « ♥ Soutenir le projet » passe en haut du menu, sous le logo : le serveur de la plateforme communautaire est payé par la communauté, un café aide à le garder en ligne."],
+    en: ["The “♥ Support the project” button moves to the top of the menu, under the logo: the community platform server is paid for by the community, a coffee helps keep it online."],
+  },
+  {
     version: "1.0.9",
     date: "2026-10-16",
     fr: [
