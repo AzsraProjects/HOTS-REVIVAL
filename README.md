@@ -101,6 +101,25 @@ React · TypeScript · Tailwind · Electron · Python · FastAPI · PostgreSQL �
 - Blizzard ne fournit aucune API Heroes of the Storm (Battle.net compris) : le rang se saisit dans l'application.
 - Les profils de héros du Draft Assistant et les seuils du HEROS SCORE sont des valeurs éditoriales v1, à calibrer sur données.
 - Le schéma est créé par `create_all` ; les migrations Alembic arrivent avant la première release publique.
-- L'installeur n'est pas signé (avertissement SmartScreen) : un certificat de signature de code est à prévoir avant la diffusion publique.
+- La signature de l'installeur via SignPath Foundation est en cours de mise en place ([détails](docs/signature-du-code.md)).
+
+## Politique de signature du code / Code signing policy
+
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
+- **Committers and reviewers:** [members of the AzsraProjects organization](https://github.com/AzsraProjects)
+- **Approvers:** [owners of the AzsraProjects organization](https://github.com/AzsraProjects)
+
+Only binaries built by GitHub Actions from this repository's tagged releases are signed: `HOTS REVIVAL.exe`, `hots-backend.exe` and the `HOTS-REVIVAL-Setup-*.exe` installer.
+
+**Privacy policy:** this program does not read game memory, inject anything or send keystrokes to the game. It connects to other networked systems only for these purposes:
+- checking for and downloading updates from GitHub Releases;
+- sharing a summary of the player's matches (heroes, map, result, talents, statistics; never the replay file, chat or player names) with the community platform https://hots-revival.pages.dev. This is enabled by default, the player is informed on first launch before anything is sent, and it can be disabled at any time in Settings → Community;
+- reading public hero guides from Icy Veins;
+- the AI coach, only when the player configures it with an AI provider of their choice (and their own key when that provider requires one).
+
+## Licence
+
+[MIT](LICENSE)
 
 *Heroes of the Storm est une marque de Blizzard Entertainment. HOTS REVIVAL est un projet indépendant, non affilié à Blizzard.*

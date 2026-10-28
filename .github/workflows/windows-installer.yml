@@ -52,6 +52,9 @@ jobs:
   windows:
     needs: tests
     runs-on: windows-latest
+    env:
+      # Signature SignPath des versions publiques (tags v*), dès que le secret existe (voir docs/signature-du-code.md).
+      SIGN: ${{ github.ref_type == 'tag' && secrets.SIGNPATH_API_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -97,12 +100,82 @@ jobs:
           "version=$v" >> $env:GITHUB_OUTPUT
           "tag=v$v" >> $env:GITHUB_OUTPUT
 
-      - name: Construire l'installeur
+      - name: Construire l'application
         working-directory: apps/desktop
         run: |
           npm ci
           npm version ${{ steps.version.outputs.version }} --no-git-tag-version --allow-same-version
-          npm run dist
+          npm run build
+          npx electron-builder --win --dir --publish never
+
+      # 1re signature : nos deux exécutables, avant de les emballer dans l'installeur
+      - name: Exécutables à signer
+        if: env.SIGN == 'true'
+        id: exes
+        uses: actions/upload-artifact@v4
+        with:
+          name: executables-a-signer
+          path: |
+            apps/desktop/release/win-unpacked/HOTS REVIVAL.exe
+            apps/desktop/release/win-unpacked/resources/backend/hots-backend.exe
+          if-no-files-found: error
+
+      - name: Signer les exécutables (SignPath)
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: hots-revival
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: executables
+          github-artifact-id: ${{ steps.exes.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: apps/desktop/release/win-unpacked
+
+      - name: Construire l'installeur
+        working-directory: apps/desktop
+        run: npx electron-builder --win nsis --prepackaged release/win-unpacked --publish never
+
+      # 2e signature : l'installeur lui-même
+      - name: Installeur à signer
+        if: env.SIGN == 'true'
+        id: setup
+        uses: actions/upload-artifact@v4
+        with:
+          name: installeur-a-signer
+          path: apps/desktop/release/*.exe
+          if-no-files-found: error
+
+      - name: Signer l'installeur (SignPath)
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: hots-revival
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: installer
+          github-artifact-id: ${{ steps.setup.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: apps/desktop/release
+
+      - name: Mettre à jour latest.yml après signature
+        if: env.SIGN == 'true'
+        working-directory: apps/desktop
+        run: node scripts/refresh-update-metadata.mjs
+
+      - name: Vérifier la signature
+        if: env.SIGN == 'true'
+        shell: pwsh
+        run: |
+          Get-ChildItem apps/desktop/release/*.exe, "apps/desktop/release/win-unpacked/HOTS REVIVAL.exe", apps/desktop/release/win-unpacked/resources/backend/hots-backend.exe | ForEach-Object {
+            $s = Get-AuthenticodeSignature $_.FullName
+            Write-Host "$($_.Name) : $($s.Status) ($($s.SignerCertificate.Subject))"
+            if ($s.Status -ne "Valid") { throw "$($_.Name) n'est pas signé correctement" }
+          }
 
       - name: Artefact
         uses: actions/upload-artifact@v4
@@ -126,7 +199,7 @@ jobs:
             ## Installation
             1. Téléchargez **HOTS-REVIVAL-Setup-*.exe** ci-dessous.
             2. Double-cliquez dessus : l'application s'installe et se lance toute seule.
-            3. Si Windows affiche « Windows a protégé votre ordinateur », cliquez sur **Informations complémentaires** puis **Exécuter quand même** (l'application n'est pas encore signée numériquement).
+            3. Si Windows affiche « Windows a protégé votre ordinateur », cliquez sur **Informations complémentaires** puis **Exécuter quand même** (chaque nouvelle version doit d'abord se faire connaître de Windows).
 
             Déjà installé ? Utilisez simplement le bouton « Mettre à jour » de l'application.
 
