@@ -5,7 +5,7 @@
 import { globalShortcut } from "electron";
 import { BACKEND_URL } from "./backend";
 import { t } from "./i18n";
-import { say, toggleInteractive, toggleOverlay } from "./overlay";
+import { say, toggleInteractive, toggleOverlay, toggleVoiceMute } from "./overlay";
 import { rememberCapture } from "./screenReader";
 
 async function post(path: string, body: unknown = {}): Promise<void> {
@@ -27,6 +27,8 @@ export const SHORTCUTS: Record<string, { label: string; run: () => void }> = {
   "CommandOrControl+Shift+PageUp": { get label() { return t("Niveau allié +1"); }, run: () => post("levels", { ally_delta: 1 }) },
   "CommandOrControl+Shift+PageDown": { get label() { return t("Niveau adverse +1"); }, run: () => post("levels", { enemy_delta: 1 }) },
   "CommandOrControl+Shift+J": { get label() { return t("Objectif terminé"); }, run: () => post("objective-done") },
+  "CommandOrControl+Shift+B": { get label() { return t("Marquer ce moment à revoir (replay)"); }, run: () => post("bookmark") },
+  "CommandOrControl+Shift+M": { get label() { return t("Couper / rétablir le guide vocal"); }, run: () => toggleVoiceMute() },
   "CommandOrControl+Shift+K": { get label() { return t("Capturer l'écran pour calibrer la lecture"); }, run: () => {
       void rememberCapture().then((r) =>
         say(r === "ok" ? t("Capture enregistrée. Ouvrez les paramètres pour placer les zones.")

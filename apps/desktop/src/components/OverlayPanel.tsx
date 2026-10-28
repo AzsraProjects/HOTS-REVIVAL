@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useVoiceMuted } from "../hooks/useVoiceGuide";
 import { api } from "../lib/api";
 import { clock, pct } from "../lib/format";
 import { t } from "../lib/i18n";
@@ -45,6 +46,7 @@ export function OverlayPanel({ state, interactive, heroes, maps, onState, previe
   preview?: boolean;
 }) {
   const [mapId, setMapId] = useState("");
+  const muted = useVoiceMuted();
   const act = (p: Promise<OverlayState>) => p.then(onState).catch(() => undefined);
   const s = state;
   const status = s?.status ?? "idle";
@@ -76,10 +78,18 @@ export function OverlayPanel({ state, interactive, heroes, maps, onState, previe
         <div key={a.id} className={`rounded-lg border-l-4 bg-void-950/90 px-3 py-1.5 font-semibold ${ALERT_TONE[a.level]}`}>{a.text}</div>
       ))}
 
+      {muted && status !== "idle" && <div className={`${box} text-xs text-slate-400`}>🔇 {t("Guide vocal coupé (Ctrl+Shift+M)")}</div>}
+
       {status === "loading" && s?.objective && (
         <div className={box}>
           <div className="text-xs text-storm-300">{s.objective.name}</div>
           <div className="text-xs text-slate-300">{s.objective.tips[0]}</div>
+        </div>
+      )}
+
+      {(status === "loading" || status === "in_game") && s?.goal && (
+        <div className={`${box} text-xs`} title={s.goal.label}>
+          <span className="text-gold-400">{t("Objectif :")}</span> <span className="text-slate-200">{status === "loading" ? s.goal.label : s.goal.reminder}</span>
         </div>
       )}
 
@@ -102,9 +112,15 @@ export function OverlayPanel({ state, interactive, heroes, maps, onState, previe
           {s.levels && (
           <div className={`${box} flex justify-between`}>
             <span>{t("Alliés")} <b className="text-storm-300">{s.levels.ally}</b></span>
-            <span className={s.levels.ally_tier > s.levels.enemy_tier ? "text-emerald-300" : s.levels.ally_tier < s.levels.enemy_tier ? "text-rose-300" : "text-slate-500"}>
-              {s.levels.ally_tier === s.levels.enemy_tier ? t("talents égaux") : s.levels.ally_tier > s.levels.enemy_tier ? `▲ ${t("avantage")}` : `▼ ${t("désavantage")}`}
-            </span>
+            {s.levels.stale ? (
+              <span className="text-slate-500" title={t("Plus aucune lecture de l'écran depuis 45 s : les niveaux affichés peuvent être périmés.")}>
+                ⚠ {t("lecture perdue")}
+              </span>
+            ) : (
+              <span className={s.levels.ally_tier > s.levels.enemy_tier ? "text-emerald-300" : s.levels.ally_tier < s.levels.enemy_tier ? "text-rose-300" : "text-slate-500"}>
+                {s.levels.ally_tier === s.levels.enemy_tier ? t("talents égaux") : s.levels.ally_tier > s.levels.enemy_tier ? `▲ ${t("avantage")}` : `▼ ${t("désavantage")}`}
+              </span>
+            )}
             <span>{t("Adv.")} <b className="text-rose-300">{s.levels.enemy}</b></span>
           </div>
           )}

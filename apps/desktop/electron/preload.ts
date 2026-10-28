@@ -26,6 +26,12 @@ const api = {
     ipcRenderer.on("overlay:say", listener);
     return () => ipcRenderer.removeListener("overlay:say", listener);
   },
+  voiceMuted: (): Promise<boolean> => ipcRenderer.invoke("voice:muted"),
+  onVoiceMute: (cb: (muted: boolean) => void): (() => void) => {
+    const listener = (_e: IpcRendererEvent, muted: boolean) => cb(muted);
+    ipcRenderer.on("voice:mute", listener);
+    return () => ipcRenderer.removeListener("voice:mute", listener);
+  },
   onPrefs: (cb: (p: unknown) => void): (() => void) => {
     const listener = (_e: IpcRendererEvent, p: unknown) => cb(p);
     ipcRenderer.on("overlay:prefs", listener);

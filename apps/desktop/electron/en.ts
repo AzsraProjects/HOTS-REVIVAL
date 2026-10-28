@@ -18,6 +18,8 @@ export const EN: Record<string, string> = {
   "Niveau allié +1": "Ally level +1",
   "Niveau adverse +1": "Enemy level +1",
   "Objectif terminé": "Objective finished",
+  "Marquer ce moment à revoir (replay)": "Bookmark this moment for review (replay)",
+  "Couper / rétablir le guide vocal": "Mute / unmute the voice guide",
   "Capturer l'écran pour calibrer la lecture": "Capture the screen to calibrate screen reading",
   "Capture enregistrée. Ouvrez les paramètres pour placer les zones.": "Capture saved. Open the settings to place the zones.",
   "La capture est noire : le plein écran exclusif bloque la lecture de l'écran.":

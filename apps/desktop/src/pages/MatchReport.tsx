@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Bar, Card, ErrorBox, List, Loading, ModeLabel } from "../components/ui";
+import { AdvantagesCard, BasisList, BookmarksCard, GoalReportCard } from "../components/Insights";
 import { ScoreRadar } from "../components/ScoreRadar";
 import { useAsync } from "../hooks/useAsync";
 import { api } from "../lib/api";
@@ -115,12 +116,12 @@ export function MatchReport() {
           ) : <p className="text-sm text-slate-500">{t("Score indisponible.")}</p>}
         </Card>
         <Card title={t("Points forts")}>
-          <List items={ai?.strengths ?? facts?.strengths ?? []} icon="✔" tone="text-emerald-300" />
+          <BasisList items={ai?.strengths ?? facts?.strengths ?? []} basis={facts?.basis} icon="✔" tone="text-emerald-300" />
           <h3 className="card-title mt-5">{t("Actions excellentes")}</h3>
           <List items={ai?.excellent_actions ?? []} icon="★" tone="text-gold-300" empty={t("Générez l'analyse IA.")} />
         </Card>
         <Card title={t("Points faibles")}>
-          <List items={ai?.weaknesses ?? facts?.weaknesses ?? []} icon="✖" tone="text-rose-300" />
+          <BasisList items={ai?.weaknesses ?? facts?.weaknesses ?? []} basis={facts?.basis} icon="✖" tone="text-rose-300" />
           <h3 className="card-title mt-5">{t("Erreurs majeures")}</h3>
           <List items={ai?.major_mistakes ?? []} icon="!" tone="text-rose-200" empty={t("Générez l'analyse IA.")} />
         </Card>
@@ -131,9 +132,15 @@ export function MatchReport() {
           <List items={ai?.key_moments ?? facts?.key_moments ?? []} icon="⏱" />
         </Card>
         <Card title={t("Plan d'amélioration")} className="border-gold-600/40">
-          <List items={ai?.improvement_plan ?? facts?.improvement_plan ?? []} icon="➜" tone="text-gold-300" />
+          <BasisList items={ai?.improvement_plan ?? facts?.improvement_plan ?? []} basis={facts?.basis} icon="➜" tone="text-gold-300" />
         </Card>
       </div>
+
+      {facts && <AdvantagesCard timeline={facts.advantages} />}
+
+      {me && <GoalReportCard matchId={id} />}
+
+      <BookmarksCard matchId={id} />
 
       {facts?.role_context && (
         <Card title={t("Conseils pour votre rôle : {role}", { role: facts.role_context.label })}>

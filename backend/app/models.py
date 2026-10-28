@@ -272,3 +272,31 @@ class RankSnapshot(Base):
     league: Mapped[str] = mapped_column(String(24))
     division: Mapped[int | None] = mapped_column(Integer)
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+
+class Goal(Base):
+    """Objectif personnel suivi d'une partie à l'autre (un seul actif : ended_at nul)."""
+
+    __tablename__ = "goals"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    key: Mapped[str] = mapped_column(String(32))  # voir app/analytics/goals.py (GOALS)
+    target: Mapped[float] = mapped_column(Float)
+    source_match_id: Mapped[int | None] = mapped_column(Integer)  # partie dont il est issu (sans clé étrangère)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class Bookmark(Base):
+    """Moment « à revoir » marqué en jeu (raccourci), rattaché ensuite au replay par son empreinte :
+    il survit donc aux réanalyses de l'historique."""
+
+    __tablename__ = "bookmarks"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+    clock_s: Mapped[float | None] = mapped_column(Float)  # horloge de jeu (None : horloge non synchronisée)
+    clock_estimated: Mapped[bool] = mapped_column(Boolean, default=False)  # déduite de la fin du replay
+    map_id: Mapped[str | None] = mapped_column(String(48))
+    note: Mapped[str] = mapped_column(Text, default="")
+    file_hash: Mapped[str | None] = mapped_column(String(64), index=True)  # replay associé (None : en attente)

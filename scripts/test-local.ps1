@@ -48,6 +48,9 @@ if (-not (Test-Path $test)) {
 
 # 3. Lancement : la fenêtre de test s'ouvre ; la fermer arrête tout.
 $env:HOTS_DATA_DIR = $test
+# Version d'analyse changée : réanalyse de la copie (d'habitude faite par la surveillance des replays, coupée ici).
+Step "Vérification de l'analyse de l'historique"
+& $python (Join-Path $root "backend\scripts\reanalyze_history.py")
 $env:HOTS_SPAWN_BACKEND = "1"
 $env:HOTS_PYTHON = $python
 $env:HOTS_WATCH_REPLAYS = "false"

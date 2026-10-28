@@ -167,6 +167,16 @@ class LiveLevelsRequest(BaseModel):
     source: Literal["manuel", "écran"] = "manuel"
 
 
+class GoalRequest(BaseModel):
+    key: Literal["deaths", "isolated_deaths", "deaths_before_objective", "kill_participation", "camps", "conversions"]
+    target: float = Field(ge=0, le=100)
+    match_id: int | None = None
+
+
+class BookmarkNoteRequest(BaseModel):
+    note: str = Field(max_length=500)
+
+
 class LiveCampRequest(BaseModel):
     camp_type: Literal["siege", "bruiser", "boss", "support", "other"]
     side: Literal["ally", "enemy"] = "ally"

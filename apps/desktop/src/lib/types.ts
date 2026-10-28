@@ -115,6 +115,62 @@ export interface ReportFacts {
   improvement_plan: string[];
   heros_score: (Omit<HerosScore, "algo_version" | "details">) | null;
   role_context?: { role: string; label: string; focus: string[]; normal: string };
+  /** Texte affiché -> règle et valeurs qui l'ont produit (« Sur quoi tu te bases ? »). */
+  basis?: Record<string, string>;
+  advantages?: AdvantageTimeline;
+}
+
+export interface AdvantageDeath {
+  clock: string; hero: string; side: "allies" | "enemies"; me: boolean; killers: string[];
+  respawn: string; respawn_measured: boolean;
+}
+
+export interface AdvantageMoment {
+  t_s: number;
+  clock: string;
+  side: "allies" | "enemies"; // équipe qui a l'avantage numérique
+  kills: number;
+  losses: number;
+  window_s: number;
+  converted: boolean;
+  fact: string;
+  interpretation: string;
+  alternative: string | null;
+  limits: string[];
+  evidence: { deaths: AdvantageDeath[]; window: { from: string; to: string }; gains: string[]; counter_gains: string[] };
+}
+
+export interface AdvantageTimeline {
+  headline: string;
+  allies: { advantages: number; converted: number };
+  enemies: { advantages: number; converted: number };
+  moments: AdvantageMoment[];
+  rule: string;
+}
+
+export interface GoalInfo {
+  id: number; key: string; target: number; label: string; reminder: string;
+  direction: "max" | "min"; unit: string; created_at: string; source_match_id: number | null;
+}
+
+export interface GoalResult {
+  value: number | null; target: number; unit: string; success: boolean | null; situations: string[]; note: string | null;
+}
+
+export interface GoalProgress {
+  goal: GoalInfo;
+  games: (GoalResult & { match_id: number; map: string; hero: string; played_at: string | null; win: boolean })[];
+  measured: number;
+  successes: number;
+  trend: "up" | "down" | "stable" | null;
+  note: string | null;
+}
+
+export interface GoalSuggestion { key: string; target: number; label: string; reason: string | null; suggested: boolean }
+
+export interface Bookmark {
+  id: number; clock_s: number | null; clock: string | null; clock_estimated: boolean; note: string;
+  created_at: string; attached: boolean; around: { clock: string; text: string }[];
 }
 
 export interface Report {
@@ -195,7 +251,9 @@ export interface OverlayState {
   map_source: string | null;
   my_hero_id: string | null;
   lobby_players: string[];
-  levels: { ally: number; enemy: number; ally_tier: number; enemy_tier: number; source: string } | null;
+  levels: { ally: number; enemy: number; ally_tier: number; enemy_tier: number; source: string; stale?: boolean } | null;
+  /** Objectif personnel actif (rappel avant et pendant la partie). */
+  goal?: { label: string; reminder: string } | null;
   teams: Teams | null;
   objective: {
     name: string; map: string; next_in_s: number | null; source: string; samples: number;
@@ -208,7 +266,7 @@ export interface OverlayState {
   talents: OverlayTalent[];
   next_talent: OverlayTalent | null;
   upcoming_objectives?: number[];
-  alerts: { id: string; text: string; level: "info" | "warning" | "success" | "danger"; voice?: boolean; voice_key?: string }[];
+  alerts: { id: string; text: string; level: "info" | "warning" | "success" | "danger"; priority?: number; voice?: boolean; voice_key?: string }[];
   tips: string[];
   /** Mêmes conseils que `tips`, avec la clé de la phrase enregistrée (profils de voix). */
   tip_items?: { text: string; voice_key?: string }[];

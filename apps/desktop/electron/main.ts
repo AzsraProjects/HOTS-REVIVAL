@@ -10,7 +10,7 @@ import {
 } from "./screenReader";
 import type { Regions } from "./ocr";
 import { checkForUpdates, downloadUpdate, getUpdateStatus, initUpdater, installUpdate } from "./updater";
-import { createOverlay, placeOverlay, say, sendPrefs, setInteractive, toggleOverlay } from "./overlay";
+import { createOverlay, isVoiceMuted, placeOverlay, say, sendPrefs, setInteractive, toggleOverlay } from "./overlay";
 import { loadPrefs, savePrefs, type OverlayPrefs } from "./prefs";
 import { registerShortcuts, SHORTCUTS, unregisterShortcuts } from "./shortcuts";
 import {
@@ -141,6 +141,7 @@ if (!app.requestSingleInstanceLock()) {
       })),
     );
     ipcMain.handle("overlay:say", (_e, text: string) => say(String(text)));
+    ipcMain.handle("voice:muted", () => isVoiceMuted());
     ipcMain.handle("screen:status", () => screenReaderStatus());
     ipcMain.handle("screen:save", (_e, cfg: Partial<ScreenReaderConfig>) => saveConfig(cfg));
     ipcMain.handle("screen:capture", (_e, fresh: boolean) => calibrationCapture(fresh !== false));

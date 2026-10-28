@@ -11,7 +11,7 @@ from functools import lru_cache
 
 LANGUAGES = ("fr", "en")
 # Dictionnaires de app/locales/ (liste explicite : fiable une fois empaqueté par PyInstaller).
-LOCALE_MODULES = ("en_common", "en_report", "en_draft", "en_live", "en_coach", "en_data")
+LOCALE_MODULES = ("en_common", "en_report", "en_draft", "en_live", "en_coach", "en_data", "en_insights")
 _current = "fr"
 
 

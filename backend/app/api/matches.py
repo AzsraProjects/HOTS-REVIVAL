@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from app.analytics.report import build_facts
+from app.analytics.report import build_facts, facts_for_ai
 from app.coach.client import CoachError, coach_available, deterministic_summary, generate_game_summary, model_label
 from app.coach.context import player_context
 from app.config import Settings, app_settings
@@ -90,7 +90,7 @@ async def generate_report(
     summary, model = None, None
     if coach_available(settings):
         try:
-            summary = await generate_game_summary(settings, r.facts, player_context(db, match_id))
+            summary = await generate_game_summary(settings, facts_for_ai(r.facts), player_context(db, match_id))
             model = model_label(settings)
         except CoachError as exc:  # IA injoignable : on retombe sur le rapport sans IA
             log.warning("Rapport IA indisponible : %s", exc)

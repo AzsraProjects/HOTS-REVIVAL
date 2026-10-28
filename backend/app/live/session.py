@@ -24,6 +24,9 @@ MAX_ALERTS = 3
 ENDED_LINGER_S = 15
 LEVEL_SOURCES = ("manuel", "écran")
 SCREEN_MAX_STEP = 2  # écart max accepté entre deux lectures d'écran successives retenues
+# Lecture d'écran muette depuis ce délai (l'horloge est revérifiée toutes les 15 s) : les niveaux lus
+# ne sont plus fiables, les alertes qui en dépendent sont suspendues jusqu'à la prochaine lecture.
+SCREEN_STALE_S = 45
 
 
 # Libellés des camps dans les alertes (« Camp de siège disponible dans 20 s. »).
@@ -64,19 +67,25 @@ class LiveSession:
     talent_build: list[dict] = field(default_factory=list)
     ended_at: float | None = None
     loading_since: float | None = None
+    screen_seen_at: float | None = None  # dernière lecture d'écran reçue (time.monotonic())
+    goal: dict | None = None  # objectif personnel actif (conservé d'une partie à l'autre)
     _flashes: dict[str, tuple[str, str, float, str]] = field(default_factory=dict)
     _flashed: set[str] = field(default_factory=set)
     _lock: threading.RLock = field(default_factory=threading.RLock, repr=False)
 
     # ---- cycle de vie ------------------------------------------------------------------
     def _new_game_locked(self) -> None:
-        running = self.game_running
+        running, goal = self.game_running, self.goal
         game_id = self.game_id + 1
         fresh = LiveSession()
         for name in fresh.__dataclass_fields__:
             if name != "_lock":
                 setattr(self, name, getattr(fresh, name))
-        self.game_running, self.game_id = running, game_id
+        self.game_running, self.game_id, self.goal = running, game_id, goal
+
+    def set_goal(self, goal: dict | None) -> None:
+        with self._lock:
+            self.goal = goal
 
     def on_lobby(self, battletags: list[str], map_id: str | None, map_source: str | None,
                  map_hash: str | None, timings: dict | None = None, age_s: float = 0.0) -> None:
@@ -88,6 +97,9 @@ class LiveSession:
             self.lobby_players, self.lobby_map_hash = battletags, map_hash
             self.map_id, self.map_source = map_id, map_source
             self.timings = timings or {}
+            if self.goal:  # rappel court avant la partie
+                self._flash_locked("goal", tr("Votre objectif : {label}", label=self.goal["label"]), "info",
+                                   "goal-reminder")
 
     def start(self, map_id: str | None, my_hero_id: str | None, clock_s: float = 0.0,
               timings: dict | None = None) -> None:
@@ -122,6 +134,8 @@ class LiveSession:
         with self._lock:
             if self.status in ("idle", "ended"):
                 self._new_game_locked()
+            if source == "écran":
+                self.screen_seen_at = time.monotonic()
             # une lecture d'écran ne corrige une horloge déjà lue que si l'écart est notable
             current = self.clock()
             if (source == "écran" and self.clock_source == "écran" and current is not None
@@ -154,6 +168,8 @@ class LiveSession:
 
     def set_levels(self, ally: int | None, enemy: int | None, source: str = "manuel") -> None:
         with self._lock:
+            if source == "écran":
+                self.screen_seen_at = time.monotonic()
             if source == "écran" and self.level_source != "écran":
                 if ally is not None and not self.plausible_level(ally):
                     ally = None
@@ -213,6 +229,23 @@ class LiveSession:
             respawn = registry().camp_respawn_s.get(camp_type, registry().camp_respawn_s["other"])
             self.camps = [c for c in self.camps if not (c.camp_type == camp_type and c.side == side)]
             self.camps.append(CampTimer(camp_type, side, now + respawn))
+
+    def bookmark(self) -> float | None:
+        """Moment « à revoir » marqué au raccourci : renvoie l'horloge de jeu (None si inconnue)."""
+        with self._lock:
+            clock = self.clock() if self.status == "in_game" else None
+            n = sum(1 for k in self._flashed if k.startswith("bookmark-"))
+            if clock is None:
+                text = tr("Moment marqué. Horloge non synchronisée : l'heure sera déduite du replay.")
+            else:
+                text = tr("Moment marqué à {clock}.", clock=f"{int(clock) // 60}:{int(clock) % 60:02d}")
+            self._flash_locked(f"bookmark-{n + 1}", text, "info", "bookmark")
+            return clock
+
+    def screen_stale(self) -> bool:
+        """Niveaux lus à l'écran, mais plus aucune lecture reçue depuis SCREEN_STALE_S."""
+        return (self.level_source == "écran" and self.screen_seen_at is not None
+                and time.monotonic() - self.screen_seen_at > SCREEN_STALE_S)
 
     def on_game_end(self) -> None:
         """Replay enregistré : la partie est finie, l'overlay se vide."""
@@ -335,10 +368,18 @@ def compute_overlay(s: LiveSession) -> dict[str, Any]:
 
     # Powerspikes (niveaux d'équipe lus en haut de l'écran ou saisis) — rien si inconnus
     known = s.level_source is not None
+    stale = s.status == "in_game" and s.screen_stale()
+    if stale:  # perte de lecture rendue visible, une fois par perte
+        s._flash_locked("screen-lost", tr("Lecture de l'écran perdue : alertes de niveau suspendues."), "warning",
+                        "screen-lost")
+    else:
+        s._flashed.discard("screen-lost")
     ally_level, enemy_level = s.ally_level, s.enemy_level
     ally_tier, enemy_tier = talent_tier(ally_level), talent_tier(enemy_level)
     if s.status == "in_game" and known:
-        if enemy_tier > ally_tier:
+        if stale:
+            pass  # niveaux peut-être périmés : aucune consigne de combat tirée d'eux
+        elif enemy_tier > ally_tier:
             alerts.append({"id": "talent-disadvantage", "priority": 1, "level": "danger",
                            "text": tr("Désavantage de talent : évitez les combats."),
                            "voice_key": "talent-disadvantage"})
@@ -378,7 +419,8 @@ def compute_overlay(s: LiveSession) -> dict[str, Any]:
         "my_hero_id": s.my_hero_id,
         "lobby_players": s.lobby_players,
         "levels": ({"ally": ally_level, "enemy": enemy_level, "ally_tier": ally_tier,
-                    "enemy_tier": enemy_tier, "source": s.level_source} if known else None),
+                    "enemy_tier": enemy_tier, "source": s.level_source, "stale": stale} if known else None),
+        "goal": ({"label": s.goal["label"], "reminder": s.goal["reminder"]} if s.goal else None),
         "teams": teams_from(s.composition),
         "objective": objective,
         "upcoming_objectives": _upcoming(s, clock),

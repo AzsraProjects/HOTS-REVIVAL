@@ -31,6 +31,19 @@ export function say(text: string): void {
   for (const w of BrowserWindow.getAllWindows()) w.webContents.send("overlay:say", text);
 }
 
+// Silence immédiat (raccourci) : jusqu'au prochain appui, réinitialisé au redémarrage de l'application.
+let voiceMuted = false;
+
+export function isVoiceMuted(): boolean {
+  return voiceMuted;
+}
+
+export function toggleVoiceMute(): boolean {
+  voiceMuted = !voiceMuted;
+  for (const w of BrowserWindow.getAllWindows()) w.webContents.send("voice:mute", voiceMuted);
+  return voiceMuted;
+}
+
 export function sendPrefs(): void {
   for (const w of BrowserWindow.getAllWindows()) w.webContents.send("overlay:prefs", getPrefs());
   applyOverlayPref();

@@ -77,12 +77,15 @@ export function clipUrl(profile: string, key: string): Promise<string | null> {
 }
 
 /** Lit un clip jusqu'au bout ; renvoie l'erreur de lecture, null si tout s'est bien passé. */
+let stopClip: (() => void) | null = null; // clip en cours de lecture (coupure immédiate)
+
 export function playUrl(url: string, volume = 1): Promise<string | null> {
   return new Promise((resolve) => {
     const audio = new Audio(url);
     audio.volume = Math.max(0, Math.min(1, volume));
     const timer = window.setTimeout(() => resolve(null), 15_000);
-    const done = (err: string | null) => { window.clearTimeout(timer); resolve(err); };
+    const done = (err: string | null) => { window.clearTimeout(timer); stopClip = null; resolve(err); };
+    stopClip = () => { audio.pause(); done(null); };
     audio.onended = () => done(null);
     audio.onerror = () => done(audio.error?.message || `MediaError ${audio.error?.code ?? "?"}`);
     audio.play().catch((e: unknown) => done(e instanceof Error ? `${e.name}: ${e.message}` : String(e)));
@@ -90,10 +93,21 @@ export function playUrl(url: string, volume = 1): Promise<string | null> {
 }
 
 // ---- file d'attente : une annonce à la fois, clips et synthèse confondus ----------------------
-export interface Announcement { text: string; key?: string | null }
+/**
+ * priority : 0 = la plus urgente (comme les alertes du moteur). expiresAt : une annonce qui n'a pas pu
+ * être dite à temps (« Objectif dans 40 s ») est abandonnée plutôt que dite en retard, donc fausse.
+ */
+export interface Announcement { text: string; key?: string | null; priority?: number; expiresAt?: number }
 const MAX_PENDING = 4;
 const queue: { item: Announcement; opts: VoiceOptions; resolve: (err: string | null) => void }[] = [];
 let playing = false;
+
+/** Coupe la phrase en cours et vide la file (raccourci « silence »). */
+export function silence(): void {
+  for (const pending of queue.splice(0)) pending.resolve(null);
+  stopClip?.();
+  window.speechSynthesis?.cancel();
+}
 
 async function drain(): Promise<void> {
   if (playing) return;
@@ -101,6 +115,10 @@ async function drain(): Promise<void> {
   try {
     for (let next = queue.shift(); next; next = queue.shift()) {
       const { item, opts, resolve } = next;
+      if (item.expiresAt && Date.now() > item.expiresAt) {
+        resolve(null);
+        continue;
+      }
       const url = opts.voiceProfile && item.key ? await clipUrl(opts.voiceProfile, item.key) : null;
       // clip illisible sur ce PC : la voix Windows prend le relais plutôt que le silence
       const err = url ? await playUrl(url, opts.volume ?? 1) : null;
@@ -118,9 +136,18 @@ async function drain(): Promise<void> {
  * La promesse se résout une fois la phrase dite : erreur de lecture du clip, ou null.
  */
 export function announce(item: Announcement, opts: VoiceOptions = {}): Promise<string | null> {
-  if (queue.length >= MAX_PENDING) queue.shift()?.resolve(null); // en retard : on abandonne la plus ancienne
+  if (queue.length >= MAX_PENDING) {
+    // file pleine : on abandonne la moins urgente (la plus ancienne à urgence égale)
+    const rank = (a: Announcement) => a.priority ?? 9;
+    let drop = 0;
+    queue.forEach((q, i) => { if (rank(q.item) > rank(queue[drop].item)) drop = i; });
+    if (rank(queue[drop].item) < rank(item)) return Promise.resolve(null); // la nouvelle est la moins urgente
+    queue.splice(drop, 1)[0].resolve(null);
+  }
   return new Promise((resolve) => {
-    queue.push({ item, opts, resolve });
+    // à urgence plus forte, passe devant les annonces en attente
+    const at = queue.findIndex((q) => (q.item.priority ?? 9) > (item.priority ?? 9));
+    queue.splice(at === -1 ? queue.length : at, 0, { item, opts, resolve });
     void drain();
   });
 }

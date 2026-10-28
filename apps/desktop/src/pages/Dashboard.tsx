@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Bar, Card, Empty, ErrorBox, List, Loading, Stat } from "../components/ui";
+import { GoalProgressCard } from "../components/Insights";
 import { ScoreRadar } from "../components/ScoreRadar";
 import { useAsync } from "../hooks/useAsync";
 import { api } from "../lib/api";
@@ -72,6 +73,8 @@ export function Dashboard() {
           hint={t("précédentes : {winrate}", { winrate: pct(p.trend.previous_10_winrate) })}
           tone={p.trend.direction === "down" ? "text-rose-400" : "text-emerald-400"} />
       </div>
+
+      <GoalProgressCard />
 
       <div className="grid grid-cols-3 gap-4">
         <Card title={t("HEROS SCORE moyen")}>

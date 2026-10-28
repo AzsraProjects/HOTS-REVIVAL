@@ -5,6 +5,7 @@ factuel à Claude, qui ne doit rien inventer au-delà.
 """
 from __future__ import annotations
 
+from app.analytics.advantages import advantage_timeline, fmt_clock
 from app.i18n import language, tr
 from app.coach.roles import role_context
 from app.models import Match, MatchPlayer
@@ -13,11 +14,6 @@ CATEGORY_LABELS = {
     "placement": "placement", "macro": "macro", "teamfight": "teamfight",
     "objectives": "objectifs", "survival": "survie", "draft": "draft",
 }
-
-
-def fmt_clock(seconds: float) -> str:
-    seconds = int(seconds)
-    return f"{seconds // 60}:{seconds % 60:02d}"
 
 
 def _team_wipes(match: Match) -> list[dict]:
@@ -76,46 +72,68 @@ def build_facts(match: Match, me: MatchPlayer) -> dict:
 
     score = me.score
     categories = {c: getattr(score, c) for c in CATEGORY_LABELS} if score else {}
-    strengths, weaknesses = [], []
+    strengths, weaknesses, plan = [], [], []
+    basis: dict[str, str] = {}  # texte affiché -> règle et valeurs qui l'ont produit (« Sur quoi tu te bases ? »)
+
+    def add(items: list[str], text: str, why: str) -> None:
+        items.append(text)
+        basis[text] = why
+
+    kp_pct = round(kp * 100)
     if kp >= 0.7:
-        strengths.append(tr("Participation élevée aux éliminations."))
+        add(strengths, tr("Participation élevée aux éliminations."),
+            tr("Règle : participation aux éliminations d'au moins 70 % (vous : {pct} %).", pct=kp_pct))
     if share("hero_damage") >= 0.28 and me.role in ("Ranged Assassin", "Melee Assassin"):
-        strengths.append(tr("Bons dégâts sur les héros adverses."))
+        add(strengths, tr("Bons dégâts sur les héros adverses."),
+            tr("Règle : assassin avec au moins 28 % des dégâts de l'équipe (vous : {pct} %).",
+               pct=round(share("hero_damage") * 100)))
     if me.role == "Healer" and share("healing") >= 0.6:
-        strengths.append(tr("Vous assurez {pct} % des soins de l'équipe.", pct=round(share("healing") * 100)))
+        add(strengths, tr("Vous assurez {pct} % des soins de l'équipe.", pct=round(share("healing") * 100)),
+            tr("Règle : soigneur avec au moins 60 % des soins de l'équipe."))
     if me.role in ("Tank", "Bruiser") and share("damage_taken") >= 0.3:
-        strengths.append(tr("Vous encaissez {pct} % des dégâts de l'équipe : bon rôle de ligne de front.",
-                            pct=round(share("damage_taken") * 100)))
+        add(strengths, tr("Vous encaissez {pct} % des dégâts de l'équipe : bon rôle de ligne de front.",
+                          pct=round(share("damage_taken") * 100)),
+            tr("Règle : tank ou combattant qui encaisse au moins 30 % des dégâts de l'équipe."))
     if me.deaths <= 2:
-        strengths.append(tr("Excellente survie."))
+        add(strengths, tr("Excellente survie."), tr("Règle : 2 morts ou moins (vous : {n}).", n=me.deaths))
     if share("xp_contribution") >= 0.25:
-        strengths.append(tr("Très bonne contribution à l'expérience de l'équipe."))
+        add(strengths, tr("Très bonne contribution à l'expérience de l'équipe."),
+            tr("Règle : au moins 25 % de l'expérience de l'équipe (vous : {pct} %).",
+               pct=round(share("xp_contribution") * 100)))
     if me.deaths >= 5:
-        weaknesses.append(tr("{n} morts.", n=me.deaths))
+        add(weaknesses, tr("{n} morts.", n=me.deaths),
+            tr("Règle : 5 morts ou plus. Heures des morts : {list}.", list=", ".join(my_deaths) or "–"))
     if me.time_spent_dead_s >= 90:
-        weaknesses.append(tr("Temps passé mort : {s} secondes.", s=me.time_spent_dead_s))
+        add(weaknesses, tr("Temps passé mort : {s} secondes.", s=me.time_spent_dead_s),
+            tr("Règle : au moins 90 s passées mort (écran des scores du replay)."))
     if me.role == "Healer" and share("healing") < 0.4:
-        weaknesses.append(tr("Seulement {pct} % des soins de l'équipe : restez à portée de vos alliés.",
-                              pct=round(share("healing") * 100)))
+        add(weaknesses, tr("Seulement {pct} % des soins de l'équipe : restez à portée de vos alliés.",
+                           pct=round(share("healing") * 100)),
+            tr("Règle : soigneur avec moins de 40 % des soins de l'équipe."))
     if categories.get("macro", 100) < 45 and me.role != "Healer":
-        weaknesses.append(tr("Faible contribution macro (XP, siège, camps)."))
+        add(weaknesses, tr("Faible contribution macro (XP, siège, camps)."),
+            tr("Règle : catégorie macro du HEROS SCORE sous 45/100 (vous : {v}/100).", v=categories["macro"]))
     if categories:
         for c, v in sorted(categories.items(), key=lambda kv: -kv[1])[:2]:
             if v >= 75 and c != "draft":
-                strengths.append(tr("Catégorie {cat} solide ({v}/100).", cat=tr(CATEGORY_LABELS[c]), v=v))
+                add(strengths, tr("Catégorie {cat} solide ({v}/100).", cat=tr(CATEGORY_LABELS[c]), v=v),
+                    tr("Règle : une des deux meilleures catégories du HEROS SCORE, à 75/100 ou plus."))
 
     weakest = min((c for c in categories if c != "draft"), key=categories.get, default=None)
-    plan = []
+    weakest_why = (tr("Votre catégorie la plus faible du HEROS SCORE : {cat} ({v}/100).",
+                      cat=tr(CATEGORY_LABELS[weakest]), v=categories[weakest]) if weakest else "")
     if weakest == "survival" or me.deaths >= 4:
-        plan.append(tr("Réduire vos morts à {n} maximum.", n=max(2, me.deaths - 2)))
+        add(plan, tr("Réduire vos morts à {n} maximum.", n=max(2, me.deaths - 2)),
+            tr("{n} morts dans cette partie.", n=me.deaths) + (" " + weakest_why if weakest == "survival" else ""))
     if weakest == "macro":
-        plan.append(tr("Prendre au moins 2 camps par tranche de 10 minutes et soaker les vagues inactives."))
+        add(plan, tr("Prendre au moins 2 camps par tranche de 10 minutes et soaker les vagues inactives."), weakest_why)
     if weakest == "teamfight":
-        plan.append(tr("Rester à portée de votre équipe avant chaque objectif pour viser 70 % de participation."))
+        add(plan, tr("Rester à portée de votre équipe avant chaque objectif pour viser 70 % de participation."),
+            weakest_why + " " + tr("Participation aux éliminations : {pct} %.", pct=kp_pct))
     if weakest == "placement":
-        plan.append(tr("Éviter les morts en infériorité numérique : ne pas avancer sans vision ni alliés."))
+        add(plan, tr("Éviter les morts en infériorité numérique : ne pas avancer sans vision ni alliés."), weakest_why)
     if weakest == "objectives":
-        plan.append(tr("Être présent 20 s avant chaque objectif plutôt que d'arriver pendant le combat."))
+        add(plan, tr("Être présent 20 s avant chaque objectif plutôt que d'arriver pendant le combat."), weakest_why)
 
     if me.is_winner:
         headline = tr("Partie gagnée à {clock} sur {map}.", clock=fmt_clock(match.duration_s), map=match.map_name)
@@ -151,5 +169,20 @@ def build_facts(match: Match, me: MatchPlayer) -> dict:
         "strengths": strengths,
         "weaknesses": weaknesses,
         "improvement_plan": plan,
+        "basis": basis,
+        "advantages": advantage_timeline(match, me),
         "talents": me.talents,
     }
+
+
+def facts_for_ai(facts: dict) -> dict:
+    """Faits transmis à l'IA : sans les justifications ni le détail des preuves (affichés dans l'appli)."""
+    out = {k: v for k, v in facts.items() if k not in ("basis", "advantages", "lang")}
+    adv = facts.get("advantages")
+    if adv:
+        out["avantages_numeriques"] = {
+            "resume": adv["headline"],
+            "moments": [{k: m[k] for k in ("clock", "side", "converted", "fact", "interpretation")}
+                        for m in adv["moments"]],
+        }
+    return out

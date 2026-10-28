@@ -10,6 +10,26 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.1.0",
+    date: "2026-10-28",
+    fr: [
+      "Nouveau dans le rapport : « Avantages convertis ou perdus ». Chaque combat gagné ou perdu, ce que l'équipe en a tiré (tour, fort, camp, objectif) avant le retour des adversaires, avec les morts et réapparitions lues dans le replay. Un avantage non converti est présenté comme une opportunité à revoir, jamais comme une faute.",
+      "« Sur quoi tu te bases ? » : chaque point fort, point faible et conseil du plan affiche la règle et les chiffres qui l'ont produit.",
+      "Mon objectif : choisissez un seul chantier après un débrief (morts isolées, morts avant un objectif, conversion des avantages…). Il est rappelé au chargement de chaque partie, mesuré à chaque rapport et suivi sur le tableau de bord, en signalant quand l'échantillon est trop faible pour conclure.",
+      "Marque-pages : Ctrl+Maj+B pendant une partie marque un moment à revoir. Après la partie, retrouvez son heure dans le rapport, ajoutez une note et comparez-la à ce que le replay montre autour.",
+      "Guide vocal plus sobre : Ctrl+Maj+M coupe immédiatement la voix (et la rétablit), un conseil par minute au plus, plus de répétitions, et une annonce trop en retard n'est plus dite. Si la lecture de l'écran est perdue, l'overlay le signale et les alertes de niveau se taisent au lieu de se fier à des niveaux périmés.",
+      "Les replays sont mieux lus (équipe des bâtiments détruits, vraies heures de réapparition) : votre historique est réanalysé une fois au premier lancement, vos analyses IA sont conservées.",
+    ],
+    en: [
+      "New in the report: “Advantages converted or lost”. Every fight won or lost, and what the team got out of it (tower, fort, camp, objective) before the enemies came back, with deaths and respawns read from the replay. An unconverted advantage is shown as an opportunity to review, never as a mistake.",
+      "“What is this based on?”: every strength, weakness and improvement tip shows the rule and the numbers behind it.",
+      "My goal: pick a single focus after a debrief (isolated deaths, deaths before an objective, converting advantages…). It is shown on every loading screen, measured in every report and tracked on the dashboard, with a warning when the sample is too small to conclude.",
+      "Bookmarks: press Ctrl+Shift+B during a game to mark a moment to review. After the game, find its time in the report, add a note and compare it with what the replay shows around it.",
+      "Calmer voice guide: Ctrl+Shift+M mutes the voice instantly (and turns it back on), at most one tip per minute, no more repeats, and a call that comes too late is dropped. If screen reading is lost, the overlay says so and level alerts go quiet instead of trusting outdated levels.",
+      "Replays are read more accurately (team of destroyed structures, real respawn times): your history is re-analyzed once on first launch, and your AI analyses are kept.",
+    ],
+  },
+  {
     version: "1.0.10",
     date: "2026-10-18",
     fr: ["Le bouton « ♥ Soutenir le projet » passe en haut du menu, sous le logo : le serveur de la plateforme communautaire est payé par la communauté, un café aide à le garder en ligne."],

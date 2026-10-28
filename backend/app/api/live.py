@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.analytics.profile_stats import talent_stats
+from app.bookmarks import add_bookmark, bookmark_out
 from app.db import get_db
 from app.events import hub
 from app.live.session import live_session
@@ -115,6 +116,13 @@ def loading_screen(body: LoadingScreenRequest, db: Session = Depends(get_db),
 def objective_done() -> dict:
     live_session.objective_done()
     return live_session.snapshot()
+
+
+@router.post("/bookmark")
+def bookmark(db: Session = Depends(get_db)) -> dict:
+    """Raccourci « à revoir » : note l'instant, rattaché au replay dès la fin de la partie."""
+    clock = live_session.bookmark()
+    return bookmark_out(add_bookmark(db, clock, live_session.map_id))
 
 
 @router.post("/camp")

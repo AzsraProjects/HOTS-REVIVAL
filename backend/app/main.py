@@ -11,7 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
 from app.analytics.timings import map_timings
-from app.api import coach, community, draft, live, matches, meta, profile, reference, replays, settings as settings_api
+from app.api import coach, community, draft, goals, live, matches, meta, profile, reference, replays, settings as settings_api
+from app.bookmarks import attach_pending
 from app.community.uploader import CommunityUploader
 from app.config import Settings, get_settings
 from app.db import SessionLocal, create_schema, init_engine
@@ -40,6 +41,11 @@ def _on_import(path: Path, result: ImportResult) -> None:
             match = db.get(Match, result.match_id)
             if match:
                 learn_map(live_session.lobby_map_hash, match.map_id)
+    if result.match_id:
+        with SessionLocal() as db:
+            match = db.get(Match, result.match_id)
+            if match:
+                attach_pending(db, match)  # marque-pages posés pendant cette partie
     live_session.on_game_end()
     if _community_uploader:
         _community_uploader.wake()
@@ -119,6 +125,7 @@ def create_app(settings: Settings | None = None, start_watchers: bool = True) ->
         with SessionLocal() as db:
             archive_existing(db)
             db.commit()
+            goals.refresh_live_goal(db)
         hub.bind_loop(asyncio.get_running_loop())
         app.state.start_watchers = start_watchers
         global _lobby_watcher, _replay_dirs, _community_uploader
@@ -156,7 +163,8 @@ def create_app(settings: Settings | None = None, start_watchers: bool = True) ->
         allow_headers=["*"],
     )
     for router in (reference.router, profile.router, matches.router, replays.router,
-                   draft.router, coach.router, live.router, settings_api.router, meta.router, community.router):
+                   draft.router, coach.router, live.router, settings_api.router, meta.router, community.router,
+                   goals.router):
         app.include_router(router, prefix="/api")
     app.include_router(live.ws_router)
     return app

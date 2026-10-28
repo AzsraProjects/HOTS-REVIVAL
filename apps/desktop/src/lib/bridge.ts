@@ -50,6 +50,9 @@ export interface HotsBridge {
   };
   showGameWindow: () => Promise<boolean>;
   onSay: (cb: (text: string) => void) => () => void;
+  /** Guide vocal coupé par le raccourci « silence » (jusqu'au prochain appui). */
+  voiceMuted: () => Promise<boolean>;
+  onVoiceMute: (cb: (muted: boolean) => void) => () => void;
   onPrefs: (cb: (p: OverlayPrefs) => void) => () => void;
   screen: {
     status: () => Promise<ScreenStatus>;

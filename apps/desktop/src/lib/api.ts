@@ -3,7 +3,7 @@ import { t } from "./i18n";
 import type {
   LobbyPlayer,
   RankEntry,
-  AppSettings, CommunityStatus, Combo, Compliance, HeroMeta, TierListData, DraftResult, Hero, MapInfo, MatchDetail, MatchSummary, OverlayState, Profile,
+  AppSettings, Bookmark, CommunityStatus, GoalInfo, GoalProgress, GoalResult, GoalSuggestion, Combo, Compliance, HeroMeta, TierListData, DraftResult, Hero, MapInfo, MatchDetail, MatchSummary, OverlayState, Profile,
   ProgressionPoint, Report, ReplayStatus,
 } from "./types";
 
@@ -65,6 +65,20 @@ export const api = {
     update: (body: { share_matches?: boolean; public_profile?: boolean; community_notice_seen?: boolean }) =>
       request<CommunityStatus>("/community", { method: "PUT", body: JSON.stringify(body) }),
     deleteMe: () => request<CommunityStatus>("/community/me", { method: "DELETE" }),
+  },
+  goals: {
+    active: () => request<{ active: GoalProgress | null }>("/goals"),
+    suggestions: (matchId: number) => request<GoalSuggestion[]>(`/goals/suggestions?match_id=${matchId}`),
+    set: (key: string, target: number, match_id: number | null = null) =>
+      post<{ active: GoalProgress }>("/goals", { key, target, match_id }),
+    end: () => request<{ active: null }>("/goals/active", { method: "DELETE" }),
+    forMatch: (matchId: number) =>
+      request<{ goal: GoalInfo; result: GoalResult; in_period: boolean } | null>(`/goals/match/${matchId}`),
+  },
+  bookmarks: {
+    forMatch: (matchId: number) => request<Bookmark[]>(`/matches/${matchId}/bookmarks`),
+    setNote: (id: number, note: string) => request<Bookmark>(`/bookmarks/${id}`, { method: "PUT", body: JSON.stringify({ note }) }),
+    remove: (id: number) => request<{ deleted: number }>(`/bookmarks/${id}`, { method: "DELETE" }),
   },
   coachStatus: () => request<{ available: boolean; model: string }>("/coach/status"),
   live: {

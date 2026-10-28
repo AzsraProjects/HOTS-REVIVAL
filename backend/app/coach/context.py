@@ -7,6 +7,7 @@ from dataclasses import asdict
 from sqlalchemy.orm import Session
 
 from app.analytics.profile_stats import build_profile, my_match_lines
+from app.analytics.report import facts_for_ai
 from app.coach.roles import role_balance, role_context
 from app.i18n import tr
 from app.meta.service import all_tiers, hero_guide
@@ -53,7 +54,7 @@ def player_context(db: Session, match_id: int | None = None) -> str:
     if match_id is not None:
         report = db.query(Report).filter(Report.match_id == match_id).first()
         if report:
-            ctx["partie_analysee"] = report.facts
+            ctx["partie_analysee"] = facts_for_ai(report.facts)
             me = db.get(MatchPlayer, report.match_player_id)
             if me:
                 role = role_context(me.role)

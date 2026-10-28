@@ -53,6 +53,14 @@ GENERIC_STAT_EVENTS = {
     "Pickup Spawned", "Pickup Used", "Upvote",
 }
 GENERIC_PREFIXES = ("EndOfGame", "Periodic", "Loot")
+# Bâtiments suivis (SUnitDiedEvent) : le propriétaire (11 / 12 = équipe 1 / 2) est fiable, pas le tueur.
+STRUCTURE_TYPES = (("TownCannonTower", "tower"), ("TownTownHallL2", "fort"), ("TownTownHallL3", "keep"),
+                   ("KingsCore", "core"))
+POSITION_SCALE = 4096  # PositionX / PositionY des évènements de stat (unités de carte × 4096)
+
+
+def _structure_kind(unit_type: str) -> str | None:
+    return next((kind for prefix, kind in STRUCTURE_TYPES if unit_type.startswith(prefix)), None)
 
 
 def _is_objective_event(name: str) -> bool:
@@ -214,10 +222,40 @@ def extract_match(raw: RawReplay) -> ParsedMatch:
 
     events: list[ParsedEvent] = []
     team_levels: dict[int, int] = {0: 1, 1: 1}
+    hero_units: dict[tuple[int, int], int] = {}  # unité héros -> slot (réapparitions)
+    structures: dict[tuple[int, int], tuple[str, int]] = {}  # unité -> (type, équipe propriétaire)
+    last_death: dict[int, ParsedEvent] = {}  # slot -> dernière mort (en attente de réapparition)
 
     for ev in raw.tracker_events:
         name = ev.get("_event", "")
         t = loop_to_seconds(int(ev.get("_gameloop", 0)), start_loop)
+
+        if name == "NNet.Replay.Tracker.SUnitBornEvent":
+            unit = _s(ev.get("m_unitTypeName"))
+            tag = (ev.get("m_unitTagIndex"), ev.get("m_unitTagRecycle"))
+            kind = _structure_kind(unit)
+            if unit.startswith("Hero"):
+                p = player_for(ev.get("m_controlPlayerId"))
+                if p:
+                    hero_units[tag] = p.slot
+            elif kind and ev.get("m_upkeepPlayerId") in (11, 12):
+                structures[tag] = (kind, int(ev["m_upkeepPlayerId"]) - 11)
+            continue
+
+        if name == "NNet.Replay.Tracker.SUnitRevivedEvent":
+            slot = hero_units.get((ev.get("m_unitTagIndex"), ev.get("m_unitTagRecycle")))
+            death = last_death.pop(slot, None) if slot is not None else None
+            if death:
+                death.payload["respawn_s"] = round(t, 1)
+            continue
+
+        if name == "NNet.Replay.Tracker.SUnitDiedEvent":
+            structure = structures.pop((ev.get("m_unitTagIndex"), ev.get("m_unitTagRecycle")), None)
+            if structure:
+                kind, owner = structure
+                # équipe = celle qui gagne le bâtiment (comme pour les camps et les objectifs)
+                events.append(ParsedEvent(t, "structure", 1 - owner, None, {"structure": kind, "owner": owner}))
+            continue
 
         if name == "NNet.Replay.Tracker.SScoreResultEvent":
             for inst in ev.get("m_instanceList", []):
@@ -239,7 +277,13 @@ def extract_match(raw: RawReplay) -> ParsedMatch:
             victim = player_for((ints.get("PlayerID") or [None])[0])
             if victim:
                 killers = [k.slot for k in (player_for(pid) for pid in ints.get("KillingPlayer", [])) if k]
-                events.append(ParsedEvent(t, "death", victim.team, victim.slot, {"killers": killers}))
+                payload = {"killers": killers}
+                if fixed.get("PositionX") and fixed.get("PositionY"):
+                    payload["x"] = round(fixed["PositionX"][0] / POSITION_SCALE, 1)
+                    payload["y"] = round(fixed["PositionY"][0] / POSITION_SCALE, 1)
+                death = ParsedEvent(t, "death", victim.team, victim.slot, payload)
+                events.append(death)
+                last_death[victim.slot] = death
         elif stat == "LevelUp":
             p = player_for((ints.get("PlayerID") or [None])[0])
             level = int((ints.get("Level") or [0])[0])
@@ -263,7 +307,7 @@ def extract_match(raw: RawReplay) -> ParsedMatch:
                 if choice:
                     p.talents.append({"tier": tier, "level": level, "name": _s(choice[0])})
         elif stat == "TownStructureDeath":
-            events.append(ParsedEvent(t, "structure", _team_from(ints, fixed), None, {}))
+            continue  # forts et donjons : déjà relevés par SUnitDiedEvent, avec leur propriétaire
         elif stat == "GatesOpen":
             events.append(ParsedEvent(t, "gates", None, None, {}))
         elif _is_objective_event(stat):
