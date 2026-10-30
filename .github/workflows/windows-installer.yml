@@ -108,6 +108,14 @@ jobs:
           npm run build
           npx electron-builder --win --dir --publish never
 
+      # La cible « --dir » n'écrit pas app-update.yml (c'est la cible nsis qui le fait) : sans lui,
+      # l'application installée ne trouve plus ses mises à jour (versions 1.1.0 à 1.2.1).
+      - name: Configuration des mises à jour
+        shell: pwsh
+        run: |
+          $yml = "owner: BigBlackC0de`nrepo: HOTS-REVIVAL`nprovider: github`nreleaseType: prerelease`nupdaterCacheDirName: hots-revival-desktop-updater`n"
+          Set-Content -Path "apps/desktop/release/win-unpacked/resources/app-update.yml" -Value $yml -NoNewline -Encoding utf8NoBOM
+
       # 1re signature : nos deux exécutables, avant de les emballer dans l'installeur
       - name: Exécutables à signer
         if: env.SIGN == 'true'
@@ -176,6 +184,33 @@ jobs:
             Write-Host "$($_.Name) : $($s.Status) ($($s.SignerCertificate.Subject))"
             if ($s.Status -ne "Valid") { throw "$($_.Name) n'est pas signé correctement" }
           }
+
+      - name: Vérifier la configuration des mises à jour
+        shell: pwsh
+        run: |
+          $f = "apps/desktop/release/win-unpacked/resources/app-update.yml"
+          if (-not (Test-Path $f)) { throw "app-update.yml absent : l'application ne trouverait pas ses mises à jour" }
+          Get-Content $f
+
+      # Garde-fou : l'installeur est installé pour de vrai, puis l'application installée doit
+      # trouver la dernière version publiée. Sinon rien n'est publié (une version incapable de se
+      # mettre à jour obligerait chaque joueur à retélécharger l'application à la main).
+      - name: Tester la mise à jour de l'application installée
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem apps/desktop/release/HOTS-REVIVAL-Setup-*.exe | Select-Object -First 1
+          Start-Process -FilePath $setup.FullName -ArgumentList "/S" -Wait
+          $exe = "$env:LOCALAPPDATA\Programs\hots-revival-desktop\HOTS REVIVAL.exe"
+          if (-not (Test-Path $exe)) { throw "Application non installée par $($setup.Name)" }
+          Get-Process "HOTS REVIVAL" -ErrorAction SilentlyContinue | Stop-Process -Force
+          $out = "$env:RUNNER_TEMP\update-selftest.json"
+          $env:HOTS_UPDATE_SELFTEST = $out
+          $p = Start-Process -FilePath $exe -PassThru
+          if (-not $p.WaitForExit(120000)) { $p.Kill(); throw "Auto-test de mise à jour : délai dépassé" }
+          if (-not (Test-Path $out)) { throw "Auto-test de mise à jour : aucun résultat" }
+          $r = Get-Content $out -Raw | ConvertFrom-Json
+          Write-Host "Version installée $($r.current), dernière version trouvée : $($r.latest) $($r.error)"
+          if (-not $r.ok) { throw "L'application installée ne trouve pas ses mises à jour : $($r.error)" }
 
       - name: Artefact
         uses: actions/upload-artifact@v4

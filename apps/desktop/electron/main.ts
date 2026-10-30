@@ -1,6 +1,7 @@
 import { app, BrowserWindow, dialog, ipcMain, screen, shell } from "electron";
 import { getLanguage, initLanguage, setLanguage, t, type Lang } from "./i18n";
 import * as Sentry from "@sentry/electron/main";
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { backendLogPath, backendPid, ensureBackend, stopBackend } from "./backend";
@@ -100,6 +101,13 @@ if (!app.requestSingleInstanceLock()) {
       } catch (err) {
         console.log("OCR_SELFTEST_ERROR", err);
       }
+      app.exit(0);
+      return;
+    }
+    if (process.env.HOTS_UPDATE_SELFTEST) {
+      // Auto-test de l'application installée (CI) : résultat de la recherche de mise à jour.
+      const { updateSelfTest } = await import("./updater");
+      fs.writeFileSync(process.env.HOTS_UPDATE_SELFTEST, JSON.stringify(await updateSelfTest()));
       app.exit(0);
       return;
     }

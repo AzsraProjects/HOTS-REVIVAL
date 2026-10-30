@@ -10,6 +10,18 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.2.2",
+    date: "2026-10-30",
+    fr: [
+      "Les mises à jour automatiques fonctionnent à nouveau : depuis la 1.1.0, l'application ne trouvait plus les nouvelles versions et il fallait les télécharger sur GitHub. Les prochaines s'installeront depuis le bandeau « Nouvelle version disponible ».",
+      "Si la recherche de mise à jour échoue, le menu l'indique au lieu de ne rien afficher.",
+    ],
+    en: [
+      "Automatic updates work again: since 1.1.0, the app could no longer find new versions and they had to be downloaded from GitHub. The next ones will install from the “New version available” banner.",
+      "If checking for updates fails, the menu says so instead of showing nothing.",
+    ],
+  },
+  {
     version: "1.2.1",
     date: "2026-10-30",
     fr: [

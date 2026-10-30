@@ -76,9 +76,11 @@ export function UpdateButton({ full = false }: { full?: boolean }) {
     );
   if (!full)
     return (
-      <button className="text-left text-slate-500 hover:text-white" disabled={status.state === "checking"}
+      <button className={`text-left hover:text-white ${status.state === "error" ? "text-rose-300" : "text-slate-500"}`}
+        disabled={status.state === "checking"} title={status.state === "error" ? status.message : undefined}
         onClick={() => void b.updater.check().then(setStatus)}>
-        v{status.current} · {status.state === "checking" ? t("vérification…") : status.state === "none" ? t("à jour") : t("vérifier les mises à jour")}
+        v{status.current} · {status.state === "checking" ? t("vérification…") : status.state === "none" ? t("à jour")
+          : status.state === "error" ? t("vérification impossible, réessayer") : t("vérifier les mises à jour")}
       </button>
     );
   return (

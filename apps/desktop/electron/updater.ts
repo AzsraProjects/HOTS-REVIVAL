@@ -4,7 +4,48 @@
  */
 import { app, BrowserWindow } from "electron";
 import { autoUpdater } from "electron-updater";
+import fs from "node:fs";
+import path from "node:path";
 import { t } from "./i18n";
+
+// Où chercher les mises à jour : embarqué dans le code au lieu du fichier app-update.yml que
+// l'installeur devait fournir. Un installeur construit sans ce fichier (versions 1.1.0 à 1.2.1)
+// laissait l'application sans aucune mise à jour possible : plus jamais.
+export const UPDATE_CONFIG = [
+  "owner: BigBlackC0de",
+  "repo: HOTS-REVIVAL",
+  "provider: github",
+  "releaseType: prerelease",
+  "updaterCacheDirName: hots-revival-desktop-updater",
+  "",
+].join("\n");
+
+function configureUpdater(): void {
+  const file = path.join(app.getPath("userData"), "app-update.yml");
+  try {
+    if (!fs.existsSync(file) || fs.readFileSync(file, "utf8") !== UPDATE_CONFIG) fs.writeFileSync(file, UPDATE_CONFIG);
+  } catch {
+    /* dossier en lecture seule : la recherche signalera l'erreur */
+  }
+  autoUpdater.updateConfigPath = file;
+  autoUpdater.autoDownload = false;
+  // Versions publiques (1.x) : jamais de pré-version, sinon un build de test plus récent (0.2.x)
+  // masque la dernière version publique.
+  autoUpdater.allowPrerelease = app.getVersion().startsWith("0.");
+}
+
+/** Auto-test de l'application installée (CI) : la recherche de mise à jour doit aboutir. */
+export async function updateSelfTest(): Promise<{ ok: boolean; current: string; latest?: string; error?: string }> {
+  configureUpdater();
+  if (!app.isPackaged) autoUpdater.forceDevUpdateConfig = true; // essai depuis les sources
+  try {
+    const r = await autoUpdater.checkForUpdates();
+    const latest = r?.updateInfo?.version;
+    return { ok: Boolean(latest), current: app.getVersion(), latest };
+  } catch (err) {
+    return { ok: false, current: app.getVersion(), error: String((err as Error)?.message ?? err) };
+  }
+}
 
 export interface UpdateStatus {
   state: "idle" | "checking" | "available" | "none" | "downloading" | "ready" | "error";
@@ -25,10 +66,7 @@ function emit(next: Partial<UpdateStatus>): void {
 export function initUpdater(win: BrowserWindow): void {
   target = win;
   if (!app.isPackaged) return; // pas de mise à jour en développement
-  autoUpdater.autoDownload = false;
-  // Versions publiques (1.x) : jamais de pré-version, sinon un build de test plus récent (0.2.x)
-  // masque la dernière version publique.
-  autoUpdater.allowPrerelease = app.getVersion().startsWith("0.");
+  configureUpdater();
   autoUpdater.on("checking-for-update", () => emit({ state: "checking" }));
   autoUpdater.on("update-available", (info) => emit({ state: "available", version: info.version }));
   autoUpdater.on("update-not-available", () => emit({ state: "none" }));

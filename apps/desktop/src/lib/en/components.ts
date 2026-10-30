@@ -216,6 +216,7 @@ export const EN_COMPONENTS: Record<string, string> = {
   "vérification…": "checking…",
   "à jour": "up to date",
   "vérifier les mises à jour": "check for updates",
+  "vérification impossible, réessayer": "check failed, try again",
   "Version {v}": "Version {v}",
   "Vérification…": "Checking…",
   "Vérifier les mises à jour": "Check for updates",
