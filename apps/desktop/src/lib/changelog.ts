@@ -10,6 +10,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.2.1",
+    date: "2026-10-30",
+    fr: [
+      "Talents à jour au patch 2.57 : ceux de Xal'atath et des héros retouchés depuis 2023 (Sylvanas, Tyrande, Arthas, Abathur…) ont enfin leur vrai nom. Les talents retirés du jeu gardent leur nom dans vos anciennes parties.",
+      "Les replays d'un jeu en français sont mieux lus : Aile de mort, Balafré, Bourbie, Chacal, Kramer, EDN-OS et d'autres étaient parfois enregistrés comme un héros inconnu. Votre historique est réanalysé une fois au premier lancement pour corriger ces parties, vos analyses IA sont conservées.",
+      "L'écran de chargement reconnaît les noms français officiels des 31 héros dont le nom diffère de l'anglais.",
+    ],
+    en: [
+      "Talents updated to patch 2.57: Xal'atath's talents and those of heroes reworked since 2023 (Sylvanas, Tyrande, Arthas, Abathur…) finally show their real names. Talents removed from the game keep their name in your older games.",
+      "Replays from a French game client are read better: Deathwing, Stitches, Murky, Junkrat, Blaze, Probius and others were sometimes saved as an unknown hero. Your history is re-analyzed once on first launch to fix these games, and your AI analyses are kept.",
+      "The loading screen recognizes the official French names of the 31 heroes whose name differs from English.",
+    ],
+  },
+  {
     version: "1.2.0",
     date: "2026-10-30",
     fr: [
