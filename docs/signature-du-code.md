@@ -1,5 +1,7 @@
 # Signature du code (SignPath Foundation)
 
+> **Demande refusée (octobre 2026)** : SignPath Foundation juge le projet pas encore assez visible. Les versions publiées ne sont pas signées ; les étapes de signature du workflow restent inactives (pas de secret `SIGNPATH_API_TOKEN`).
+
 Sans signature, certains antivirus (Avast notamment) bloquent l'installeur sans permettre d'exception.
 SignPath Foundation signe gratuitement les projets open source ; le certificat est émis au nom de « SignPath Foundation ».
 

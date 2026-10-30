@@ -200,8 +200,19 @@ jobs:
         run: |
           $setup = Get-ChildItem apps/desktop/release/HOTS-REVIVAL-Setup-*.exe | Select-Object -First 1
           Start-Process -FilePath $setup.FullName -ArgumentList "/S" -Wait
-          $exe = "$env:LOCALAPPDATA\Programs\hots-revival-desktop\HOTS REVIVAL.exe"
-          if (-not (Test-Path $exe)) { throw "Application non installée par $($setup.Name)" }
+          # L'installeur peut rendre la main avant la fin de la copie : on attend l'exécutable installé.
+          $exe = $null
+          for ($i = 0; $i -lt 60 -and -not $exe; $i++) {
+            Start-Sleep -Seconds 2
+            $exe = Get-ChildItem "$env:LOCALAPPDATA\Programs", "$env:ProgramFiles" -Recurse -Filter "HOTS REVIVAL.exe" -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -notmatch "win-unpacked" } | Select-Object -First 1 -ExpandProperty FullName
+          }
+          if (-not $exe) {
+            Get-ChildItem "$env:LOCALAPPDATA\Programs" -ErrorAction SilentlyContinue | Format-Table -AutoSize | Out-String | Write-Host
+            throw "Application non installée par $($setup.Name)"
+          }
+          Write-Host "Application installée : $exe"
+          Start-Sleep -Seconds 5  # fin de l'installation (fichiers encore en cours d'écriture)
           Get-Process "HOTS REVIVAL" -ErrorAction SilentlyContinue | Stop-Process -Force
           $out = "$env:RUNNER_TEMP\update-selftest.json"
           $env:HOTS_UPDATE_SELFTEST = $out
@@ -240,8 +251,6 @@ jobs:
             3. Si Windows affiche « Windows a protégé votre ordinateur », cliquez sur **Informations complémentaires** puis **Exécuter quand même** (chaque nouvelle version doit d'abord se faire connaître de Windows).
 
             Déjà installé ? Utilisez simplement le bouton « Mettre à jour » de l'application.
-
-            Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org) ([politique de signature](https://github.com/AzsraProjects/HOTS-REVIVAL#politique-de-signature-du-code--code-signing-policy)).
 
             Vos replays sont détectés et analysés automatiquement. Lancez Heroes of the Storm en **plein écran fenêtré** pour voir l'overlay.
 
