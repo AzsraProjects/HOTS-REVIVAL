@@ -1,7 +1,8 @@
 """Catalogue des talents (noms lisibles, ordre d'affichage, descriptions).
 
-Source : heroes-talents (MIT). Les identifiants (`id`) sont ceux que contiennent les
-replays (ex. « DemonHunterMasteryArsenal » -> « Arsenal »).
+Source : heroes-data2 (MIT, données du jeu au dernier patch, voir scripts/build_talent_catalog.py).
+Les identifiants (`id`) sont ceux que contiennent les replays (ex. « DemonHunterMasteryArsenal »
+-> « Arsenal »). `retired` : talents retirés du jeu, gardés pour nommer ceux des anciens replays.
 """
 from __future__ import annotations
 
@@ -22,6 +23,8 @@ def catalog() -> dict:
 def _by_id() -> dict[str, dict]:
     out = {}
     for hero_id, hero in catalog().items():
+        for t in hero.get("retired", []):
+            out[t["id"]] = {**t, "hero_id": hero_id}
         for level, items in hero["talents"].items():
             for t in items:
                 out[t["id"]] = {**t, "level": int(level), "hero_id": hero_id}

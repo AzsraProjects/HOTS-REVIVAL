@@ -127,7 +127,7 @@ function Talents({ detail, catalog }: { detail: HeroDetail; catalog: Record<stri
   const tiers = useMemo(() => LEVELS.map((level, i) => {
     const stats = detail.talents.filter((x) => x.tier === i + 1);
     const played = stats.reduce((s, x) => s + x.games, 0);
-    const ids = new Set([...Object.entries(catalog).filter(([, x]) => x.level === level).map(([tid]) => tid), ...stats.map((x) => x.talent)]);
+    const ids = new Set([...Object.entries(catalog).filter(([, x]) => x.level === level && !x.retired).map(([tid]) => tid), ...stats.map((x) => x.talent)]);
     const items = [...ids].map((tid) => {
       const s = stats.find((x) => x.talent === tid);
       return { id: tid, info: catalog[tid], games: s?.games ?? 0, wins: s?.wins ?? 0 };

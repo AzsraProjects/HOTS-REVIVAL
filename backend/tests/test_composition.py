@@ -5,7 +5,7 @@ from app.live.session import LiveSession
 def loading_screen_words():
     """Écran de chargement simulé : alliés en haut, adversaires en bas, pseudo puis héros."""
     top = [("Moi", "Li Li"), ("Bnizzle", "Valla"), ("Domino", "Le Boucher"), ("LiteKnight", "Xal'atath"), ("AngryLobster", "Diablo")]
-    bottom = [("XiaoPiHai", "Lumiaile"), ("Kappa", "Johanna"), ("silvanas", "Gul'dan"), ("Bar", "Sergent Marteau"), ("Baz", "Cho")]
+    bottom = [("XiaoPiHai", "Luisaile"), ("Kappa", "Johanna"), ("silvanas", "Gul'dan"), ("Bar", "Sergent Marteau"), ("Baz", "Cho")]
     words = [Word("HÉROS", 0.5, 0.02)]
     for row_y, row in ((0.30, top), (0.75, bottom)):
         for i, (player, hero) in enumerate(row):
@@ -88,3 +88,19 @@ def test_layout_offset_is_learned_from_confident_pairs():
     s.add_composition(read_composition(words, s.lobby_players, set()))
     rows = s.snapshot()["teams"]["ally"] + s.snapshot()["teams"]["enemy"]
     assert {m["player"]: m["hero_id"] for m in rows} == {"Aaa": "valla", "Bbb": "jaina", "Ccc": "diablo", "Ddd": "muradin"}
+
+
+def test_french_hero_names_from_replays_and_loading_screen():
+    from app.reference import registry
+    for name, hero_id in [("Aile de mort", "deathwing"), ("Balafré", "stitches"), ("Bourbie", "murky"),
+                          ("EDN-OS", "probius"), ("Kramer", "blaze"), ("Sgt Marteau", "sgthammer")]:
+        assert registry().resolve_hero(name).id == hero_id
+    entries = read_composition([Word("Moi", 0.1, 0.3), Word("Balafré", 0.1, 0.34)], ["Moi#1"], {"moi"})
+    assert entries["Moi"]["hero_id"] == "stitches"
+
+
+def test_talent_catalog_is_current_and_keeps_retired_talents():
+    from app.talents import talent_info, talent_name
+    assert talent_name("XalatathVoidAdept") == "Void Adept"  # héros ajouté au patch 2.57
+    assert talent_info("XalatathHeroicAbilityVoidEruption")["level"] == 10
+    assert talent_name("AlarakDeadlyChargeSecondHeroic") == "Deadly Charge"  # retiré du jeu, présent dans d'anciens replays

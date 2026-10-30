@@ -69,9 +69,9 @@ class _Registry:
                 self._hero_alias[normalize("Hero" + alias)] = hero.id
 
         talents_file = DATA_DIR / "talents.json"
-        if talents_file.exists():  # alias issus des données de jeu (attributeId, unité)
+        if talents_file.exists():  # alias issus des données de jeu (attributeId, unité, nom français)
             for hero_id, h in json.loads(talents_file.read_text(encoding="utf-8"))["heroes"].items():
-                for alias in (h.get("unit_id"), h.get("attribute_id"), h.get("slug"), h.get("name")):
+                for alias in (h.get("unit_id"), h.get("attribute_id"), h.get("slug"), h.get("name"), h.get("name_fr")):
                     if alias:
                         self._hero_alias.setdefault(normalize(alias), hero_id)
 

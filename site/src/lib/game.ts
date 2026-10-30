@@ -3,8 +3,6 @@ import heroesData from "../data/heroes.json";
 import mapsData from "../data/maps.json";
 import { lang, t } from "./i18n";
 
-// Version figée de heroes-talents (MIT) pour les portraits et icônes de talents.
-const HT = "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027";
 
 export type Role = "Tank" | "Bruiser" | "Healer" | "Support" | "Ranged Assassin" | "Melee Assassin";
 
@@ -28,6 +26,7 @@ export interface Talent {
   sort: number;
   description: string;
   icon: string | null;
+  retired?: boolean; // retiré du jeu : affiché seulement s'il apparaît dans les statistiques
 }
 
 export const HEROES = heroesData as Hero[];
@@ -41,8 +40,9 @@ export const mapName = (id: string) => {
   const m = mapById.get(id);
   return m ? (lang() === "en" ? m.en : m.name) : id;
 };
-export const portraitUrl = (h: Hero) => (h.portrait ? `${HT}/images/heroes/${h.portrait}` : null);
-export const talentIconUrl = (t: Talent) => (t.icon ? `${HT}/images/talents/${t.icon}` : null);
+// Adresses complètes des images, choisies par scripts/build-data.mjs (heroes-talents ou copie locale).
+export const portraitUrl = (h: Hero) => h.portrait;
+export const talentIconUrl = (t: Talent) => t.icon;
 
 // Libellés traduits à la lecture (getter) : ils suivent la langue active.
 const labelled = <T extends object>(items: (T & { fr: string })[]) =>

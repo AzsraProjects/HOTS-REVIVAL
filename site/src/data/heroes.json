@@ -3,546 +3,546 @@
   "id": "anubarak",
   "name": "Anub'arak",
   "role": "Tank",
-  "portrait": "anubarak.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/anubarak.png"
  },
  {
   "id": "arthas",
   "name": "Arthas",
   "role": "Tank",
-  "portrait": "arthas.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/arthas.png"
  },
  {
   "id": "blaze",
   "name": "Blaze",
   "role": "Tank",
-  "portrait": "blaze.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/blaze.png"
  },
  {
   "id": "cho",
   "name": "Cho",
   "role": "Tank",
-  "portrait": "chogall.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/chogall.png"
  },
  {
   "id": "diablo",
   "name": "Diablo",
   "role": "Tank",
-  "portrait": "diablo.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/diablo.png"
  },
  {
   "id": "etc",
   "name": "E.T.C.",
   "role": "Tank",
-  "portrait": "etc.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/etc.png"
  },
  {
   "id": "garrosh",
   "name": "Garrosh",
   "role": "Tank",
-  "portrait": "garrosh.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/garrosh.png"
  },
  {
   "id": "johanna",
   "name": "Johanna",
   "role": "Tank",
-  "portrait": "johanna.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/johanna.png"
  },
  {
   "id": "malganis",
   "name": "Mal'Ganis",
   "role": "Tank",
-  "portrait": "malganis.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/malganis.png"
  },
  {
   "id": "mei",
   "name": "Mei",
   "role": "Tank",
-  "portrait": "mei.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/mei.png"
  },
  {
   "id": "muradin",
   "name": "Muradin",
   "role": "Tank",
-  "portrait": "muradin.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/muradin.png"
  },
  {
   "id": "stitches",
   "name": "Stitches",
   "role": "Tank",
-  "portrait": "stitches.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/stitches.png"
  },
  {
   "id": "tyrael",
   "name": "Tyrael",
   "role": "Tank",
-  "portrait": "tyrael.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/tyrael.png"
  },
  {
   "id": "artanis",
   "name": "Artanis",
   "role": "Bruiser",
-  "portrait": "artanis.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/artanis.png"
  },
  {
   "id": "chen",
   "name": "Chen",
   "role": "Bruiser",
-  "portrait": "chen.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/chen.png"
  },
  {
   "id": "deathwing",
   "name": "Deathwing",
   "role": "Bruiser",
-  "portrait": "deathwing.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/deathwing.png"
  },
  {
   "id": "dva",
   "name": "D.Va",
   "role": "Bruiser",
-  "portrait": "dva.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/dva.png"
  },
  {
   "id": "dehaka",
   "name": "Dehaka",
   "role": "Bruiser",
-  "portrait": "dehaka.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/dehaka.png"
  },
  {
   "id": "gazlowe",
   "name": "Gazlowe",
   "role": "Bruiser",
-  "portrait": "gazlowe.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/gazlowe.png"
  },
  {
   "id": "hogger",
   "name": "Hogger",
   "role": "Bruiser",
-  "portrait": "hogger.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/hogger.png"
  },
  {
   "id": "imperius",
   "name": "Imperius",
   "role": "Bruiser",
-  "portrait": "imperius.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/imperius.png"
  },
  {
   "id": "leoric",
   "name": "Leoric",
   "role": "Bruiser",
-  "portrait": "leoric.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/leoric.png"
  },
  {
   "id": "malthael",
   "name": "Malthael",
   "role": "Bruiser",
-  "portrait": "malthael.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/malthael.png"
  },
  {
   "id": "ragnaros",
   "name": "Ragnaros",
   "role": "Bruiser",
-  "portrait": "ragnaros.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/ragnaros.png"
  },
  {
   "id": "rexxar",
   "name": "Rexxar",
   "role": "Bruiser",
-  "portrait": "rexxar.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/rexxar.png"
  },
  {
   "id": "sonya",
   "name": "Sonya",
   "role": "Bruiser",
-  "portrait": "sonya.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/sonya.png"
  },
  {
   "id": "thrall",
   "name": "Thrall",
   "role": "Bruiser",
-  "portrait": "thrall.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/thrall.png"
  },
  {
   "id": "varian",
   "name": "Varian",
   "role": "Bruiser",
-  "portrait": "varian.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/varian.png"
  },
  {
   "id": "xul",
   "name": "Xul",
   "role": "Bruiser",
-  "portrait": "xul.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/xul.png"
  },
  {
   "id": "yrel",
   "name": "Yrel",
   "role": "Bruiser",
-  "portrait": "yrel.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/yrel.png"
  },
  {
   "id": "azmodan",
   "name": "Azmodan",
   "role": "Ranged Assassin",
-  "portrait": "azmodan.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/azmodan.png"
  },
  {
   "id": "cassia",
   "name": "Cassia",
   "role": "Ranged Assassin",
-  "portrait": "cassia.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/cassia.png"
  },
  {
   "id": "chromie",
   "name": "Chromie",
   "role": "Ranged Assassin",
-  "portrait": "chromie.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/chromie.png"
  },
  {
   "id": "falstad",
   "name": "Falstad",
   "role": "Ranged Assassin",
-  "portrait": "falstad.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/falstad.png"
  },
  {
   "id": "fenix",
   "name": "Fenix",
   "role": "Ranged Assassin",
-  "portrait": "fenix.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/fenix.png"
  },
  {
   "id": "gall",
   "name": "Gall",
   "role": "Ranged Assassin",
-  "portrait": "gall.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/gall.png"
  },
  {
   "id": "genji",
   "name": "Genji",
   "role": "Ranged Assassin",
-  "portrait": "genji.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/genji.png"
  },
  {
   "id": "greymane",
   "name": "Greymane",
   "role": "Ranged Assassin",
-  "portrait": "greymane.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/greymane.png"
  },
  {
   "id": "guldan",
   "name": "Gul'dan",
   "role": "Ranged Assassin",
-  "portrait": "guldan.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/guldan.png"
  },
  {
   "id": "hanzo",
   "name": "Hanzo",
   "role": "Ranged Assassin",
-  "portrait": "hanzo.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/hanzo.png"
  },
  {
   "id": "jaina",
   "name": "Jaina",
   "role": "Ranged Assassin",
-  "portrait": "jaina.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/jaina.png"
  },
  {
   "id": "junkrat",
   "name": "Junkrat",
   "role": "Ranged Assassin",
-  "portrait": "junkrat.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/junkrat.png"
  },
  {
   "id": "kaelthas",
   "name": "Kael'thas",
   "role": "Ranged Assassin",
-  "portrait": "kaelthas.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/kaelthas.png"
  },
  {
   "id": "kelthuzad",
   "name": "Kel'Thuzad",
   "role": "Ranged Assassin",
-  "portrait": "kelthuzad.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/kelthuzad.png"
  },
  {
   "id": "liming",
   "name": "Li-Ming",
   "role": "Ranged Assassin",
-  "portrait": "liming.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/liming.png"
  },
  {
   "id": "lunara",
   "name": "Lunara",
   "role": "Ranged Assassin",
-  "portrait": "lunara.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/lunara.png"
  },
  {
   "id": "mephisto",
   "name": "Mephisto",
   "role": "Ranged Assassin",
-  "portrait": "mephisto.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/mephisto.png"
  },
  {
   "id": "nazeebo",
   "name": "Nazeebo",
   "role": "Ranged Assassin",
-  "portrait": "nazeebo.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/nazeebo.png"
  },
  {
   "id": "nova",
   "name": "Nova",
   "role": "Ranged Assassin",
-  "portrait": "nova.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/nova.png"
  },
  {
   "id": "orphea",
   "name": "Orphea",
   "role": "Ranged Assassin",
-  "portrait": "orphea.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/orphea.png"
  },
  {
   "id": "probius",
   "name": "Probius",
   "role": "Ranged Assassin",
-  "portrait": "probius.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/probius.png"
  },
  {
   "id": "raynor",
   "name": "Raynor",
   "role": "Ranged Assassin",
-  "portrait": "raynor.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/raynor.png"
  },
  {
   "id": "sgthammer",
   "name": "Sgt. Hammer",
   "role": "Ranged Assassin",
-  "portrait": "sgthammer.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/sgthammer.png"
  },
  {
   "id": "sylvanas",
   "name": "Sylvanas",
   "role": "Ranged Assassin",
-  "portrait": "sylvanas.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/sylvanas.png"
  },
  {
   "id": "tassadar",
   "name": "Tassadar",
   "role": "Ranged Assassin",
-  "portrait": "tassadar.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/tassadar.png"
  },
  {
   "id": "tracer",
   "name": "Tracer",
   "role": "Ranged Assassin",
-  "portrait": "tracer.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/tracer.png"
  },
  {
   "id": "tychus",
   "name": "Tychus",
   "role": "Ranged Assassin",
-  "portrait": "tychus.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/tychus.png"
  },
  {
   "id": "valla",
   "name": "Valla",
   "role": "Ranged Assassin",
-  "portrait": "valla.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/valla.png"
  },
  {
   "id": "zagara",
   "name": "Zagara",
   "role": "Ranged Assassin",
-  "portrait": "zagara.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/zagara.png"
  },
  {
   "id": "zuljin",
   "name": "Zul'jin",
   "role": "Ranged Assassin",
-  "portrait": "zuljin.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/zuljin.png"
  },
  {
   "id": "alarak",
   "name": "Alarak",
   "role": "Melee Assassin",
-  "portrait": "alarak.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/alarak.png"
  },
  {
   "id": "illidan",
   "name": "Illidan",
   "role": "Melee Assassin",
-  "portrait": "illidan.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/illidan.png"
  },
  {
   "id": "kerrigan",
   "name": "Kerrigan",
   "role": "Melee Assassin",
-  "portrait": "kerrigan.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/kerrigan.png"
  },
  {
   "id": "maiev",
   "name": "Maiev",
   "role": "Melee Assassin",
-  "portrait": "maiev.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/maiev.png"
  },
  {
   "id": "murky",
   "name": "Murky",
   "role": "Melee Assassin",
-  "portrait": "murky.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/murky.png"
  },
  {
   "id": "qhira",
   "name": "Qhira",
   "role": "Melee Assassin",
-  "portrait": "qhira.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/qhira.png"
  },
  {
   "id": "samuro",
   "name": "Samuro",
   "role": "Melee Assassin",
-  "portrait": "samuro.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/samuro.png"
  },
  {
   "id": "butcher",
   "name": "The Butcher",
   "role": "Melee Assassin",
-  "portrait": "thebutcher.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/thebutcher.png"
  },
  {
   "id": "valeera",
   "name": "Valeera",
   "role": "Melee Assassin",
-  "portrait": "valeera.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/valeera.png"
  },
  {
   "id": "zeratul",
   "name": "Zeratul",
   "role": "Melee Assassin",
-  "portrait": "zeratul.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/zeratul.png"
  },
  {
   "id": "alexstrasza",
   "name": "Alexstrasza",
   "role": "Healer",
-  "portrait": "alexstrasza.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/alexstrasza.png"
  },
  {
   "id": "ana",
   "name": "Ana",
   "role": "Healer",
-  "portrait": "ana.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/ana.png"
  },
  {
   "id": "anduin",
   "name": "Anduin",
   "role": "Healer",
-  "portrait": "anduin.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/anduin.png"
  },
  {
   "id": "auriel",
   "name": "Auriel",
   "role": "Healer",
-  "portrait": "auriel.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/auriel.png"
  },
  {
   "id": "brightwing",
   "name": "Brightwing",
   "role": "Healer",
-  "portrait": "brightwing.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/brightwing.png"
  },
  {
   "id": "deckard",
   "name": "Deckard",
   "role": "Healer",
-  "portrait": "deckard.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/deckard.png"
  },
  {
   "id": "kharazim",
   "name": "Kharazim",
   "role": "Healer",
-  "portrait": "kharazim.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/kharazim.png"
  },
  {
   "id": "lili",
   "name": "Li Li",
   "role": "Healer",
-  "portrait": "lili.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/lili.png"
  },
  {
   "id": "ltmorales",
   "name": "Lt. Morales",
   "role": "Healer",
-  "portrait": "ltmorales.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/ltmorales.png"
  },
  {
   "id": "lucio",
   "name": "Lúcio",
   "role": "Healer",
-  "portrait": "lucio.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/lucio.png"
  },
  {
   "id": "malfurion",
   "name": "Malfurion",
   "role": "Healer",
-  "portrait": "malfurion.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/malfurion.png"
  },
  {
   "id": "rehgar",
   "name": "Rehgar",
   "role": "Healer",
-  "portrait": "rehgar.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/rehgar.png"
  },
  {
   "id": "stukov",
   "name": "Stukov",
   "role": "Healer",
-  "portrait": "stukov.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/stukov.png"
  },
  {
   "id": "tyrande",
   "name": "Tyrande",
   "role": "Healer",
-  "portrait": "tyrande.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/tyrande.png"
  },
  {
   "id": "uther",
   "name": "Uther",
   "role": "Healer",
-  "portrait": "uther.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/uther.png"
  },
  {
   "id": "whitemane",
   "name": "Whitemane",
   "role": "Healer",
-  "portrait": "whitemane.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/whitemane.png"
  },
  {
   "id": "abathur",
   "name": "Abathur",
   "role": "Support",
-  "portrait": "abathur.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/abathur.png"
  },
  {
   "id": "medivh",
   "name": "Medivh",
   "role": "Support",
-  "portrait": "medivh.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/medivh.png"
  },
  {
   "id": "lostvikings",
   "name": "The Lost Vikings",
   "role": "Support",
-  "portrait": "lostvikings.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/lostvikings.png"
  },
  {
   "id": "zarya",
   "name": "Zarya",
   "role": "Support",
-  "portrait": "zarya.png"
+  "portrait": "https://cdn.jsdelivr.net/gh/heroespatchnotes/heroes-talents@2dcbbf65f81bc3ce85926a5f90b6d8b44d1e4027/images/heroes/zarya.png"
  },
  {
   "id": "xalatath",
   "name": "Xal'atath",
   "role": "Ranged Assassin",
-  "portrait": null
+  "portrait": "/img/heroportraits/ui_targetportrait_hero_xalatath.png"
  }
 ]

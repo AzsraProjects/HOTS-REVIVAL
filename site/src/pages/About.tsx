@@ -44,7 +44,7 @@ const COPY = {
     site: "Hébergé par Cloudflare. Aucun cookie, aucun traceur, polices servies par le site lui-même. Les portraits et icônes de talents sont chargés depuis le CDN jsDelivr, qui reçoit donc votre adresse IP comme pour toute image en ligne.",
     creditsTitle: "Crédits",
     credits: [
-      "Portraits et icônes de talents : données de jeu de Blizzard Entertainment, via le projet open source heroes-talents (MIT).",
+      "Portraits, icônes et noms des talents : données de jeu de Blizzard Entertainment, via les projets open source heroes-data2 et heroes-images de HeroesToolChest (MIT).",
       "Heroes of the Storm est une marque de Blizzard Entertainment, Inc. Ce site de fans n'est ni approuvé ni sponsorisé par Blizzard.",
     ],
   },
@@ -86,7 +86,7 @@ const COPY = {
     site: "Hosted by Cloudflare. No cookies, no trackers, fonts served by the site itself. Hero portraits and talent icons are loaded from the jsDelivr CDN, which therefore receives your IP address like any online image.",
     creditsTitle: "Credits",
     credits: [
-      "Portraits and talent icons: Blizzard Entertainment game data, via the open-source heroes-talents project (MIT).",
+      "Portraits, talent icons and names: Blizzard Entertainment game data, via the open-source heroes-data2 and heroes-images projects by HeroesToolChest (MIT).",
       "Heroes of the Storm is a trademark of Blizzard Entertainment, Inc. This fan site is not endorsed or sponsored by Blizzard.",
     ],
   },

@@ -9,19 +9,14 @@ import unicodedata
 from dataclasses import dataclass
 
 from app.reference import registry
+from app.talents import catalog
 
-# Noms français différents de l'anglais
+# Variantes lues à l'écran en plus des noms officiels (anglais et français, voir hero_names).
 FRENCH_NAMES: dict[str, list[str]] = {
-    "brightwing": ["Lumiaile"],
-    "butcher": ["Le Boucher", "Boucher"],
+    "butcher": ["Boucher"],
     "sgthammer": ["Sergent Marteau", "Sgt. Marteau"],
-    "lostvikings": ["Les Vikings perdus", "Vikings perdus", "Les Vikings"],
-    "deathwing": ["Aile de mort", "Aile-de-mort"],
-    "whitemane": ["Blanchetête"],
-    "greymane": ["Grisetête"],
-    "stitches": ["Recousu"],
-    "hogger": ["Lardeur"],
-    "junkrat": ["Chacal"],
+    "lostvikings": ["Vikings perdus", "Les Vikings"],
+    "deathwing": ["Aile-de-mort"],
 }
 
 
@@ -66,12 +61,14 @@ def _same(read: str, name: str) -> bool:
 def hero_names() -> dict[str, str]:
     """nom normalisé -> hero_id"""
     out: dict[str, str] = {}
+    french = catalog()
     for hero_id, hero in registry().heroes.items():
         out[norm(hero.name)] = hero_id
         if hero.name.lower().startswith("the "):
             out[norm(hero.name[4:])] = hero_id
-        for alias in FRENCH_NAMES.get(hero_id, []):
-            out[norm(alias)] = hero_id
+        for alias in [french.get(hero_id, {}).get("name_fr") or "", *FRENCH_NAMES.get(hero_id, [])]:
+            if alias:
+                out[norm(alias)] = hero_id
     return out
 
 

@@ -19,7 +19,8 @@ from app.safekeeping import archive_existing
 log = logging.getLogger(__name__)
 
 # À incrémenter quand l'extraction change de manière significative.
-ANALYSIS_VERSION = 6  # 6 : bâtiments avec leur équipe, réapparitions réelles (avantages convertis ou perdus)
+ANALYSIS_VERSION = 7  # 7 : héros des replays d'un jeu en français, talents du dernier patch
+# 6 : bâtiments avec leur équipe, réapparitions réelles (avantages convertis ou perdus)
 
 
 def _marker() -> Path:
