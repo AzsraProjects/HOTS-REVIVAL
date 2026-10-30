@@ -26,7 +26,9 @@ export function initUpdater(win: BrowserWindow): void {
   target = win;
   if (!app.isPackaged) return; // pas de mise à jour en développement
   autoUpdater.autoDownload = false;
-  autoUpdater.allowPrerelease = true; // les builds automatiques sont publiés en pré-version
+  // Versions publiques (1.x) : jamais de pré-version, sinon un build de test plus récent (0.2.x)
+  // masque la dernière version publique.
+  autoUpdater.allowPrerelease = app.getVersion().startsWith("0.");
   autoUpdater.on("checking-for-update", () => emit({ state: "checking" }));
   autoUpdater.on("update-available", (info) => emit({ state: "available", version: info.version }));
   autoUpdater.on("update-not-available", () => emit({ state: "none" }));

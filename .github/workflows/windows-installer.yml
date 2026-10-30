@@ -184,7 +184,10 @@ jobs:
           path: apps/desktop/release/*.exe
           if-no-files-found: error
 
+      # Versions publiques uniquement (tags v*) : un build de branche publié en pré-version après une
+      # version publique masquait celle-ci aux applications installées (« pas de mise à jour »).
       - name: Publier dans les Releases
+        if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
