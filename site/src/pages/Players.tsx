@@ -1,4 +1,5 @@
 import { t } from "../lib/i18n";
+import { usePageMeta } from "../lib/seo";
 import { Link } from "react-router-dom";
 import { DOWNLOAD_URL } from "../components/links";
 import { PlayerSearch } from "../components/PlayerSearch";
@@ -7,6 +8,7 @@ import { useApi, type PlayerSummary } from "../lib/api";
 import { num, pct, winrate, wrTone } from "../lib/stats";
 
 export function Players() {
+  usePageMeta(t("Joueurs"));
   const { data, error, loading } = useApi<{ players: PlayerSummary[] }>("/v1/players");
   return (
     <div className="space-y-8">

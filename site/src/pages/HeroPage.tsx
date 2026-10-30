@@ -1,4 +1,5 @@
 import { t } from "../lib/i18n";
+import { usePageMeta } from "../lib/seo";
 import { useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { HeroLink, HeroPortrait, Loading, Notice, RoleIcon, Segmented, TierBadge, WinBar } from "../components/ui";
@@ -19,7 +20,9 @@ const MIN_PAIR = 3;
 
 export function HeroPage() {
   const { id = "" } = useParams();
-  if (!HEROES.some((x) => x.id === id)) {
+  const known = HEROES.some((x) => x.id === id);
+  usePageMeta(known ? hero(id).name : t("Héros introuvable"), { noindex: !known });
+  if (!known) {
     return (
       <Notice title={t("Héros introuvable")}>
         {t("Ce héros n'existe pas dans le Nexus.")} <Link to="/heros" className="text-storm-300 hover:text-white">{t("Voir tous les héros")}</Link>

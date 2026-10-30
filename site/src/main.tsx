@@ -19,6 +19,16 @@ import { Heroes } from "./pages/Heroes";
 import { Home } from "./pages/Home";
 import { PlayerPage } from "./pages/PlayerPage";
 import { Players } from "./pages/Players";
+import { usePageMeta } from "./lib/seo";
+
+function NotFound() {
+  usePageMeta(t("Page introuvable"), { noindex: true });
+  return (
+    <Notice title={t("Page introuvable")}>
+      {t("Cette page s'est perdue dans le Nexus.")} <Link to="/" className="text-storm-300 hover:text-white">{t("Retour à l'accueil")}</Link>
+    </Notice>
+  );
+}
 
 const router = createBrowserRouter([
   {
@@ -30,14 +40,7 @@ const router = createBrowserRouter([
       { path: "/joueurs", element: <Players /> },
       { path: "/joueurs/:slug", element: <PlayerPage /> },
       { path: "/a-propos", element: <About /> },
-      {
-        path: "*",
-        element: (
-          <Notice title={t("Page introuvable")}>
-            {t("Cette page s'est perdue dans le Nexus.")} <Link to="/" className="text-storm-300 hover:text-white">{t("Retour à l'accueil")}</Link>
-          </Notice>
-        ),
-      },
+      { path: "*", element: <NotFound /> },
     ],
   },
 ]);

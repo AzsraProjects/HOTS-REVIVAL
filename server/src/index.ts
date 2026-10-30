@@ -19,9 +19,10 @@ export interface Env {
 }
 
 const MAX_BATCH = 25;
-// Plan gratuit D1 : 100 000 lignes écrites par jour, index compris (≈ 50 par partie envoyée, plus l'agrégation).
-const DAILY_UPLOADS = 200; // par installation : un gros historique s'étale sur plusieurs jours
-const GLOBAL_DAILY_UPLOADS = 600; // toutes installations confondues, avant que D1 ne bloque les écritures
+// Plan gratuit D1 : 100 000 lignes écrites par jour, index compris (≈ 50 par partie envoyée, plus l'agrégation
+// de la veille, qui plafonne vers 40-45 000 lignes car les combinaisons héros/talents finissent par se recouper).
+const DAILY_UPLOADS = 400; // par installation : un gros historique s'étale sur plusieurs jours
+const GLOBAL_DAILY_UPLOADS = 800; // toutes installations confondues, avant que D1 ne bloque les écritures
 const DAILY_INSTALLS_PER_IP = 5;
 const MIN_OWNED_GAMES = 3; // parties envoyées en tant que « moi » pour revendiquer un compte
 const PROFILE_NAME_RE = /^[\p{L}\p{N}_ .-]{2,24}(#\d{3,7})?$/u;

@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { usePageMeta } from "../lib/seo";
 import { DOWNLOAD_URL, REPO_URL } from "../components/links";
-import { lang } from "../lib/i18n";
+import { lang, t } from "../lib/i18n";
 
 // Page rédigée dans chaque langue (texte suivi, plus naturel qu'une traduction phrase à phrase).
 const COPY = {
@@ -92,6 +93,7 @@ const COPY = {
 };
 
 export function About() {
+  usePageMeta(t("À propos"));
   const { hash } = useLocation();
   useEffect(() => {
     if (hash) document.querySelector(hash)?.scrollIntoView({ behavior: "smooth" });

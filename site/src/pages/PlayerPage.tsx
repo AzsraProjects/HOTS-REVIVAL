@@ -1,4 +1,5 @@
 import { t } from "../lib/i18n";
+import { usePageMeta } from "../lib/seo";
 import { Link, useParams } from "react-router-dom";
 import { HeroLink, HeroPortrait, Loading, Notice, Stat, WinBar } from "../components/ui";
 import { useApi, type Player, type RecentMatch } from "../lib/api";
@@ -12,6 +13,7 @@ export function PlayerPage() {
 
 function PlayerView({ slug }: { slug: string }) {
   const { data: p, error, loading } = useApi<Player>(`/v1/players/${encodeURIComponent(slug)}`);
+  usePageMeta(p ? p.name.split("#")[0] : t("Joueurs"), { noindex: !!error });
 
   if (loading) return <Loading />;
   if (error) {

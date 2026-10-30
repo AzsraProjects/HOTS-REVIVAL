@@ -1,4 +1,5 @@
 import { t } from "../lib/i18n";
+import { usePageMeta } from "../lib/seo";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { DataSource, HeroLink, HeroPortrait, Loading, Notice, RoleIcon, Segmented, TierBadge, WinBar } from "../components/ui";
@@ -9,6 +10,7 @@ import { adjusted, MIN_GAMES, num, pct, ratio, tierMap, winrate, wrTone, type Ti
 type Sort = "tier" | "popularity";
 
 export function Heroes() {
+  usePageMeta(t("Héros"));
   const [params, setParams] = useSearchParams();
   const mode = params.get("mode");
   const map = params.get("map");

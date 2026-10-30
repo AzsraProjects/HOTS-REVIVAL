@@ -1,4 +1,5 @@
 import { t } from "../lib/i18n";
+import { usePageMeta } from "../lib/seo";
 import { Link } from "react-router-dom";
 import { DOWNLOAD_URL } from "../components/Layout";
 import { HeroLink, HeroPortrait, Section, TierBadge, WinBar } from "../components/ui";
@@ -8,6 +9,7 @@ import { hero, HEROES, role } from "../lib/game";
 import { adjusted, compact, MIN_GAMES, num, pct, since, tierMap, winrate, wrTone } from "../lib/stats";
 
 export function Home() {
+  usePageMeta();
   const overview = useApi<Overview>("/v1/stats/overview");
   const heroes = useApi<{ total_matches: number; heroes: HeroRow[] }>("/v1/stats/heroes");
   const players = useApi<{ players: PlayerSummary[] }>("/v1/players");
