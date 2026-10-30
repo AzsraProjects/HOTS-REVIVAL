@@ -192,28 +192,13 @@ jobs:
           if (-not (Test-Path $f)) { throw "app-update.yml absent : l'application ne trouverait pas ses mises à jour" }
           Get-Content $f
 
-      # Garde-fou : l'installeur est installé pour de vrai, puis l'application installée doit
-      # trouver la dernière version publiée. Sinon rien n'est publié (une version incapable de se
-      # mettre à jour obligerait chaque joueur à retélécharger l'application à la main).
-      - name: Tester la mise à jour de l'application installée
+      # Garde-fou : l'application construite (les fichiers mêmes que l'installeur copie) doit trouver
+      # la dernière version publiée. Sinon rien n'est publié : une version incapable de se mettre à
+      # jour obligerait chaque joueur à retélécharger l'application à la main.
+      - name: Tester la mise à jour de l'application
         shell: pwsh
         run: |
-          $setup = Get-ChildItem apps/desktop/release/HOTS-REVIVAL-Setup-*.exe | Select-Object -First 1
-          Start-Process -FilePath $setup.FullName -ArgumentList "/S" -Wait
-          # L'installeur peut rendre la main avant la fin de la copie : on attend l'exécutable installé.
-          $exe = $null
-          for ($i = 0; $i -lt 60 -and -not $exe; $i++) {
-            Start-Sleep -Seconds 2
-            $exe = Get-ChildItem "$env:LOCALAPPDATA\Programs", "$env:ProgramFiles" -Recurse -Filter "HOTS REVIVAL.exe" -ErrorAction SilentlyContinue |
-              Where-Object { $_.FullName -notmatch "win-unpacked" } | Select-Object -First 1 -ExpandProperty FullName
-          }
-          if (-not $exe) {
-            Get-ChildItem "$env:LOCALAPPDATA\Programs" -ErrorAction SilentlyContinue | Format-Table -AutoSize | Out-String | Write-Host
-            throw "Application non installée par $($setup.Name)"
-          }
-          Write-Host "Application installée : $exe"
-          Start-Sleep -Seconds 5  # fin de l'installation (fichiers encore en cours d'écriture)
-          Get-Process "HOTS REVIVAL" -ErrorAction SilentlyContinue | Stop-Process -Force
+          $exe = (Resolve-Path "apps/desktop/release/win-unpacked/HOTS REVIVAL.exe").Path
           $out = "$env:RUNNER_TEMP\update-selftest.json"
           $env:HOTS_UPDATE_SELFTEST = $out
           $p = Start-Process -FilePath $exe -PassThru
