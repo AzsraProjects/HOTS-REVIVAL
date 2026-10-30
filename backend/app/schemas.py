@@ -168,9 +168,11 @@ class LiveLevelsRequest(BaseModel):
 
 
 class GoalRequest(BaseModel):
-    key: Literal["deaths", "isolated_deaths", "deaths_before_objective", "kill_participation", "camps", "conversions"]
+    key: Literal["deaths", "isolated_deaths", "deaths_before_objective", "kill_participation", "camps", "conversions",
+                 "hero"]
     target: float = Field(ge=0, le=100)
     match_id: int | None = None
+    hero_id: str | None = Field(default=None, max_length=48)  # requis pour « hero »
 
 
 class BookmarkNoteRequest(BaseModel):

@@ -6,7 +6,10 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, selectinload
 
-from app.analytics.goals import GOALS, played_after, active_goal, evaluate, goal_out, progress, suggestions
+from app.analytics.goals import (GOALS, active_goal, evaluate, goal_out, played_after, progress, recent_suggestions,
+                                 suggestions)
+from app.analytics.hero_diagnosis import rework_suggestion
+from app.analytics.profile_stats import MIN_GAMES, build_profile
 from app.bookmarks import bookmark_out, match_bookmarks
 from app.db import get_db
 from app.i18n import tr
@@ -44,18 +47,31 @@ def get_goal(db: Session = Depends(get_db)) -> dict:
 
 
 @router.get("/goals/suggestions")
-def get_suggestions(match_id: int, db: Session = Depends(get_db)) -> list[dict]:
+def get_suggestions(match_id: int | None = None, db: Session = Depends(get_db)) -> list[dict]:
+    """Après un débrief (match_id) ; sans partie : d'après les dernières parties (tableau de bord)."""
+    if match_id is None:
+        return recent_suggestions(db)
     match, me = _match_and_me(db, match_id)
-    return suggestions(match, me, _facts(db, match_id))
+    out = suggestions(match, me, _facts(db, match_id))
+    profile = build_profile(db)
+    rework = next((h for h in profile.heroes_to_rework if h["hero_id"] == me.hero_id), None)
+    entry = rework or {**profile.by_hero.get(me.hero_id, {"games": 0, "wins": 0, "avg_heros_score": None}),
+                       "hero_id": me.hero_id, "hero": me.hero_name}
+    option = rework_suggestion(db, entry, suggested=rework is not None) if entry["games"] >= MIN_GAMES else None
+    if option:  # retravailler le héros de cette partie
+        out.insert(sum(o["suggested"] for o in out) if rework else len(out), option)
+    return out
 
 
 @router.post("/goals")
 def set_goal(body: GoalRequest, db: Session = Depends(get_db)) -> dict:
+    if body.key == "hero" and not body.hero_id:
+        raise HTTPException(422, tr("Héros manquant pour cet objectif."))
     now = datetime.now(timezone.utc)
     current = active_goal(db)
     if current:
         current.ended_at = now
-    goal = Goal(key=body.key, target=body.target, source_match_id=body.match_id, created_at=now)
+    goal = Goal(key=body.key, target=body.target, hero_id=body.hero_id, source_match_id=body.match_id, created_at=now)
     db.add(goal)
     db.commit()
     refresh_live_goal(db)
@@ -79,7 +95,7 @@ def goal_for_match(match_id: int, db: Session = Depends(get_db)) -> dict | None:
     if not goal:
         return None
     match, me = _match_and_me(db, match_id)
-    result = evaluate(GOALS[goal.key], goal.target, match, me, _facts(db, match_id))
+    result = evaluate(GOALS[goal.key], goal.target, match, me, _facts(db, match_id), goal.hero_id)
     return {"goal": goal_out(goal), "result": result, "in_period": played_after(match, goal.created_at)}
 
 

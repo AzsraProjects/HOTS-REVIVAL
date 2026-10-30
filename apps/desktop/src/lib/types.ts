@@ -149,7 +149,7 @@ export interface AdvantageTimeline {
 }
 
 export interface GoalInfo {
-  id: number; key: string; target: number; label: string; reminder: string;
+  id: number; key: string; target: number; hero_id: string | null; label: string; reminder: string;
   direction: "max" | "min"; unit: string; created_at: string; source_match_id: number | null;
 }
 
@@ -166,7 +166,22 @@ export interface GoalProgress {
   note: string | null;
 }
 
-export interface GoalSuggestion { key: string; target: number; label: string; reason: string | null; suggested: boolean }
+export interface HeroDiagnosisFinding {
+  key: string; label: string; unit: string; team: boolean; hero_losses: number; wins: number; effect: number; text: string;
+  goal: { key: string; target: number; label: string } | null;
+}
+
+/** Vos défaites sur un héros comparées à vos victoires (tous héros). */
+export interface HeroDiagnosis {
+  hero_id: string; hero: string; losses: number; wins_compared: number;
+  findings: HeroDiagnosisFinding[]; solid: string[]; verdict: string | null; context: string[];
+  maps: string[]; compositions: string[]; note: string | null;
+}
+
+export interface GoalSuggestion {
+  key: string; target: number; label: string; reason: string | null; suggested: boolean;
+  hero_id?: string; // objectif « hero »
+}
 
 export interface Bookmark {
   id: number; clock_s: number | null; clock: string | null; clock_estimated: boolean; note: string;
@@ -197,8 +212,12 @@ export interface Profile {
   worst_hero: string | null;
   main_role: string | null;
   secondary_role: string | null;
-  heroes_to_avoid: string[];
-  trend: { last_10_winrate: number | null; previous_10_winrate: number | null; direction: "up" | "down" | "stable" | "unknown" };
+  /** kind « results » : HEROS SCORE au niveau de votre moyenne mais beaucoup de défaites ; « level » : score en dessous. */
+  heroes_to_rework: (Bucket & { hero_id: string; hero: string; goal_target: number; kind: "level" | "results" })[];
+  trend: {
+    last_10_winrate: number | null; previous_10_winrate: number | null; direction: "up" | "down" | "stable" | "unknown";
+    last_10_wins: number; last_10_games: number; previous_10_wins: number; previous_10_games: number;
+  };
   category_averages: Record<string, number>;
   role_balance?: { shares: Record<string, number>; main_role: string | null; advice: string | null };
 }
@@ -385,5 +404,5 @@ export interface LobbyPlayer {
   top_heroes: string[];
 }
 
-export interface TeamMember { hero_id: string; hero: string; role: string | null; player: string | null; me: boolean }
+export interface TeamMember { hero_id: string | null; hero: string | null; role: string | null; player: string | null; me: boolean }
 export interface Teams { ally: TeamMember[]; enemy: TeamMember[]; sides_known: boolean; complete: boolean }

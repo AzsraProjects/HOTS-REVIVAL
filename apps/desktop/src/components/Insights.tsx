@@ -2,7 +2,7 @@
  * Débrief explicable : avantages convertis ou perdus, « Sur quoi tu te bases ? », objectif personnel
  * suivi et marque-pages posés en jeu. Tout vient des faits du replay calculés par le moteur.
  */
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useAsync } from "../hooks/useAsync";
 import { api } from "../lib/api";
@@ -123,19 +123,23 @@ function ResultBadge({ r }: { r: Pick<GoalResult, "success"> }) {
   return r.success ? <span className="text-emerald-300">✔</span> : <span className="text-rose-300">✖</span>;
 }
 
-function GoalPicker({ matchId, onSet }: { matchId: number; onSet: () => void }) {
+const optionId = (o: GoalSuggestion) => (o.hero_id ? `${o.key}:${o.hero_id}` : o.key);
+
+/** Sans matchId : propositions d'après les dernières parties ; `empty` s'affiche si aucune n'est récurrente. */
+function GoalPicker({ matchId, onSet, empty }: { matchId?: number; onSet: () => void; empty?: ReactNode }) {
   const options = useAsync(() => api.goals.suggestions(matchId), [matchId]);
   const [picked, setPicked] = useState<GoalSuggestion | null>(null);
   const [target, setTarget] = useState(0);
   const [saving, setSaving] = useState(false);
   if (!options.data) return null;
   const suggested = options.data.filter((o) => o.suggested);
+  if (matchId === undefined && !suggested.length) return <>{empty}</>;
   const choose = (o: GoalSuggestion) => { setPicked(o); setTarget(o.target); };
   const save = async () => {
     if (!picked) return;
     setSaving(true);
     try {
-      await api.goals.set(picked.key, target, matchId);
+      await api.goals.set(picked.key, target, matchId ?? null, picked.hero_id ?? null);
       onSet();
     } finally {
       setSaving(false);
@@ -143,19 +147,22 @@ function GoalPicker({ matchId, onSet }: { matchId: number; onSet: () => void }) 
   };
   return (
     <div className="space-y-2">
-      <p className="text-sm text-slate-400">{t("Choisissez un seul chantier pour vos prochaines parties : il sera rappelé au chargement et mesuré à chaque débrief.")}</p>
+      <p className="text-sm text-slate-400">
+        {matchId === undefined && <>{t("D'après vos dernières parties, voici ce qui revient le plus souvent.")} </>}
+        {t("Choisissez un seul chantier pour vos prochaines parties : il sera rappelé au chargement et mesuré à chaque débrief.")}
+      </p>
       <div className="flex flex-wrap gap-2">
         {(suggested.length ? suggested : options.data).map((o) => (
-          <button key={o.key} className={`chip ${picked?.key === o.key ? "border-gold-400 text-gold-300" : "hover:text-white"}`}
+          <button key={optionId(o)} className={`chip ${picked && optionId(picked) === optionId(o) ? "border-gold-400 text-gold-300" : "hover:text-white"}`}
             onClick={() => choose(o)} title={o.reason ?? undefined}>{o.label}</button>
         ))}
         {suggested.length > 0 && (
           <select className="chip bg-transparent" value="" onChange={(e) => {
-            const o = options.data!.find((x) => x.key === e.target.value);
+            const o = options.data!.find((x) => optionId(x) === e.target.value);
             if (o) choose(o);
           }}>
             <option value="">{t("Autre objectif…")}</option>
-            {options.data.filter((o) => !o.suggested).map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+            {options.data.filter((o) => !o.suggested).map((o) => <option key={optionId(o)} value={optionId(o)}>{o.label}</option>)}
           </select>
         )}
       </div>
@@ -216,7 +223,9 @@ export function GoalProgressCard() {
   if (!p) {
     return (
       <Card title={t("Mon objectif")}>
-        <p className="text-sm text-slate-400">{t("Aucun objectif en cours. Ouvrez le rapport d'une partie pour choisir un chantier à travailler.")}</p>
+        <GoalPicker onSet={goal.reload} empty={
+          <p className="text-sm text-slate-400">{t("Aucun objectif en cours. Ouvrez le rapport d'une partie pour choisir un chantier à travailler.")}</p>
+        } />
       </Card>
     );
   }
@@ -245,6 +254,60 @@ export function GoalProgressCard() {
             ))}
           </tbody>
         </table>
+      )}
+    </Card>
+  );
+}
+
+/** Bon HEROS SCORE mais beaucoup de défaites : ce qui décroche dans ces défaites, plutôt que « ne le jouez pas ». */
+export function HeroDiagnosisCard({ heroId, onGoal, onClose }: { heroId: string; onGoal: () => void; onClose: () => void }) {
+  const diag = useAsync(() => api.heroDiagnosis(heroId), [heroId]);
+  const [saving, setSaving] = useState(false);
+  const d = diag.data;
+  const setGoal = async (goal: { key: string; target: number }) => {
+    setSaving(true);
+    try {
+      await api.goals.set(goal.key, goal.target, null, heroId);
+      onGoal();
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <Card title={d ? t("Pourquoi autant de défaites avec {hero} ?", { hero: d.hero }) : t("Diagnostic du héros")}
+      className="border-gold-600/40"
+      action={<button className="text-xs text-slate-500 hover:text-white" onClick={onClose}>{t("Fermer")}</button>}>
+      {!d ? <p className="text-sm text-slate-500">{diag.error ?? t("Analyse de vos parties…")}</p> : (
+        <div className="space-y-3 text-sm">
+          {d.verdict && <p className="text-white">{d.verdict}</p>}
+          {d.findings.length > 0 && (
+            <ul className="space-y-2">
+              {d.findings.map((f) => (
+                <li key={f.key} className="flex items-start gap-3 border-t border-void-700 pt-2 first:border-t-0 first:pt-0">
+                  <span className="flex-1 text-slate-300">
+                    {f.text}
+                    {f.team && <span className="ml-2 text-xs text-slate-500">{t("(jeu d'équipe)")}</span>}
+                  </span>
+                  {f.goal && (
+                    <button className="shrink-0 text-xs text-gold-400 hover:text-gold-300" disabled={saving}
+                      title={f.goal.label} onClick={() => setGoal(f.goal!)}>{t("En faire mon objectif")}</button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {d.context.map((c) => <p key={c} className="text-slate-300">· {c}</p>)}
+          {([[t("Compositions"), d.compositions], [t("Cartes"), d.maps]] as [string, string[]][]).map(([title, items]) => items.length > 0 && (
+            <div key={title}>
+              <div className="text-xs uppercase tracking-wider text-slate-500">{title}</div>
+              <ul className="text-slate-300">{items.map((c) => <li key={c}>· {c}</li>)}</ul>
+            </div>
+          ))}
+          {d.solid.length > 0 && (
+            <p className="text-emerald-300">{t("Ce qui tient dans ces défaites : {list}.", { list: d.solid.join(", ") })}</p>
+          )}
+          {d.note && <p className="text-xs text-slate-500">{d.note}</p>}
+        </div>
       )}
     </Card>
   );

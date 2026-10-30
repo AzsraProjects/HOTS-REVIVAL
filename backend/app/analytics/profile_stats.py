@@ -14,10 +14,16 @@ from app.talents import talent_name
 STATS_MODES = ("Quick Match", "Storm League", "Hero League", "Team League")
 PRIOR_GAMES = 6  # lissage bayésien vers 50 % pour les petits échantillons
 MIN_GAMES = 3
+REWORK_WINRATE = 0.45  # winrate lissé sous ce seuil : héros à retravailler
 
 
 def smoothed_winrate(wins: int, games: int) -> float:
     return (wins + PRIOR_GAMES * 0.5) / (games + PRIOR_GAMES)
+
+
+def hero_goal_target(avg_heros_score: float | None) -> int:
+    """Seuil proposé pour l'objectif « retravailler un héros » : un peu au-dessus de sa moyenne actuelle."""
+    return 55 if avg_heros_score is None else int(min(80, max(40, round(avg_heros_score) + 5)))
 
 
 @dataclass
@@ -53,7 +59,9 @@ class ProfileSummary:
     worst_hero: str | None
     main_role: str | None
     secondary_role: str | None
-    heroes_to_avoid: list[str]
+    # du plus difficile au moins difficile ; kind « results » : HEROS SCORE au niveau de votre moyenne, mais
+    # beaucoup de défaites (à expliquer), « level » : HEROS SCORE en dessous (à travailler individuellement)
+    heroes_to_rework: list[dict]
     trend: dict
     category_averages: dict[str, float] = field(default_factory=dict)
 
@@ -98,12 +106,20 @@ def build_profile(db: Session) -> ProfileSummary:
     def wr(ls: list[MatchPlayer]) -> float | None:
         return round(sum(m.is_winner for m in ls) / len(ls), 3) if ls else None
 
-    trend = {"last_10_winrate": wr(recent), "previous_10_winrate": wr(previous)}
+    trend = {"last_10_winrate": wr(recent), "previous_10_winrate": wr(previous),
+             "last_10_wins": sum(m.is_winner for m in recent), "last_10_games": len(recent),
+             "previous_10_wins": sum(m.is_winner for m in previous), "previous_10_games": len(previous)}
     if trend["last_10_winrate"] is not None and trend["previous_10_winrate"] is not None:
         delta = trend["last_10_winrate"] - trend["previous_10_winrate"]
         trend["direction"] = "up" if delta > 0.05 else "down" if delta < -0.05 else "stable"
     else:
         trend["direction"] = "unknown"
+
+    my_avg = total.as_dict()["avg_heros_score"]
+
+    def rework_kind(b: dict) -> str:
+        good = my_avg is not None and b["avg_heros_score"] is not None and b["avg_heros_score"] >= my_avg
+        return "results" if good else "level"
 
     return ProfileSummary(
         total=total.as_dict(),
@@ -113,8 +129,10 @@ def build_profile(db: Session) -> ProfileSummary:
         worst_hero=hero_names[ranked[0]] if len(ranked) > 1 else None,
         main_role=roles_sorted[0] if roles_sorted else None,
         secondary_role=roles_sorted[1] if len(roles_sorted) > 1 else None,
-        heroes_to_avoid=[
-            hero_names[h] for h in ranked if smoothed_winrate(eligible[h].wins, eligible[h].games) < 0.45
+        heroes_to_rework=[
+            {"hero_id": h, "hero": hero_names[h], **(b := eligible[h].as_dict()),
+             "goal_target": hero_goal_target(b["avg_heros_score"]), "kind": rework_kind(b)}
+            for h in ranked if smoothed_winrate(eligible[h].wins, eligible[h].games) < REWORK_WINRATE
         ],
         trend=trend,
         category_averages={c: round(v / cat_n, 1) for c, v in cat_sum.items()} if cat_n else {},

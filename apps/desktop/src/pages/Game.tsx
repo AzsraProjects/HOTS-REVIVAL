@@ -73,8 +73,8 @@ function TeamsCard({ s }: { s: OverlayState }) {
       <div className={`mb-1 text-xs font-semibold uppercase ${tone}`}>{title}</div>
       <div className="space-y-1">
         {members.map((m) => (
-          <div key={m.hero_id + (m.player ?? "")} className={`flex justify-between rounded-md border px-2 py-1 text-sm ${m.me ? "border-gold-400" : "border-void-600"}`}>
-            <span className="text-white">{m.hero}</span>
+          <div key={(m.hero_id ?? "") + (m.player ?? "")} className={`flex justify-between rounded-md border px-2 py-1 text-sm ${m.me ? "border-gold-400" : "border-void-600"}`}>
+            <span className={m.hero ? "text-white" : "italic text-slate-500"}>{m.hero ?? t("Héros pas encore lu")}</span>
             <span className="text-xs text-slate-400">{m.role ? (ROLE_FR[m.role] ? t(ROLE_FR[m.role]) : m.role) : ""}{m.player ? ` · ${m.player}` : ""}</span>
           </div>
         ))}

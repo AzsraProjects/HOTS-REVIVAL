@@ -10,6 +10,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.2.0",
+    date: "2026-10-30",
+    fr: [
+      "« Héros à éviter » devient « Héros à retravailler ». Il ne liste plus seulement vos plus faibles HEROS SCORE : un héros sur lequel votre note est bonne mais qui perd souvent y apparaît aussi, avec un bouton « Pourquoi ? ».",
+      "« Pourquoi ? » compare vos défaites sur ce héros à vos victoires : ce qui change dans votre jeu (morts, participation, combats d'équipe, camps, conversion des avantages…), si vos défaites sont plutôt courtes ou longues, les cartes où il vous réussit moins et les compositions qui reviennent dans vos défaites (sans soigneur, sans tank, plongée ou frontline adverse). Jamais « ne le jouez plus » : de quoi travailler.",
+      "Objectifs par héros : chaque écart du diagnostic peut devenir votre objectif sur ce héros (« Avec Cho : … »). Il n'est mesuré que sur les parties jouées avec lui ; une partie sur un autre héros n'est pas comptée comme ratée.",
+      "Sans objectif en cours, le tableau de bord en propose d'après vos 10 dernières parties : les erreurs qui reviennent souvent et le héros à retravailler en priorité.",
+      "La tendance du tableau de bord affiche vos victoires sur les 10 dernières parties et les 10 d'avant.",
+      "Le coach IA explique pourquoi vous perdez sur un héros au lieu de conseiller de ne plus le jouer.",
+      "Compositions lues sur l'écran de chargement plus fiables : chaque pseudo est associé au bon héros, une lecture ratée est corrigée par les suivantes, jamais deux fois le même héros dans une équipe, et un joueur dont le héros n'est pas encore lu reste affiché.",
+    ],
+    en: [
+      "“Heroes to avoid” becomes “Heroes to work on”. It no longer lists only your weakest HEROS SCORE: a hero you score well on but often lose with shows up too, with a “Why?” button.",
+      "“Why?” compares your losses on that hero with your wins: what changes in your play (deaths, participation, teamfights, camps, converting advantages…), whether your losses tend to be short or long, the maps where it works less well for you and the compositions that keep coming back in your losses (no healer, no tank, enemy dive or frontline). Never “stop playing it”: things to work on.",
+      "Hero goals: every gap in the diagnosis can become your goal on that hero (“With Cho: …”). It is only measured on games played with that hero; a game on another hero does not count as missed.",
+      "With no active goal, the dashboard suggests some based on your last 10 games: the mistakes that keep coming back and the hero to work on first.",
+      "The dashboard trend shows your wins over the last 10 games and the 10 before.",
+      "The AI coach explains why you lose on a hero instead of advising you to stop playing it.",
+      "More reliable compositions from the loading screen: each name is matched to the right hero, a bad read is corrected by the next ones, never the same hero twice in a team, and a player whose hero has not been read yet stays listed.",
+    ],
+  },
+  {
     version: "1.1.0",
     date: "2026-10-28",
     fr: [

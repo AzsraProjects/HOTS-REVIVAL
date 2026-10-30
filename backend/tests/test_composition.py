@@ -37,3 +37,54 @@ def test_ocr_typos_tolerated_and_composition_accumulates():
     teams = s.snapshot()["teams"]
     assert teams["ally"][0]["hero_id"] == "valla" and teams["enemy"][0]["hero_id"] == "johanna"
     assert not teams["complete"]
+
+
+def _session(lobby: list[str]) -> LiveSession:
+    s = LiveSession()
+    s.on_lobby(lobby, None, None, None)
+    return s
+
+
+def test_player_without_read_hero_does_not_steal_neighbour_hero():
+    # cartes serrées : le héros de Bnizzle est aussi à portée de Moi, dont le héros n'est pas lu
+    s = _session(["Moi#1", "Bnizzle#2", "Kappa#3"])
+    words = [Word("Moi", 0.10, 0.30), Word("Bnizzle", 0.18, 0.30), Word("Valla", 0.18, 0.34),
+             Word("Kappa", 0.10, 0.75), Word("Johanna", 0.10, 0.79)]
+    s.add_composition(read_composition(words, s.lobby_players, {"moi"}))
+    ally = s.snapshot()["teams"]["ally"]
+    assert [(m["player"], m["hero_id"]) for m in ally] == [("Moi", None), ("Bnizzle", "valla")]
+    assert ally[0]["me"] and ally[0]["hero"] is None
+
+
+def test_wrong_first_reading_is_outvoted_and_no_duplicate_hero_in_a_team():
+    s = _session(["Moi#1", "Bnizzle#2", "Kappa#3"])
+    good = [Word("Moi", 0.10, 0.30), Word("Cho", 0.10, 0.34), Word("Bnizzle", 0.30, 0.30), Word("Gall", 0.30, 0.34),
+            Word("Kappa", 0.10, 0.75), Word("Johanna", 0.10, 0.79)]
+    bad = [w if w.text != "Cho" else Word("Gall", 0.10, 0.34) for w in good]  # « Cho » lu « Gall »
+    s.add_composition(read_composition(bad, s.lobby_players, {"moi"}))
+    ally = s.snapshot()["teams"]["ally"]
+    assert sorted(m["hero_id"] or "" for m in ally) == ["", "gall"]  # jamais deux Gall dans une équipe
+    for _ in range(2):
+        s.add_composition(read_composition(good, s.lobby_players, {"moi"}))
+    ally = s.snapshot()["teams"]["ally"]
+    assert [m["hero_id"] for m in ally] == ["cho", "gall"]
+
+
+def test_sides_known_from_my_hero_when_my_name_is_not_read():
+    s = _session(["Bnizzle#2", "Kappa#3"])
+    s.my_hero_id = "johanna"
+    words = [Word("Bnizzle", 0.10, 0.30), Word("Valla", 0.10, 0.34),
+             Word("Kappa", 0.10, 0.75), Word("Johanna", 0.10, 0.79)]
+    s.add_composition(read_composition(words, s.lobby_players, set()))
+    teams = s.snapshot()["teams"]
+    assert teams["sides_known"] and teams["ally"][0]["hero_id"] == "johanna" and teams["ally"][0]["me"]
+
+
+def test_layout_offset_is_learned_from_confident_pairs():
+    # le nom du héros est à droite du pseudo ; celui de C est lu à gauche, loin de sa place habituelle
+    s = _session(["Aaa#1", "Bbb#2", "Ccc#3", "Ddd#4"])
+    words = [Word("Aaa", 0.10, 0.30), Word("Valla", 0.16, 0.30), Word("Bbb", 0.30, 0.30), Word("Jaina", 0.36, 0.30),
+             Word("Ccc", 0.50, 0.30), Word("Diablo", 0.42, 0.31), Word("Ddd", 0.70, 0.30), Word("Muradin", 0.76, 0.30)]
+    s.add_composition(read_composition(words, s.lobby_players, set()))
+    rows = s.snapshot()["teams"]["ally"] + s.snapshot()["teams"]["enemy"]
+    assert {m["player"]: m["hero_id"] for m in rows} == {"Aaa": "valla", "Bbb": "jaina", "Ccc": "diablo", "Ddd": "muradin"}

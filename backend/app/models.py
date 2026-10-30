@@ -282,6 +282,7 @@ class Goal(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     key: Mapped[str] = mapped_column(String(32))  # voir app/analytics/goals.py (GOALS)
     target: Mapped[float] = mapped_column(Float)
+    hero_id: Mapped[str | None] = mapped_column(String(48))  # objectif « hero » : héros à retravailler
     source_match_id: Mapped[int | None] = mapped_column(Integer)  # partie dont il est issu (sans clé étrangère)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

@@ -6,6 +6,7 @@ from dataclasses import asdict
 
 from sqlalchemy.orm import Session
 
+from app.analytics.hero_diagnosis import hero_diagnosis
 from app.analytics.profile_stats import build_profile, my_match_lines
 from app.analytics.report import facts_for_ai
 from app.coach.roles import role_balance, role_context
@@ -29,7 +30,7 @@ def player_context(db: Session, match_id: int | None = None) -> str:
     ctx: dict = {
         "profil": {k: profile[k] for k in (
             "total", "by_role", "best_hero", "worst_hero", "main_role", "secondary_role",
-            "heroes_to_avoid", "trend", "category_averages")},
+            "heroes_to_rework", "trend", "category_averages")},
         "heros_les_plus_joues": top_heroes,
         "dernieres_parties": recent,
     }
@@ -50,6 +51,14 @@ def player_context(db: Session, match_id: int | None = None) -> str:
             for h, t in tiers.items()
             if t in ("S", "A") and h in registry().heroes and registry().heroes[h].role in other_roles
         ][:8]
+
+    # héros au bon HEROS SCORE mais aux résultats faibles : expliquer les défaites, ne pas les déconseiller
+    diagnostics = [hero_diagnosis(db, h["hero_id"]) for h in profile["heroes_to_rework"] if h["kind"] == "results"][:2]
+    if diagnostics:
+        ctx["diagnostic_heros_bon_score_mais_defaites"] = [
+            {"heros": d["hero"], "conclusion": d["verdict"], "ecarts": [f["text"] for f in d["findings"]],
+             "contexte": d["context"], "cartes": d["maps"], "compositions": d["compositions"],
+             "limites": d["note"]} for d in diagnostics]
 
     if match_id is not None:
         report = db.query(Report).filter(Report.match_id == match_id).first()

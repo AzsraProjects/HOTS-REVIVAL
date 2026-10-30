@@ -1,9 +1,10 @@
 ﻿# Lance la version locale (code du dépôt) pour la tester, sans toucher à l'application installée.
 #  - ferme l'application installée (elle utilise le même port), puis la relance à la fin ;
 #  - travaille sur une COPIE de vos données (parties, réglages, voix) : rien n'est modifié dans l'original ;
-#  - n'importe aucun replay et ne partage rien avec la plateforme communautaire.
+#  - n'importe aucun replay (sauf en mode « jeu ») et ne partage rien avec la plateforme communautaire.
 # Usage : double-clic sur test-local.cmd. « test-local.cmd reset » repart d'une copie fraîche de vos données.
-param([switch]$Reset)
+# « test-local.cmd jeu » : pour tester en partie, les nouveaux replays sont importés et analysés dans la copie.
+param([switch]$Reset, [switch]$Jeu)
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path $PSScriptRoot -Parent
@@ -53,7 +54,8 @@ Step "Vérification de l'analyse de l'historique"
 & $python (Join-Path $root "backend\scripts\reanalyze_history.py")
 $env:HOTS_SPAWN_BACKEND = "1"
 $env:HOTS_PYTHON = $python
-$env:HOTS_WATCH_REPLAYS = "false"
+$env:HOTS_WATCH_REPLAYS = $(if ($Jeu) { "true" } else { "false" })
+if ($Jeu) { Write-Host "Mode jeu : vos nouvelles parties seront importées dans la copie de test." -ForegroundColor Yellow }
 $env:HOTS_SHARE_MATCHES = "false"
 Set-Location (Join-Path $root "apps\desktop")
 if (-not (Test-Path "node_modules")) { Step "Installation des dépendances (première fois)"; npm install }

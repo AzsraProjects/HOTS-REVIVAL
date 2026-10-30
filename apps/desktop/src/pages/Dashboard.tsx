@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Bar, Card, Empty, ErrorBox, List, Loading, Stat } from "../components/ui";
-import { GoalProgressCard } from "../components/Insights";
+import { Bar, Card, Empty, ErrorBox, Loading, Stat } from "../components/ui";
+import { GoalProgressCard, HeroDiagnosisCard } from "../components/Insights";
 import { ScoreRadar } from "../components/ScoreRadar";
 import { useAsync } from "../hooks/useAsync";
 import { api } from "../lib/api";
 import { CATEGORY_FR, pct, ROLE_FR, scoreColor } from "../lib/format";
 import { t } from "../lib/i18n";
-import type { ProgressionPoint } from "../lib/types";
+import type { Profile, ProgressionPoint } from "../lib/types";
+
+const REWORK_SHOWN = 4;
 
 function Sparkline({ points }: { points: ProgressionPoint[] }) {
   const values = points.map((p) => p.heros_score ?? 0);
@@ -29,9 +32,55 @@ function Sparkline({ points }: { points: ProgressionPoint[] }) {
   );
 }
 
+/** Héros au winrate faible : un chantier possible, pas un interdit. Score en dessous de votre moyenne : objectif
+ * HEROS SCORE en un clic ; score correct mais défaites : « Pourquoi ? » ouvre le diagnostic. */
+function HeroesToRework({ heroes, onGoal, onExplain }: {
+  heroes: Profile["heroes_to_rework"]; onGoal: () => void; onExplain: (heroId: string) => void;
+}) {
+  const [saving, setSaving] = useState<string | null>(null);
+  if (!heroes.length) return <p className="text-sm text-slate-500">{t("Aucun — continuez ainsi.")}</p>;
+  // bon score mais défaites d'abord : à comprendre plutôt qu'à abandonner (tri stable : winrate croissant ensuite)
+  const shown = [...heroes].sort((a, b) => Number(b.kind === "results") - Number(a.kind === "results")).slice(0, REWORK_SHOWN);
+  const makeGoal = async (h: Profile["heroes_to_rework"][number]) => {
+    setSaving(h.hero_id);
+    try {
+      await api.goals.set("hero", h.goal_target, null, h.hero_id);
+      onGoal();
+    } finally {
+      setSaving(null);
+    }
+  };
+  return (
+    <>
+      <ul className="space-y-1.5">
+        {shown.map((h) => (
+          <li key={h.hero_id} className="flex items-center gap-2 text-sm">
+            <span className="flex-1 text-slate-200">{h.hero}</span>
+            <span className="text-xs text-slate-400">{t("{w} V / {n}", { w: h.wins, n: h.games })}</span>
+            {h.kind === "results" ? (
+              <button className="text-xs text-gold-400 hover:text-gold-300"
+                title={t("Votre HEROS SCORE est correct sur ce héros ({score}) : voir ce qui décroche dans vos défaites.", { score: h.avg_heros_score ?? "–" })}
+                onClick={() => onExplain(h.hero_id)}>{t("Pourquoi ?")}</button>
+            ) : (
+              <button className="text-xs text-gold-400 hover:text-gold-300" disabled={saving !== null}
+                title={t("Objectif : HEROS SCORE d'au moins {n} sur ce héros.", { n: h.goal_target })}
+                onClick={() => makeGoal(h)}>{t("En faire mon objectif")}</button>
+            )}
+          </li>
+        ))}
+      </ul>
+      {heroes.length > REWORK_SHOWN && (
+        <p className="mt-1 text-xs text-slate-500">{t("+ {n} autre(s), voir le tableau des héros.", { n: heroes.length - REWORK_SHOWN })}</p>
+      )}
+    </>
+  );
+}
+
 export function Dashboard() {
   const profile = useAsync(api.profile);
   const prog = useAsync(api.progression);
+  const [goalVersion, setGoalVersion] = useState(0);
+  const [explained, setExplained] = useState<string | null>(null);
 
   if (profile.loading) return <Loading />;
   if (profile.error) return <ErrorBox message={profile.error} />;
@@ -69,12 +118,15 @@ export function Dashboard() {
         <Stat label={t("Parties analysées")} value={p.total.games} />
         <Stat label={t("HEROS SCORE moyen")} value={p.total.avg_heros_score ?? "–"}
           tone={scoreColor(p.total.avg_heros_score ?? 0)} hint={t("sur 100")} />
-        <Stat label={t("Tendance (10 parties)")} value={`${trendIcon} ${pct(p.trend.last_10_winrate)}`}
-          hint={t("précédentes : {winrate}", { winrate: pct(p.trend.previous_10_winrate) })}
+        <Stat label={t("Tendance (10 parties)")}
+          value={`${trendIcon} ${t("{w} V / {n}", { w: p.trend.last_10_wins, n: p.trend.last_10_games })}`}
+          hint={p.trend.previous_10_games
+            ? t("avant : {w} V / {n}", { w: p.trend.previous_10_wins, n: p.trend.previous_10_games })
+            : t("pas encore de parties avant")}
           tone={p.trend.direction === "down" ? "text-rose-400" : "text-emerald-400"} />
       </div>
 
-      <GoalProgressCard />
+      <GoalProgressCard key={goalVersion} />
 
       <div className="grid grid-cols-3 gap-4">
         <Card title={t("HEROS SCORE moyen")}>
@@ -98,13 +150,18 @@ export function Dashboard() {
             <div>{t("Meilleur héros :")} <b className="text-gold-400">{p.best_hero ?? "–"}</b></div>
             <div>{t("Héros le plus difficile :")} <b className="text-rose-300">{p.worst_hero ?? "–"}</b></div>
             <div>
-              <div className="mb-1 text-slate-400">{t("Héros à éviter pour l'instant :")}</div>
-              <List items={p.heroes_to_avoid} icon="⚠" tone="text-rose-300" empty={t("Aucun — continuez ainsi.")} />
+              <div className="mb-1 text-slate-400">{t("Héros à retravailler :")}</div>
+              <HeroesToRework heroes={p.heroes_to_rework} onGoal={() => setGoalVersion((v) => v + 1)} onExplain={setExplained} />
             </div>
             <div className="text-xs text-slate-500">{t("Calculs lissés (min. 3 parties par héros).")}</div>
           </div>
         </Card>
       </div>
+
+      {explained && (
+        <HeroDiagnosisCard heroId={explained} onClose={() => setExplained(null)}
+          onGoal={() => { setGoalVersion((v) => v + 1); setExplained(null); }} />
+      )}
 
       {p.role_balance?.advice && (
         <Card title={t("Équilibre des rôles")} className="border-gold-600/40">

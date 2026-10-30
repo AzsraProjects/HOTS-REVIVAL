@@ -134,38 +134,102 @@ def split_teams(points: list[Found]) -> tuple[list[Found], list[Found]]:
     return first, second
 
 
+PAIR_MAX = 0.15  # distance maximale pseudo -> nom du héros (avant apprentissage du décalage)
+PAIR_MAX_ALIGNED = 0.08  # une fois le décalage pseudo -> héros connu
+
+
+def _distance_2d(p: Found, h: Found, offset: tuple[float, float]) -> float:
+    return (((h.x - p.x - offset[0]) * 1.5) ** 2 + (h.y - p.y - offset[1]) ** 2) ** 0.5
+
+
+def _pair(players: list[Found], heroes: list[Found], offset: tuple[float, float], limit: float) -> dict[int, int]:
+    """Appariement global : les couples les plus proches d'abord (un pseudo lu sans son héros
+    ne prend plus le héros de son voisin parce qu'il a été traité avant lui)."""
+    candidates = sorted((_distance_2d(p, h, offset), i, j)
+                        for i, p in enumerate(players) for j, h in enumerate(heroes))
+    pairs: dict[int, int] = {}
+    for d, i, j in candidates:
+        if d >= limit:
+            break
+        if i not in pairs and j not in pairs.values():
+            pairs[i] = j
+    return pairs
+
+
+def _median(values: list[float]) -> float:
+    values = sorted(values)
+    mid = len(values) // 2
+    return values[mid] if len(values) % 2 else (values[mid - 1] + values[mid]) / 2
+
+
 def read_composition(words: list[Word], lobby_players: list[str], my_names: set[str]) -> dict[str, dict]:
-    """Associe chaque héros reconnu à un joueur (le pseudo le plus proche) et à une équipe.
-    Retourne {clé: {hero_id, player, x, y}} — la clé est le pseudo, ou le héros sans pseudo."""
+    """Associe chaque héros reconnu à un joueur et à une équipe.
+    Retourne {clé: {hero_id, player, x, y, me}} — la clé est le pseudo, ou le héros sans pseudo.
+    Un pseudo lu sans héros est gardé (hero_id None) : il situe le joueur et son équipe."""
     names = [p.split("#")[0] for p in lobby_players]
     players = find_players(words, names)
     # un pseudo de la partie n'est jamais pris pour un héros (ex. joueur « silvanas »)
     taken = {(p.x, p.y) for p in players}
     heroes = find_heroes([w for w in words if (w.x, w.y) not in taken])
+    pairs = _pair(players, heroes, (0.0, 0.0), PAIR_MAX)
+    if len(pairs) >= 3:  # même mise en page pour chaque joueur : le héros est toujours au même endroit
+        offset = (_median([heroes[j].x - players[i].x for i, j in pairs.items()]),
+                  _median([heroes[j].y - players[i].y for i, j in pairs.items()]))
+        pairs = _pair(players, heroes, offset, PAIR_MAX_ALIGNED)
+        # nom lu loin de sa place habituelle : on retombe sur le plus proche parmi les restants
+        left_p = [i for i in range(len(players)) if i not in pairs]
+        left_h = [j for j in range(len(heroes)) if j not in pairs.values()]
+        rest = _pair([players[i] for i in left_p], [heroes[j] for j in left_h], (0.0, 0.0), PAIR_MAX)
+        pairs.update({left_p[i]: left_h[j] for i, j in rest.items()})
     out: dict[str, dict] = {}
-    used: set[int] = set()
-    for p in players:
-        best, best_d = None, 0.15
-        for i, h in enumerate(heroes):
-            d = ((h.x - p.x) * 1.5) ** 2 + (h.y - p.y) ** 2
-            if i not in used and d ** 0.5 < best_d:
-                best, best_d = i, d ** 0.5
-        if best is not None:
-            used.add(best)
-            out[p.key] = {"hero_id": heroes[best].key, "player": p.key, "x": p.x, "y": p.y,
-                          "me": norm(p.key) in my_names}
+    for i, p in enumerate(players):
+        out[p.key] = {"hero_id": heroes[pairs[i]].key if i in pairs else None, "player": p.key,
+                      "x": p.x, "y": p.y, "me": norm(p.key) in my_names}
     if not lobby_players:  # pas de fichier de chargement : héros seuls
-        for i, h in enumerate(heroes):
+        for h in heroes:
             out[h.key] = {"hero_id": h.key, "player": None, "x": h.x, "y": h.y, "me": False}
     return out
 
 
-def teams_from(entries: dict[str, dict]) -> dict | None:
+def add_reading(composition: dict[str, dict], entries: dict[str, dict]) -> None:
+    """Cumule une lecture : chaque héros lu pour un joueur compte comme un vote. Une lecture
+    ratée (héros du voisin, nom mal lu) est corrigée par les suivantes au lieu de rester figée."""
+    for key, entry in entries.items():
+        current = composition.setdefault(key, {**entry, "votes": {}})
+        current["me"] = current["me"] or entry["me"]
+        if entry["hero_id"]:
+            current["votes"][entry["hero_id"]] = current["votes"].get(entry["hero_id"], 0) + 1
+
+
+def _resolve(group: list[Found], entries: dict[str, dict]) -> dict[str, str | None]:
+    """Héros de chaque joueur d'une équipe : le plus voté, jamais deux fois le même héros
+    dans une équipe (le joueur le plus sûr le garde, l'autre prend son choix suivant)."""
+    def ranked(key: str) -> list[tuple[str, int]]:
+        e = entries[key]
+        votes = e.get("votes", {e["hero_id"]: 1} if e["hero_id"] else {})  # lecture seule, sans cumul
+        return sorted(votes.items(), key=lambda kv: -kv[1])
+
+    order = sorted(group, key=lambda p: -(ranked(p.key)[0][1] if ranked(p.key) else 0))
+    used: set[str] = set()
+    out: dict[str, str | None] = {}
+    for p in order:
+        hero = next((h for h, _ in ranked(p.key) if h not in used), None)
+        out[p.key] = hero
+        if hero:
+            used.add(hero)
+    return out
+
+
+def teams_from(entries: dict[str, dict], my_hero_id: str | None = None) -> dict | None:
     if not entries:
         return None
     points = [Found(k, e["x"], e["y"]) for k, e in entries.items()]
     first, second = split_teams(points)
+    heroes_of = {**_resolve(first, entries), **_resolve(second, entries)}
     mine = next((k for k, e in entries.items() if e["me"]), None)
+    if mine is None and my_hero_id:  # pseudo non lu, mais héros connu et présent une seule fois
+        holders = [k for k, h in heroes_of.items() if h == my_hero_id]
+        mine = holders[0] if len(holders) == 1 else None
     sides_known = mine is not None and bool(second)
     if sides_known and any(p.key == mine for p in second):
         first, second = second, first
@@ -174,11 +238,11 @@ def teams_from(entries: dict[str, dict]) -> dict | None:
     def describe(group: list[Found]) -> list[dict]:
         rows = []
         for p in sorted(group, key=lambda p: (p.x, p.y)):
-            e = entries[p.key]
-            hero = heroes.get(e["hero_id"])
-            rows.append({"hero_id": e["hero_id"], "hero": hero.name if hero else e["hero_id"],
-                         "role": hero.role if hero else None, "player": e["player"], "me": e["me"]})
+            e, hero_id = entries[p.key], heroes_of[p.key]
+            hero = heroes.get(hero_id) if hero_id else None
+            rows.append({"hero_id": hero_id, "hero": hero.name if hero else hero_id,
+                         "role": hero.role if hero else None, "player": e["player"], "me": p.key == mine})
         return rows
 
     return {"ally": describe(first), "enemy": describe(second), "sides_known": sides_known,
-            "complete": len(entries) >= 10}
+            "complete": sum(1 for h in heroes_of.values() if h) >= 10}

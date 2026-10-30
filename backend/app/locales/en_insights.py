@@ -92,6 +92,56 @@ EN: dict[str, str] = {
         "Sample too small to conclude: {n} game(s) measured, at least {min} needed.",
     "Tendance observée sur vos parties, pas une preuve de progression : le héros, la carte et les adversaires changent d'une partie à l'autre.":
         "Trend observed over your games, not proof of progress: hero, map and opponents change from one game to the next.",
+    "Sur {hero} : HEROS SCORE d'au moins {n}.": "On {hero}: HEROS SCORE of at least {n}.",
+    "Sur {hero}, jouez propre : survie, combats groupés, objectifs.":
+        "On {hero}, play clean: survival, grouped fights, objectives.",
+    "Partie jouée avec un autre héros.": "Game played on another hero.",
+    "HEROS SCORE indisponible pour cette partie.": "HEROS SCORE unavailable for this game.",
+    "Catégorie la plus faible : {cat} ({n}/100).": "Weakest category: {cat} ({n}/100).",
+    "{w} victoire(s) sur {n} parties avec {hero}.": "{w} win(s) in {n} games on {hero}.",
+    "Revient dans {k} de vos {n} dernières parties.": "Comes up in {k} of your last {n} games.",
+    "Héros manquant pour cet objectif.": "Hero missing for this goal.",
+    "Avec {hero} : {goal}": "With {hero}: {goal}",
+    # diagnostic d'un héros (bon HEROS SCORE, beaucoup de défaites)
+    "HEROS SCORE survie": "HEROS SCORE survival",
+    "HEROS SCORE combats d'équipe": "HEROS SCORE teamfight",
+    "HEROS SCORE placement": "HEROS SCORE positioning",
+    "HEROS SCORE macro": "HEROS SCORE macro",
+    "HEROS SCORE objectifs": "HEROS SCORE objectives",
+    "HEROS SCORE draft": "HEROS SCORE draft",
+    "Morts par partie": "Deaths per game",
+    "Morts isolées par partie": "Isolated deaths per game",
+    "Morts juste avant un objectif": "Deaths right before an objective",
+    "Participation aux éliminations": "Takedown participation",
+    "Avantages numériques convertis": "Numbers advantages converted",
+    "Camps de l'équipe par 10 min": "Team camps per 10 min",
+    "Pas assez de parties pour comparer : {l} défaite(s) avec {hero}, {w} victoire(s) au total, il en faut au moins {min} de chaque.":
+        "Not enough games to compare: {l} loss(es) on {hero}, {w} win(s) overall, at least {min} of each needed.",
+    "{label} : {lost} dans vos défaites avec {hero}, {won} dans vos victoires.":
+        "{label}: {lost} in your losses on {hero}, {won} in your wins.",
+    "Aucun écart net entre vos défaites avec {hero} et vos victoires : ces défaites tiennent peut-être davantage aux compositions d'équipe qu'à votre jeu.":
+        "No clear gap between your losses on {hero} and your wins: these losses may depend more on team compositions than on your play.",
+    "Individuellement, vos défaites avec {hero} ressemblent à vos victoires : l'écart se joue surtout sur le jeu d'équipe autour de vous.":
+        "Individually, your losses on {hero} look like your wins: the gap is mostly in the team play around you.",
+    "Ces points décrochent dans vos défaites avec {hero} par rapport à vos victoires habituelles : c'est là que se joue la différence.":
+        "These points drop in your losses on {hero} compared with your usual wins: that is where the difference lies.",
+    "Vos défaites avec {hero} sont courtes ({lost} min contre {won} min pour vos victoires) : elles se décident tôt, souvent dès les premiers niveaux.":
+        "Your losses on {hero} are short ({lost} min vs {won} min for your wins): they are decided early, often in the first levels.",
+    "Vos défaites avec {hero} sont longues ({lost} min contre {won} min pour vos victoires) : elles se perdent en fin de partie, sur un combat ou un objectif décisif.":
+        "Your losses on {hero} are long ({lost} min vs {won} min for your wins): they are lost late, on a decisive fight or objective.",
+    "Comparaison de {l} défaites avec {hero} et de vos {w} victoires (tous héros). Tendance observée, pas une preuve : alliés, adversaires et cartes changent d'une partie à l'autre.":
+        "Comparison of {l} losses on {hero} with your {w} wins (all heroes). Observed trend, not proof: allies, opponents and maps change from one game to the next.",
+    "Peu de défaites : pistes à confirmer sur les prochaines parties.": "Few losses: leads to confirm over your next games.",
+    "Votre équipe sans soigneur": "Your team without a healer",
+    "Votre équipe sans tank": "Your team without a tank",
+    "Au moins 2 héros de plongée en face": "At least 2 dive heroes on the enemy team",
+    "Plus de frontline en face que dans votre équipe": "More frontline on the enemy team than on yours",
+    "{map} : {w} V / {g} avec {hero}, contre {pct} % de victoires avec vos autres héros sur cette carte.":
+        "{map}: {w} W / {g} on {hero}, vs {pct}% wins with your other heroes on this map.",
+    "{label} : {k} de vos {n} défaites avec {hero}, contre {pct} % de vos victoires.":
+        "{label}: {k} of your {n} losses on {hero}, vs {pct}% of your wins.",
+    "Aucun écart net dans votre jeu entre vos défaites avec {hero} et vos victoires : regardez plutôt les compositions ci-dessous.":
+        "No clear gap in your play between your losses on {hero} and your wins: look at the compositions below instead.",
     "Marque-page introuvable": "Bookmark not found",
     # justifications du rapport
     "Règle : participation aux éliminations d'au moins 70 % (vous : {pct} %).":

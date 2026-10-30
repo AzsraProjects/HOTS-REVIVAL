@@ -105,7 +105,8 @@ def loading_screen(body: LoadingScreenRequest, db: Session = Depends(get_db),
     words = [Word(w.text, w.x, w.y, w.h) for w in body.words]
     entries = read_composition(words, live_session.lobby_players, my_names(db, settings))
     live_session.add_composition(entries)
-    mine = next((e for e in live_session.composition.values() if e["me"]), None)
+    teams = live_session.snapshot()["teams"] or {}
+    mine = next((e for e in teams.get("ally", []) if e["me"] and e["hero_id"]), None)
     if mine and not live_session.my_hero_id:  # votre héros, lu à l'écran
         live_session.my_hero_id = mine["hero_id"]
         live_session.talent_build = recommended_build(db, mine["hero_id"])

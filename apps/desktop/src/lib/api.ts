@@ -3,7 +3,7 @@ import { t } from "./i18n";
 import type {
   LobbyPlayer,
   RankEntry,
-  AppSettings, Bookmark, CommunityStatus, GoalInfo, GoalProgress, GoalResult, GoalSuggestion, Combo, Compliance, HeroMeta, TierListData, DraftResult, Hero, MapInfo, MatchDetail, MatchSummary, OverlayState, Profile,
+  AppSettings, Bookmark, CommunityStatus, GoalInfo, GoalProgress, HeroDiagnosis, GoalResult, GoalSuggestion, Combo, Compliance, HeroMeta, TierListData, DraftResult, Hero, MapInfo, MatchDetail, MatchSummary, OverlayState, Profile,
   ProgressionPoint, Report, ReplayStatus,
 } from "./types";
 
@@ -41,6 +41,7 @@ export const api = {
   compliance: () => request<Compliance>("/compliance"),
   profile: () => request<Profile>("/profile"),
   progression: () => request<ProgressionPoint[]>("/profile/progression"),
+  heroDiagnosis: (heroId: string) => request<HeroDiagnosis>(`/profile/heroes/${encodeURIComponent(heroId)}/diagnosis`),
   matches: (limit = 30, offset = 0) => request<MatchSummary[]>(`/matches?limit=${limit}&offset=${offset}`),
   match: (id: number) => request<MatchDetail>(`/matches/${id}`),
   report: (id: number) => request<Report>(`/matches/${id}/report`),
@@ -68,9 +69,11 @@ export const api = {
   },
   goals: {
     active: () => request<{ active: GoalProgress | null }>("/goals"),
-    suggestions: (matchId: number) => request<GoalSuggestion[]>(`/goals/suggestions?match_id=${matchId}`),
-    set: (key: string, target: number, match_id: number | null = null) =>
-      post<{ active: GoalProgress }>("/goals", { key, target, match_id }),
+    /** Sans partie : propositions d'après les dernières parties (tableau de bord). */
+    suggestions: (matchId?: number) =>
+      request<GoalSuggestion[]>(matchId === undefined ? "/goals/suggestions" : `/goals/suggestions?match_id=${matchId}`),
+    set: (key: string, target: number, match_id: number | null = null, hero_id: string | null = null) =>
+      post<{ active: GoalProgress }>("/goals", { key, target, match_id, hero_id }),
     end: () => request<{ active: null }>("/goals/active", { method: "DELETE" }),
     forMatch: (matchId: number) =>
       request<{ goal: GoalInfo; result: GoalResult; in_period: boolean } | null>(`/goals/match/${matchId}`),

@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.analytics.advantages import advantage_timeline
+from app.analytics.hero_diagnosis import rework_suggestion
 from app.bookmarks import attach_pending
 from app.config import Settings
 from app.live.session import SCREEN_STALE_S, LiveSession
@@ -137,6 +138,112 @@ def test_unmeasurable_goal_is_not_a_failure(client):
     client.post("/api/goals", json={"key": "conversions", "target": 50})
     result = client.get(f"/api/goals/match/{match_id}").json()["result"]
     assert result["value"] is None and result["success"] is None and result["note"]
+
+
+def _games(client, tmp_path, monkeypatch, specs: list[tuple[str, bool, int]]) -> list[int]:
+    """Importe une partie par (héros joué, victoire, morts) ; renvoie les identifiants, la plus récente d'abord."""
+    replays = {}
+    for path in tmp_path.glob("*.StormReplay"):
+        path.unlink()
+    for i, (hero, win, deaths) in enumerate(specs):
+        raw = make_raw_replay(me_wins=win, me_deaths=deaths)
+        players = raw.details["m_playerList"]
+        if hero != "Valla":  # le joueur (emplacement 2) prend ce héros, son allié prend Valla
+            other = next(p for p in players if p["m_hero"] == hero.encode())
+            other["m_hero"], players[1]["m_hero"] = b"Valla", hero.encode()
+        name = f"2026-10-{i + 1:02d} 21.14.02 Tours du Destin.StormReplay"
+        (tmp_path / name).write_bytes(f"partie-{i}".encode())
+        replays[name] = raw
+    monkeypatch.setattr(importer, "read_replay", lambda path: replays[Path(path).name])
+    assert client.post("/api/replays/import", json={}).json()["imported"] == len(specs)
+    return [m["id"] for m in client.get("/api/matches").json()]
+
+
+VALLA_LOSSES_JAINA_WINS = [("Valla", False, 5)] * 4 + [("Jaina", True, 1)] * 3
+
+
+def test_heroes_to_rework_and_recurring_suggestions(client, tmp_path, monkeypatch):
+    _games(client, tmp_path, monkeypatch, VALLA_LOSSES_JAINA_WINS)
+    profile = client.get("/api/profile").json()
+    valla = profile["heroes_to_rework"][0]
+    assert (valla["hero"], valla["games"], valla["wins"]) == ("Valla", 4, 0) and valla["kind"] in ("level", "results")
+    assert profile["trend"]["last_10_wins"] == 3 and profile["trend"]["last_10_games"] == 7
+
+    recent = client.get("/api/goals/suggestions").json()  # tableau de bord : sans partie
+    deaths = next(s for s in recent if s["key"] == "deaths" and not s.get("hero_id"))
+    assert deaths["suggested"] and deaths["reason"] == "Revient dans 4 de vos 7 dernières parties."
+    assert any(s.get("hero_id") == valla["hero_id"] and s["suggested"] for s in recent)
+
+
+def test_diagnosis_explains_losses_on_a_hero(client, tmp_path, monkeypatch, db):
+    _games(client, tmp_path, monkeypatch, VALLA_LOSSES_JAINA_WINS)
+    valla = client.get("/api/profile").json()["heroes_to_rework"][0]
+    diag = client.get(f"/api/profile/heroes/{valla['hero_id']}/diagnosis").json()
+    assert diag["losses"] == 4 and diag["wins_compared"] == 3 and "Peu de défaites" in diag["note"]
+    deaths = next(f for f in diag["findings"] if f["key"] == "deaths")
+    assert deaths["hero_losses"] == 5 and deaths["wins"] == 1 and not deaths["team"]
+    assert deaths["goal"] == {"key": "deaths", "target": 1, "label": "Avec Valla : mourir 1 fois au maximum."}
+    assert diag["verdict"].startswith("Ces points décrochent")
+
+    # bon HEROS SCORE mais défaites : l'objectif proposé vient du diagnostic et ne vise que ce héros
+    option = rework_suggestion(db, {**valla, "kind": "results"}, suggested=True)
+    assert option["hero_id"] == valla["hero_id"] and option["key"] != "hero" and option["reason"]
+    active = client.post("/api/goals", json={**{k: option[k] for k in ("key", "target", "hero_id")}}).json()["active"]
+    assert active["goal"]["label"].startswith("Avec Valla : ")
+
+
+def test_hero_goal_only_counts_games_on_that_hero(client, tmp_path, monkeypatch, db):
+    match_ids = _games(client, tmp_path, monkeypatch, VALLA_LOSSES_JAINA_WINS)
+    assert client.post("/api/goals", json={"key": "hero", "target": 50}).status_code == 422  # héros manquant
+    hero_id = client.get("/api/profile").json()["heroes_to_rework"][0]["hero_id"]
+    active = client.post("/api/goals", json={"key": "hero", "target": 50, "hero_id": hero_id}).json()["active"]
+    assert active["goal"]["label"] == "Sur Valla : HEROS SCORE d'au moins 50." and "Valla" in active["goal"]["reminder"]
+    goal = db.query(Goal).one()
+    goal.created_at = goal.created_at - timedelta(days=3650)
+    db.commit()
+    assert client.get("/api/goals").json()["active"]["measured"] == 4  # les 3 parties sur Jaina ne comptent pas
+    valla_game = match_ids[-1]
+    result = client.get(f"/api/goals/match/{valla_game}").json()["result"]
+    assert result["value"] is not None and result["situations"][0].startswith("Catégorie la plus faible")
+    assert client.get(f"/api/goals/match/{match_ids[0]}").json()["result"]["success"] is None  # partie sur Jaina
+
+
+def _game(hero: str, win: bool, map_id: str, allies: list[str], enemies: list[str]):
+    team = [NS(hero_id=h, role=None, team=0) for h in allies] + [NS(hero_id=h, role=None, team=1) for h in enemies]
+    me = NS(hero_id=hero, is_winner=win, team=0)
+    me.match = NS(map_id=map_id, map_name=map_id.title(), players=team + [NS(hero_id=hero, role=None, team=0)])
+    return me, {}
+
+
+def test_diagnosis_maps_and_compositions():
+    from app.analytics.hero_diagnosis import _compositions, _maps
+
+    usual = ["muradin", "uther", "jaina", "sonya"]
+    losses = [_game("valla", False, "braxis", ["sonya", "jaina", "raynor", "etc"], ["illidan", "genji", "uther", "muradin"])
+              for _ in range(3)]
+    wins = [_game("jaina", True, "braxis", usual, ["raynor", "etc", "rehgar", "tracer"]) for _ in range(4)]
+    texts = _compositions(losses, wins, "Valla")
+    assert any(t.startswith("Votre équipe sans soigneur : 3 de vos 3 défaites avec Valla, contre 0 %") for t in texts)
+    assert any(t.startswith("Au moins 2 héros de plongée en face") for t in texts)
+    maps = _maps(losses + wins, "valla", "Valla")
+    assert maps == ["Braxis : 0 V / 3 avec Valla, contre 100 % de victoires avec vos autres héros sur cette carte."]
+
+
+def test_new_nullable_columns_are_added_to_existing_tables():
+    from sqlalchemy import create_engine, inspect, text
+    from sqlalchemy.pool import StaticPool
+    from app import db as db_module
+
+    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    with engine.begin() as conn:  # table « goals » d'une version précédente, sans hero_id
+        conn.execute(text("CREATE TABLE goals (id INTEGER PRIMARY KEY, key VARCHAR(32), target FLOAT, "
+                          "source_match_id INTEGER, created_at DATETIME, ended_at DATETIME)"))
+    previous, db_module._engine = db_module._engine, engine
+    try:
+        db_module.create_schema()
+    finally:
+        db_module._engine = previous
+    assert "hero_id" in {c["name"] for c in inspect(engine).get_columns("goals")}
 
 
 # ---- marque-pages -------------------------------------------------------------------------------

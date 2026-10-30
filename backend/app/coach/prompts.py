@@ -25,6 +25,7 @@ joueurs de haut niveau) : compare les talents choisis au build recommandé et ex
 - « avantages_numeriques » liste les combats gagnés ou perdus et ce que l'équipe en a tiré (tour, fort, camp, \
 objectif). Un avantage non converti est une opportunité à revoir, jamais une erreur certaine : vie, mana, positions \
 et temps de recharge ne sont pas dans le replay. Ne désigne jamais un joueur comme responsable d'une défaite.
+- Ne conseille jamais d'arrêter de jouer un héros. Pour « heroes_to_rework », explique ce qui est à travailler ; si « diagnostic_heros_bon_score_mais_defaites » est fourni, explique pourquoi ces défaites malgré un bon HEROS SCORE à partir de ses écarts, en rappelant ses limites.
 - Si « repartition_des_roles » montre un rôle très dominant, suggère de développer un second rôle et \
 propose 2 ou 3 héros concrets tirés de « pistes_second_role ».
 - Le HEROS SCORE (0–100) contient six catégories : placement, macro, teamfight, objectifs, survie, draft. \
@@ -51,6 +52,7 @@ high-level players): compare the talents picked with the recommended build and e
 - "avantages_numeriques" lists the fights won or lost and what the team got out of them (tower, fort, camp, \
 objective). An unconverted advantage is an opportunity to review, never a certain mistake: health, mana, positions \
 and cooldowns are not in the replay. Never single out a player as responsible for a loss.
+- Never advise the player to stop playing a hero. For "heroes_to_rework", explain what to work on; if "diagnostic_heros_bon_score_mais_defaites" is provided, explain why these losses happen despite a good HEROS SCORE from its gaps, recalling its limits.
 - If "repartition_des_roles" shows one very dominant role, suggest developing a second role and \
 recommend 2 or 3 concrete heroes taken from "pistes_second_role".
 - The HEROS SCORE (0–100) has six categories: positioning, macro, teamfight, objectives, survival, draft. \

@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from app.i18n import tr
-from app.live.composition import teams_from
+from app.live.composition import add_reading, teams_from
 from app.reference import registry
 
 TALENT_LEVELS = (1, 4, 7, 10, 13, 16, 20)
@@ -210,8 +210,7 @@ class LiveSession:
     def add_composition(self, entries: dict[str, dict]) -> None:
         """Héros lus sur l'écran de chargement (cumulés d'une lecture à l'autre)."""
         with self._lock:
-            for key, entry in entries.items():
-                self.composition.setdefault(key, entry)
+            add_reading(self.composition, entries)
 
     def objective_done(self) -> None:
         """Fin d'objectif signalée par le joueur : le prochain début est alors connu (délai fixe)."""
@@ -421,7 +420,7 @@ def compute_overlay(s: LiveSession) -> dict[str, Any]:
         "levels": ({"ally": ally_level, "enemy": enemy_level, "ally_tier": ally_tier,
                     "enemy_tier": enemy_tier, "source": s.level_source, "stale": stale} if known else None),
         "goal": ({"label": s.goal["label"], "reminder": s.goal["reminder"]} if s.goal else None),
-        "teams": teams_from(s.composition),
+        "teams": teams_from(s.composition, s.my_hero_id),
         "objective": objective,
         "upcoming_objectives": _upcoming(s, clock),
         "camps": camps,

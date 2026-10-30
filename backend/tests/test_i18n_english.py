@@ -2,6 +2,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from app.analytics.hero_diagnosis import METRICS as DIAGNOSIS_METRICS, SITUATIONS as DIAGNOSIS_SITUATIONS
 from app.analytics.report import CATEGORY_LABELS
 from app.coach.prompts import coach_system, summary_instructions
 from app.coach.roles import ROLE_ADVICE, ROLE_PLAYBOOK, role_context
@@ -98,7 +99,7 @@ def test_coach_prompt_language():
 def test_tables_are_translated():
     """Textes traduits via une variable (tableaux, données JSON) : invisibles pour test_i18n.py."""
     keys = _english()
-    texts = [*CATEGORY_LABELS.values(), *(why for _, _, why in NAMED_COMBOS), ROLE_ADVICE,
+    texts = [*CATEGORY_LABELS.values(), *(m.label for m in DIAGNOSIS_METRICS), *DIAGNOSIS_SITUATIONS.values(), *(why for _, _, why in NAMED_COMBOS), ROLE_ADVICE,
              *ALLOWED_SOURCES.values(), *FORBIDDEN_CAPABILITIES, STATEMENT,
              *(cfg["title"] for cfg in TIER_LISTS.values() if cfg["title"] != "ARAM"),
              "début de partie", "milieu de partie", "fin de partie"]

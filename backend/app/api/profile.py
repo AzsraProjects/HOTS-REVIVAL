@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.analytics.hero_diagnosis import hero_diagnosis
 from app.analytics.profile_stats import build_profile, progression
 from app.coach.roles import role_balance
 from app.config import Settings, app_settings
@@ -30,6 +31,12 @@ def get_profile(db: Session = Depends(get_db), settings: Settings = Depends(app_
         **(summary := asdict(build_profile(db))),
         "role_balance": role_balance(summary["by_role"]),
     }
+
+
+@router.get("/heroes/{hero_id}/diagnosis")
+def get_hero_diagnosis(hero_id: str, db: Session = Depends(get_db)) -> dict:
+    """Pourquoi tant de défaites avec ce héros : vos défaites dessus comparées à vos victoires."""
+    return hero_diagnosis(db, hero_id)
 
 
 LEAGUES = ("Bronze", "Argent", "Or", "Platine", "Diamant", "Maître", "Grand Maître")

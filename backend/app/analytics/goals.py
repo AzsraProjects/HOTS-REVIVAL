@@ -15,14 +15,19 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.analytics.advantages import advantage_timeline, fmt_clock
+from app.analytics.heros_score import CATEGORIES
+from app.analytics.profile_stats import build_profile, my_match_lines
+from app.analytics.report import CATEGORY_LABELS
 from app.i18n import tr
 from app.models import Goal, Match, MatchPlayer, Replay, Report
+from app.reference import registry
 
 ISOLATED_WINDOW_S = 10  # aucune autre mort (des deux équipes) à moins de 10 s : mort isolée
 BEFORE_OBJECTIVE_S = 30
 MIN_SAMPLE = 5  # en dessous : pas de conclusion
 TREND_MIN = 6
 RECENT_GAMES = 10
+RECURRING_MIN = 3  # suggestion « récurrente » : présente dans au moins 3 des dernières parties
 
 
 @dataclass
@@ -39,8 +44,15 @@ class GoalDef:
     unit: str  # "" | "%" | "/10 min"
     measure: Callable[[Match, MatchPlayer, dict | None], Measure]
 
-    def label(self, target: float) -> str:
+    def label(self, target: float, hero_id: str | None = None) -> str:
+        """hero_id : objectif limité aux parties sur ce héros."""
         n = int(target) if float(target).is_integer() else target
+        if self.key == "hero":
+            return tr("Sur {hero} : HEROS SCORE d'au moins {n}.", hero=hero_name(hero_id), n=n)
+        text = self._label(n)
+        return tr("Avec {hero} : {goal}", hero=hero_name(hero_id), goal=text[0].lower() + text[1:]) if hero_id else text
+
+    def _label(self, n: float) -> str:
         if self.key == "isolated_deaths" and n <= 1:
             return tr("Aucune mort isolée dans la partie.") if n == 0 else tr("Une mort isolée au maximum par partie.")
         if self.key == "deaths_before_objective" and n == 0:
@@ -54,7 +66,13 @@ class GoalDef:
             "conversions": tr("Convertir au moins {n} % des avantages numériques de votre équipe.", n=n),
         }[self.key]
 
-    def reminder(self) -> str:
+    def reminder(self, hero_id: str | None = None) -> str:
+        if self.key == "hero":
+            return tr("Sur {hero}, jouez propre : survie, combats groupés, objectifs.", hero=hero_name(hero_id))
+        text = self._reminder()
+        return tr("Avec {hero} : {goal}", hero=hero_name(hero_id), goal=text[0].lower() + text[1:]) if hero_id else text
+
+    def _reminder(self) -> str:
         return {
             "deaths": tr("Jouez la survie : reculez dès que vous êtes ciblé."),
             "isolated_deaths": tr("Ne vous éloignez pas seul sans vision."),
@@ -66,6 +84,11 @@ class GoalDef:
 
     def success(self, value: float, target: float) -> bool:
         return value <= target if self.direction == "max" else value >= target
+
+
+def hero_name(hero_id: str | None) -> str:
+    hero = registry().heroes.get(hero_id or "")
+    return hero.name if hero else (hero_id or "?")
 
 
 def _my_deaths(match: Match, me: MatchPlayer) -> list:
@@ -125,6 +148,15 @@ def _conversions(match: Match, me: MatchPlayer, facts: dict | None) -> Measure:
                    [tr("Avantage non converti à {clock}.", clock=m["clock"]) for m in ours if not m["converted"]])
 
 
+def _hero_score(match: Match, me: MatchPlayer, _facts: dict | None) -> Measure:
+    if not me.score:
+        return Measure(None, [], tr("HEROS SCORE indisponible pour cette partie."))
+    s = me.score
+    weakest = min((c for c in CATEGORIES if c != "draft"), key=lambda c: getattr(s, c))
+    return Measure(float(s.overall), [tr("Catégorie la plus faible : {cat} ({n}/100).",
+                                         cat=tr(CATEGORY_LABELS[weakest]), n=round(getattr(s, weakest)))])
+
+
 GOALS: dict[str, GoalDef] = {g.key: g for g in (
     GoalDef("deaths", "max", "", _deaths),
     GoalDef("isolated_deaths", "max", "", _isolated),
@@ -132,13 +164,18 @@ GOALS: dict[str, GoalDef] = {g.key: g for g in (
     GoalDef("kill_participation", "min", "%", _kill_participation),
     GoalDef("camps", "min", "/10 min", _camps),
     GoalDef("conversions", "min", "%", _conversions),
+    GoalDef("hero", "min", "", _hero_score),
 )}
 DEFAULT_TARGETS = {"deaths": 4, "isolated_deaths": 1, "deaths_before_objective": 0, "kill_participation": 60,
                    "camps": 2, "conversions": 50}
 
 
-def evaluate(goal: GoalDef, target: float, match: Match, me: MatchPlayer, facts: dict | None) -> dict:
-    m = goal.measure(match, me, facts)
+def evaluate(goal: GoalDef, target: float, match: Match, me: MatchPlayer, facts: dict | None,
+             hero_id: str | None = None) -> dict:
+    if hero_id and me.hero_id != hero_id:
+        m = Measure(None, [], tr("Partie jouée avec un autre héros."))
+    else:
+        m = goal.measure(match, me, facts)
     return {"value": m.value, "target": target, "unit": goal.unit,
             "success": None if m.value is None else goal.success(m.value, target),
             "situations": m.situations[:8], "note": m.note}
@@ -181,14 +218,45 @@ def suggestions(match: Match, me: MatchPlayer, facts: dict | None) -> list[dict]
     return out
 
 
+def recent_suggestions(db: Session) -> list[dict]:
+    """Objectifs proposés sans débrief : les erreurs qui reviennent sur les dernières parties, puis le héros
+    le plus difficile. Rien n'est « proposé » tant qu'une erreur n'est pas récurrente."""
+    lines = my_match_lines(db, limit=RECENT_GAMES)
+    seen: dict[str, list[float]] = {}
+    for me in lines:
+        report = db.scalar(select(Report).where(Report.match_id == me.match_id))
+        for s in suggestions(me.match, me, report.facts if report else None):
+            if s["suggested"]:
+                seen.setdefault(s["key"], []).append(s["target"])
+    out = []
+    for key, targets in sorted(seen.items(), key=lambda kv: -len(kv[1])):
+        if len(targets) < RECURRING_MIN:
+            continue
+        target = sorted(targets)[len(targets) // 2]
+        out.append({"key": key, "target": target, "label": GOALS[key].label(target),
+                    "reason": tr("Revient dans {k} de vos {n} dernières parties.", k=len(targets), n=len(lines)),
+                    "suggested": True})
+    from app.analytics.hero_diagnosis import rework_suggestion  # import local : le diagnostic utilise GOALS
+
+    rework = build_profile(db).heroes_to_rework
+    if rework and (option := rework_suggestion(db, rework[0], suggested=True)):
+        out.append(option)
+    for key, target in DEFAULT_TARGETS.items():
+        if all(s["key"] != key for s in out):
+            out.append({"key": key, "target": target, "label": GOALS[key].label(target), "reason": None,
+                        "suggested": False})
+    return out
+
+
 def active_goal(db: Session) -> Goal | None:
     return db.scalar(select(Goal).where(Goal.ended_at.is_(None)).order_by(Goal.id.desc()))
 
 
 def goal_out(goal: Goal) -> dict:
     g = GOALS[goal.key]
-    return {"id": goal.id, "key": goal.key, "target": goal.target, "label": g.label(goal.target),
-            "reminder": g.reminder(), "direction": g.direction, "unit": g.unit,
+    return {"id": goal.id, "key": goal.key, "target": goal.target, "hero_id": goal.hero_id,
+            "label": g.label(goal.target, goal.hero_id), "reminder": g.reminder(goal.hero_id),
+            "direction": g.direction, "unit": g.unit,
             "created_at": goal.created_at, "source_match_id": goal.source_match_id}
 
 
@@ -218,8 +286,10 @@ def progress(db: Session, goal: Goal) -> dict:
         match = me.match
         if not played_after(match, goal.created_at):
             continue
+        if goal.hero_id and me.hero_id != goal.hero_id:
+            continue  # parties sur d'autres héros : hors du suivi
         report = db.scalar(select(Report).where(Report.match_id == match.id))
-        result = evaluate(g, goal.target, match, me, report.facts if report else None)
+        result = evaluate(g, goal.target, match, me, report.facts if report else None, goal.hero_id)
         games.append({"match_id": match.id, "map": match.map_name, "hero": me.hero_name,
                       "played_at": match.played_at, "win": me.is_winner, **result})
         if len(games) >= RECENT_GAMES * 3:
